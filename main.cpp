@@ -472,7 +472,7 @@ void SetMode(int mode)
 			g_LoadGame = FALSE;		// ロードしたからフラグをClearする
 		}
 
-		PlaySound(SOUND_LABEL_BGM_sample001);
+		PlaySound(SOUND_LABEL_BGM_MAIN_LEVEL);
 		break;
 
 	case MODE_RESULT:
