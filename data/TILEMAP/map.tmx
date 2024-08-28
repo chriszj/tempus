@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="23">
- <tileset firstgid="1" source="../Grass.tsx"/>
- <tileset firstgid="65" source="../Wall.tsx"/>
- <tileset firstgid="321" source="../Plant.tsx"/>
- <tileset firstgid="577" source="../Props.tsx"/>
- <layer id="1" name="タイルレイヤー1" width="30" height="20" locked="1">
+ <editorsettings>
+  <export target="export/map..tmj" format="json"/>
+ </editorsettings>
+ <tileset firstgid="1" source="Grass.tsx"/>
+ <tileset firstgid="65" source="Wall.tsx"/>
+ <tileset firstgid="321" source="Plant.tsx"/>
+ <tileset firstgid="577" source="Props.tsx"/>
+ <layer id="1" name="Layer0" width="30" height="20" locked="1">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -28,7 +31,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer id="2" name="タイルレイヤー2" width="30" height="20" locked="1">
+ <layer id="2" name="Layer1" width="30" height="20" locked="1">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -52,7 +55,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer id="4" name="タイルレイヤー3" width="30" height="20">
+ <layer id="4" name="Props" width="30" height="20">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

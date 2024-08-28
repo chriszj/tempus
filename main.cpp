@@ -12,6 +12,7 @@
 
 #include "title.h"
 #include "bg.h"
+#include "field.h"
 #include "player.h"
 #include "enemy.h"
 #include "bullet.h"
@@ -309,6 +310,7 @@ void Update(void)
 
 	case MODE_GAME:			// ゲーム画面の更新
 		UpdateBG();
+		UpdateField();
 		UpdatePlayer();
 		UpdateEnemy();
 		UpdateBullet();
@@ -366,6 +368,7 @@ void Draw(void)
 		DrawBG();
 		DrawBullet();		// 重なる順番を意識してね
 		DrawEnemy();
+		DrawField();
 		DrawPlayer();
 		DrawEffect();
 		DrawScore();
@@ -427,6 +430,9 @@ void SetMode(int mode)
 	// BGの終了処理
 	UninitBG();
 
+	// マップチップの終了処理
+	UninitField();
+
 	// プレイヤーの終了処理
 	UninitPlayer();
 
@@ -459,6 +465,7 @@ void SetMode(int mode)
 	case MODE_GAME:
 		// ゲーム画面の初期化
 		InitBG();
+		InitField();
 		InitPlayer();
 		InitEnemy();
 		InitBullet();

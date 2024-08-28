@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// エネミー処理 [enemy.h]
+// エネミー処理 [fieldf.h]
 // Author : 
 //
 //=============================================================================
@@ -14,14 +14,14 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define ENEMY_MAX		(3)		// エネミーのMax人数
+#define LAYER_MAX		(3)		// エネミーのMax人数
 
 
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
 
-struct ENEMY
+struct FIELD
 {
 	XMFLOAT3	pos;			// ポリゴンの座標
 	XMFLOAT3	rot;			// ポリゴンの回転量
@@ -34,7 +34,7 @@ struct ENEMY
 	XMFLOAT3	move;			// 移動速度
 
 
-	float		time;			// 線形補間用
+	float		tileTime;			// 線形補間用
 	int			tblNo;			// 行動データのテーブル番号
 	int			tblMax;			// そのテーブルのデータ数
 
@@ -47,14 +47,14 @@ struct ENEMY
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-HRESULT InitEnemy(void);
-void UninitEnemy(void);
-void UpdateEnemy(void);
-void DrawEnemy(void);
+HRESULT InitField(void);
+void UninitField(void);
+void UpdateField(void);
+void DrawField(void);
 
-ENEMY* GetEnemy(void);
+FIELD* GetField(void);
 
-int GetEnemyCount(void);
+int GetFieldCount(void);
 
 
 

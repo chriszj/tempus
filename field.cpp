@@ -4,11 +4,12 @@
 // Author : 
 //
 //=============================================================================
-#include "enemy.h"
+#include "field.h"
 #include "bg.h"
 #include "player.h"
 #include "fade.h"
 #include "collision.h"
+#include "pugixml.hpp"
 
 //*****************************************************************************
 // マクロ定義
@@ -41,56 +42,40 @@ static char *g_TexturName[TEXTURE_MAX] = {
 
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
-static ENEMY	g_Enemy[ENEMY_MAX];		// エネミー構造体
+static FIELD	g_Enemy[LAYER_MAX];		// エネミー構造体
 
-static int		g_EnemyCount = ENEMY_MAX;
+static int		g_EnemyCount = LAYER_MAX;
 
 static float offsetx = 200.0f;
 static float offsety = 200.0f;
 
 static float moveFactor = 200.0f;
-static float time = 25.0f;
-
-static INTERPOLATION_DATA g_MoveTbl0[] = {
-	//座標									回転率							拡大率					時間
-	{ XMFLOAT3( offsetx,  offsety, 0.0f),	XMFLOAT3(0.0f, 0.0f, 5.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	time },
-	{ XMFLOAT3( offsetx + moveFactor,  offsety, 0.0f),	XMFLOAT3(0.0f, 0.0f, 2.0f),	XMFLOAT3(0.3f, 1.0f, 1.0f),	time },
-	{ XMFLOAT3( offsetx, offsety + (moveFactor*0.9f), 0.0f),	XMFLOAT3(0.0f, 0.0f, -3.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	time },
-	{ XMFLOAT3( offsetx + (moveFactor/2),  offsety - (moveFactor*0.4f), 0.0f),	XMFLOAT3(0.0f, 0.0f, 3.0f),	XMFLOAT3(0.3f, 1.0f, 1.0f),	time},
-	{ XMFLOAT3( offsetx + moveFactor, offsety + (moveFactor*0.9f), 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(-1.0f, 1.0f, 1.0f),	time },
-
-};
-
-
-static INTERPOLATION_DATA g_MoveTbl1[] = {
-	//座標									回転率							拡大率							時間
-	{ XMFLOAT3(1700.0f,   0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	60 },
-	{ XMFLOAT3(1700.0f,  SCREEN_HEIGHT, 0.0f),XMFLOAT3(0.0f, 0.0f, 6.28f),	XMFLOAT3(2.0f, 2.0f, 1.0f),	60 },
-};
-
-
-static INTERPOLATION_DATA g_MoveTbl2[] = {
-	//座標									回転率							拡大率							時間
-	{ XMFLOAT3(3000.0f, 100.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),		XMFLOAT3(1.0f, 1.0f, 1.0f),	60 },
-	{ XMFLOAT3(3000 + SCREEN_WIDTH, 100.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 6.28f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	60 },
-};
-
-
-static INTERPOLATION_DATA* g_MoveTblAdr[] =
-{
-	g_MoveTbl0,
-	g_MoveTbl1,
-	g_MoveTbl2,
-
-};
-
+static float tileTime = 25.0f;
 
 //=============================================================================
 // 初期化処理
 //=============================================================================
-HRESULT InitEnemy(void)
+HRESULT InitField(void)
 {
 	ID3D11Device *pDevice = GetDevice();
+
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file("data/TILEMAP/map.tmx");
+
+	if (result)
+	{
+
+		for (pugi::xml_node tool : doc.child("map").children("layer"))
+		{
+			
+
+			std::string str = "Level is: ";
+			str.append(tool.attribute("name").value());
+			
+			OutputDebugStringA(str.c_str());
+		}
+
+	}
 
 	//テクスチャ生成
 	for (int i = 0; i < TEXTURE_MAX; i++)
@@ -117,7 +102,7 @@ HRESULT InitEnemy(void)
 
 	// エネミー構造体の初期化
 	g_EnemyCount = 0;
-	for (int i = 0; i < ENEMY_MAX; i++)
+	for (int i = 0; i < LAYER_MAX; i++)
 	{
 		g_EnemyCount++;
 		g_Enemy[i].use = TRUE;
@@ -133,25 +118,10 @@ HRESULT InitEnemy(void)
 
 		g_Enemy[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
-		g_Enemy[i].time = 0.0f;			// 線形補間用のタイマーをクリア
+		g_Enemy[i].tileTime = 0.0f;			// 線形補間用のタイマーをクリア
 		g_Enemy[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
 		g_Enemy[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
 	}
-
-	// 0番だけ線形補間で動かしてみる
-	g_Enemy[0].time = 0.0f;		// 線形補間用のタイマーをクリア
-	g_Enemy[0].tblNo = 0;		// 再生するアニメデータの先頭アドレスをセット
-	g_Enemy[0].tblMax = sizeof(g_MoveTbl0) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
-
-	// 1番だけ線形補間で動かしてみる
-	g_Enemy[1].time = 0.0f;		// 線形補間用のタイマーをクリア
-	g_Enemy[1].tblNo = 1;		// 再生するアニメデータの先頭アドレスをセット
-	g_Enemy[1].tblMax = sizeof(g_MoveTbl1) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
-
-	// 2番だけ線形補間で動かしてみる
-	g_Enemy[2].time = 0.0f;		// 線形補間用のタイマーをクリア
-	g_Enemy[2].tblNo = 2;		// 再生するアニメデータの先頭アドレスをセット
-	g_Enemy[2].tblMax = sizeof(g_MoveTbl2) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
 
 	g_Load = TRUE;
 	return S_OK;
@@ -160,7 +130,7 @@ HRESULT InitEnemy(void)
 //=============================================================================
 // 終了処理
 //=============================================================================
-void UninitEnemy(void)
+void UninitField(void)
 {
 	if (g_Load == FALSE) return;
 
@@ -185,12 +155,12 @@ void UninitEnemy(void)
 //=============================================================================
 // 更新処理
 //=============================================================================
-void UpdateEnemy(void)
+void UpdateField(void)
 {
 	if (g_Load == FALSE) return;
 	g_EnemyCount = 0;			// 生きてるエネミーの数
 
-	for (int i = 0; i < ENEMY_MAX; i++)
+	for (int i = 0; i < LAYER_MAX; i++)
 	{
 		// 生きてるエネミーだけ処理をする
 		if (g_Enemy[i].use == TRUE)
@@ -210,53 +180,53 @@ void UpdateEnemy(void)
 			}
 
 			// 移動処理
-			if (g_Enemy[i].tblMax > 0)	// 線形補間を実行する？
-			{	// 線形補間の処理
-				int nowNo = (int)g_Enemy[i].time;			// 整数分であるテーブル番号を取り出している
-				int maxNo = g_Enemy[i].tblMax;				// 登録テーブル数を数えている
-				int nextNo = (nowNo + 1) % maxNo;			// 移動先テーブルの番号を求めている
-				INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Enemy[i].tblNo];	// 行動テーブルのアドレスを取得
-				
-				XMVECTOR nowPos = XMLoadFloat3(&tbl[nowNo].pos);	// XMVECTORへ変換
-				XMVECTOR nowRot = XMLoadFloat3(&tbl[nowNo].rot);	// XMVECTORへ変換
-				XMVECTOR nowScl = XMLoadFloat3(&tbl[nowNo].scl);	// XMVECTORへ変換
-				
-				XMVECTOR Pos = XMLoadFloat3(&tbl[nextNo].pos) - nowPos;	// XYZ移動量を計算している
-				XMVECTOR Rot = XMLoadFloat3(&tbl[nextNo].rot) - nowRot;	// XYZ回転量を計算している
-				XMVECTOR Scl = XMLoadFloat3(&tbl[nextNo].scl) - nowScl;	// XYZ拡大率を計算している
-				
-				float nowTime = g_Enemy[i].time - nowNo;	// 時間部分である少数を取り出している
-				
-				Pos *= nowTime;								// 現在の移動量を計算している
-				Rot *= nowTime;								// 現在の回転量を計算している
-				Scl *= nowTime;								// 現在の拡大率を計算している
+			//if (g_Enemy[i].tblMax > 0)	// 線形補間を実行する？
+			//{	// 線形補間の処理
+			//	int nowNo = (int)g_Enemy[i].tileTime;			// 整数分であるテーブル番号を取り出している
+			//	int maxNo = g_Enemy[i].tblMax;				// 登録テーブル数を数えている
+			//	int nextNo = (nowNo + 1) % maxNo;			// 移動先テーブルの番号を求めている
+			//	INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Enemy[i].tblNo];	// 行動テーブルのアドレスを取得
+			//	
+			//	XMVECTOR nowPos = XMLoadFloat3(&tbl[nowNo].pos);	// XMVECTORへ変換
+			//	XMVECTOR nowRot = XMLoadFloat3(&tbl[nowNo].rot);	// XMVECTORへ変換
+			//	XMVECTOR nowScl = XMLoadFloat3(&tbl[nowNo].scl);	// XMVECTORへ変換
+			//	
+			//	XMVECTOR Pos = XMLoadFloat3(&tbl[nextNo].pos) - nowPos;	// XYZ移動量を計算している
+			//	XMVECTOR Rot = XMLoadFloat3(&tbl[nextNo].rot) - nowRot;	// XYZ回転量を計算している
+			//	XMVECTOR Scl = XMLoadFloat3(&tbl[nextNo].scl) - nowScl;	// XYZ拡大率を計算している
+			//	
+			//	float nowTime = g_Enemy[i].tileTime - nowNo;	// 時間部分である少数を取り出している
+			//	
+			//	Pos *= nowTime;								// 現在の移動量を計算している
+			//	Rot *= nowTime;								// 現在の回転量を計算している
+			//	Scl *= nowTime;								// 現在の拡大率を計算している
 
-				// 計算して求めた移動量を現在の移動テーブルXYZに足している＝表示座標を求めている
-				XMStoreFloat3(&g_Enemy[i].pos, nowPos + Pos);
+			//	// 計算して求めた移動量を現在の移動テーブルXYZに足している＝表示座標を求めている
+			//	XMStoreFloat3(&g_Enemy[i].pos, nowPos + Pos);
 
-				// 計算して求めた回転量を現在の移動テーブルに足している
-				XMStoreFloat3(&g_Enemy[i].rot, nowRot + Rot);
+			//	// 計算して求めた回転量を現在の移動テーブルに足している
+			//	XMStoreFloat3(&g_Enemy[i].rot, nowRot + Rot);
 
-				// 計算して求めた拡大率を現在の移動テーブルに足している
-				XMStoreFloat3(&g_Enemy[i].scl, nowScl + Scl);
-				g_Enemy[i].w = TEXTURE_WIDTH * g_Enemy[i].scl.x;
-				g_Enemy[i].h = TEXTURE_HEIGHT * g_Enemy[i].scl.y;
+			//	// 計算して求めた拡大率を現在の移動テーブルに足している
+			//	XMStoreFloat3(&g_Enemy[i].scl, nowScl + Scl);
+			//	g_Enemy[i].w = TEXTURE_WIDTH * g_Enemy[i].scl.x;
+			//	g_Enemy[i].h = TEXTURE_HEIGHT * g_Enemy[i].scl.y;
 
-				// frameを使て時間経過処理をする
-				g_Enemy[i].time += 1.0f / tbl[nowNo].frame;	// 時間を進めている
-				if ((int)g_Enemy[i].time >= maxNo)			// 登録テーブル最後まで移動したか？
-				{
-					g_Enemy[i].time -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
-				}
+			//	// frameを使て時間経過処理をする
+			//	g_Enemy[i].tileTime += 1.0f / tbl[nowNo].frame;	// 時間を進めている
+			//	if ((int)g_Enemy[i].tileTime >= maxNo)			// 登録テーブル最後まで移動したか？
+			//	{
+			//		g_Enemy[i].tileTime -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
+			//	}
 
-			}
+			//}
 
 			// 移動が終わったらエネミーとの当たり判定
 			{
 				PLAYER* player = GetPlayer();
 
 				// エネミーの数分当たり判定を行う
-				for (int j = 0; j < ENEMY_MAX; j++)
+				for (int j = 0; j < LAYER_MAX; j++)
 				{
 					// 生きてるエネミーと当たり判定をする
 					if (player[j].use == TRUE)
@@ -292,7 +262,7 @@ void UpdateEnemy(void)
 //=============================================================================
 // 描画処理
 //=============================================================================
-void DrawEnemy(void)
+void DrawField(void)
 {
 	// 頂点バッファ設定
 	UINT stride = sizeof(VERTEX_3D);
@@ -313,7 +283,7 @@ void DrawEnemy(void)
 
 	BG* bg = GetBG();
 
-	for (int i = 0; i < ENEMY_MAX; i++)
+	for (int i = 0; i < LAYER_MAX; i++)
 	{
 		if (g_Enemy[i].use == TRUE)			// このエネミーが使われている？
 		{									// Yes
@@ -380,7 +350,7 @@ void DrawEnemy(void)
 		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
 
 		//ゲージの位置やテクスチャー座標を反映
-		pw = pw * ((float)g_EnemyCount / ENEMY_MAX);
+		pw = pw * ((float)g_EnemyCount / LAYER_MAX);
 
 		// １枚のポリゴンの頂点とテクスチャ座標を設定
 		SetSpriteLTColor(g_VertexBuffer,
@@ -403,14 +373,14 @@ void DrawEnemy(void)
 //=============================================================================
 // Enemy構造体の先頭アドレスを取得
 //=============================================================================
-ENEMY* GetEnemy(void)
+FIELD* GetField(void)
 {
 	return &g_Enemy[0];
 }
 
 
 // 生きてるエネミーの数
-int GetEnemyCount(void)
+int GetFieldCount(void)
 {
 	return g_EnemyCount;
 }
