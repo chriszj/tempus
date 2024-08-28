@@ -33,18 +33,17 @@
 // グローバル変数
 //*****************************************************************************
 static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
-static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
+static ID3D11ShaderResourceView	*g_Texture[TILESET_MAX] = { NULL };	// テクスチャ情報
 
-static char *g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/enemy00.png",
-	"data/TEXTURE/bar_white.png",
-};
+static char* g_TilemapFolder = "data/TILEMAP/";
 
+static TILESET g_Tilesets[TILESET_MAX];
+static MAPLAYER g_MapLayers[MAP_LAYER_MAX];
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
-static FIELD	g_Enemy[LAYER_MAX];		// エネミー構造体
+static TILE	 g_Tiles[TILES_PER_LAYER_MAX];		// エネミー構造体
 
-static int		g_EnemyCount = LAYER_MAX;
+static int	 g_TileCount = TILES_PER_LAYER_MAX;
 
 static float offsetx = 200.0f;
 static float offsety = 200.0f;
@@ -52,41 +51,110 @@ static float offsety = 200.0f;
 static float moveFactor = 200.0f;
 static float tileTime = 25.0f;
 
+
+
 //=============================================================================
 // 初期化処理
 //=============================================================================
 HRESULT InitField(void)
 {
-	ID3D11Device *pDevice = GetDevice();
+	ID3D11Device* pDevice = GetDevice();
 
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file("data/TILEMAP/map.tmx");
 
+	// マップチップの準備
 	if (result)
 	{
 
-		for (pugi::xml_node tool : doc.child("map").children("layer"))
+		int tilesetNodeCount = 0;
+
+		// マップチップのテキスチャーの準備
+		for (pugi::xml_node xmltileset : doc.child("map").children("tileset"))
 		{
-			
+			TILESET tileset;
+			tileset.firstgid = xmltileset.attribute("firstgid").as_int();
+
+			char path[128] = {};
+			const char* source = xmltileset.attribute("source").value();
+
+			memcpy(path, g_TilemapFolder, strlen(g_TilemapFolder));
+
+			memcpy(path + strlen(path), source, strlen(source));
+
+
+			tileset.source = path;
+
+			pugi::xml_document tilesetDoc;
+			pugi::xml_parse_result tilesetDocResult = tilesetDoc.load_file(tileset.source);
+
+			if (tilesetDocResult) {
+
+				pugi::xml_node tilesetInnerNode = tilesetDoc.child("tileset");
+
+				tileset.name = tilesetInnerNode.attribute("name").value();
+				tileset.tilewidth = tilesetInnerNode.attribute("name").as_int();
+				tileset.tileheight = tilesetInnerNode.attribute("tileheight").as_int();
+				tileset.tilecount = tilesetInnerNode.attribute("tilecount").as_int();
+				tileset.columns = tilesetInnerNode.attribute("columns").as_int();
+
+				pugi::xml_node tilesetTextureNode = tilesetInnerNode.child("image");
+
+				tileset.textureSource = tilesetTextureNode.attribute("source").value();
+				tileset.textureW = tilesetTextureNode.attribute("width").as_int();
+				tileset.textureH = tilesetTextureNode.attribute("height").as_int();
+
+				g_Tilesets[tilesetNodeCount] = tileset;
+				tilesetNodeCount++;
+
+			}
+		}
+
+		int mapLayerNodeCount = 0;
+
+		// マップチップのレイヤーの準備
+		for (pugi::xml_node mapLayerNode : doc.child("map").children("layer"))
+		{
+
 
 			std::string str = "Level is: ";
-			str.append(tool.attribute("name").value());
-			
+			str.append(mapLayerNode.attribute("name").value());
+
 			OutputDebugStringA(str.c_str());
+
+
+			MAPLAYER mapLayer;
+
+			mapLayer.id = mapLayerNode.attribute("id").as_int();
+			mapLayer.name = mapLayerNode.attribute("name").value();
+			mapLayer.width = mapLayerNode.attribute("width").as_int();
+			mapLayer.height = mapLayerNode.attribute("height").as_int();
+
+			mapLayer.rawData = mapLayerNode.child("data").child_value();
+
+			g_MapLayers[mapLayerNodeCount] = mapLayer;
+
+			mapLayerNodeCount++;
 		}
 
 	}
 
 	//テクスチャ生成
-	for (int i = 0; i < TEXTURE_MAX; i++)
+	for (int i = 0; i < TILESET_MAX; i++)
 	{
+
 		g_Texture[i] = NULL;
+
+		if (g_Tilesets[i].firstgid < 0)
+			continue;
+
 		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
-			g_TexturName[i],
+			g_Tilesets[i].textureSource,
 			NULL,
 			NULL,
 			&g_Texture[i],
 			NULL);
+
 	}
 
 
@@ -100,27 +168,44 @@ HRESULT InitField(void)
 	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
 
-	// エネミー構造体の初期化
-	g_EnemyCount = 0;
-	for (int i = 0; i < LAYER_MAX; i++)
+	// タイル準備
+	g_TileCount = 0;
+
+	for (int ml = 0; ml < MAP_LAYER_MAX; ml++)
 	{
-		g_EnemyCount++;
-		g_Enemy[i].use = TRUE;
-		g_Enemy[i].pos = XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
-		g_Enemy[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Enemy[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		g_Enemy[i].w = TEXTURE_WIDTH;
-		g_Enemy[i].h = TEXTURE_HEIGHT;
-		g_Enemy[i].texNo = 0;
+	
+		//int getSize(char* s) {
+		//	char* t; // first copy the pointer to not change the original
+		//	int size = 0;
 
-		g_Enemy[i].countAnim = 0;
-		g_Enemy[i].patternAnim = 0;
+		//	for (t = s; *t != '\0'; t++) {
+		//		size++;
+		//	}
 
-		g_Enemy[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
+		//	return size;
+		//}
+	
+	}
 
-		g_Enemy[i].tileTime = 0.0f;			// 線形補間用のタイマーをクリア
-		g_Enemy[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
-		g_Enemy[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
+	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
+	{
+		g_TileCount++;
+		g_Tiles[i].use = TRUE;
+		g_Tiles[i].pos = XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
+		g_Tiles[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		g_Tiles[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		g_Tiles[i].w = TEXTURE_WIDTH;
+		g_Tiles[i].h = TEXTURE_HEIGHT;
+		g_Tiles[i].texNo = 0;
+
+		g_Tiles[i].countAnim = 0;
+		g_Tiles[i].patternAnim = 0;
+
+		g_Tiles[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
+
+		g_Tiles[i].tileTime = 0.0f;			// 線形補間用のタイマーをクリア
+		g_Tiles[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
+		g_Tiles[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
 	}
 
 	g_Load = TRUE;
@@ -140,7 +225,7 @@ void UninitField(void)
 		g_VertexBuffer = NULL;
 	}
 
-	for (int i = 0; i < TEXTURE_MAX; i++)
+	for (int i = 0; i < TILESET_MAX; i++)
 	{
 		if (g_Texture[i])
 		{
@@ -158,34 +243,34 @@ void UninitField(void)
 void UpdateField(void)
 {
 	if (g_Load == FALSE) return;
-	g_EnemyCount = 0;			// 生きてるエネミーの数
+	g_TileCount = 0;			// 生きてるエネミーの数
 
-	for (int i = 0; i < LAYER_MAX; i++)
+	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
 	{
 		// 生きてるエネミーだけ処理をする
-		if (g_Enemy[i].use == TRUE)
+		if (g_Tiles[i].use == TRUE)
 		{
-			g_EnemyCount++;		// 生きてた敵の数
+			g_TileCount++;		// 生きてた敵の数
 			
 			// 地形との当たり判定用に座標のバックアップを取っておく
-			XMFLOAT3 pos_old = g_Enemy[i].pos;
+			XMFLOAT3 pos_old = g_Tiles[i].pos;
 
 			// アニメーション  
-			g_Enemy[i].countAnim += 1.0f;
-			if (g_Enemy[i].countAnim > ANIM_WAIT)
+			g_Tiles[i].countAnim += 1.0f;
+			if (g_Tiles[i].countAnim > ANIM_WAIT)
 			{
-				g_Enemy[i].countAnim = 0.0f;
+				g_Tiles[i].countAnim = 0.0f;
 				// パターンの切り替え
-				g_Enemy[i].patternAnim = (g_Enemy[i].patternAnim + 1) % ANIM_PATTERN_NUM;
+				g_Tiles[i].patternAnim = (g_Tiles[i].patternAnim + 1) % ANIM_PATTERN_NUM;
 			}
 
 			// 移動処理
-			//if (g_Enemy[i].tblMax > 0)	// 線形補間を実行する？
+			//if (g_Tiles[i].tblMax > 0)	// 線形補間を実行する？
 			//{	// 線形補間の処理
-			//	int nowNo = (int)g_Enemy[i].tileTime;			// 整数分であるテーブル番号を取り出している
-			//	int maxNo = g_Enemy[i].tblMax;				// 登録テーブル数を数えている
+			//	int nowNo = (int)g_Tiles[i].tileTime;			// 整数分であるテーブル番号を取り出している
+			//	int maxNo = g_Tiles[i].tblMax;				// 登録テーブル数を数えている
 			//	int nextNo = (nowNo + 1) % maxNo;			// 移動先テーブルの番号を求めている
-			//	INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Enemy[i].tblNo];	// 行動テーブルのアドレスを取得
+			//	INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Tiles[i].tblNo];	// 行動テーブルのアドレスを取得
 			//	
 			//	XMVECTOR nowPos = XMLoadFloat3(&tbl[nowNo].pos);	// XMVECTORへ変換
 			//	XMVECTOR nowRot = XMLoadFloat3(&tbl[nowNo].rot);	// XMVECTORへ変換
@@ -195,28 +280,28 @@ void UpdateField(void)
 			//	XMVECTOR Rot = XMLoadFloat3(&tbl[nextNo].rot) - nowRot;	// XYZ回転量を計算している
 			//	XMVECTOR Scl = XMLoadFloat3(&tbl[nextNo].scl) - nowScl;	// XYZ拡大率を計算している
 			//	
-			//	float nowTime = g_Enemy[i].tileTime - nowNo;	// 時間部分である少数を取り出している
+			//	float nowTime = g_Tiles[i].tileTime - nowNo;	// 時間部分である少数を取り出している
 			//	
 			//	Pos *= nowTime;								// 現在の移動量を計算している
 			//	Rot *= nowTime;								// 現在の回転量を計算している
 			//	Scl *= nowTime;								// 現在の拡大率を計算している
 
 			//	// 計算して求めた移動量を現在の移動テーブルXYZに足している＝表示座標を求めている
-			//	XMStoreFloat3(&g_Enemy[i].pos, nowPos + Pos);
+			//	XMStoreFloat3(&g_Tiles[i].pos, nowPos + Pos);
 
 			//	// 計算して求めた回転量を現在の移動テーブルに足している
-			//	XMStoreFloat3(&g_Enemy[i].rot, nowRot + Rot);
+			//	XMStoreFloat3(&g_Tiles[i].rot, nowRot + Rot);
 
 			//	// 計算して求めた拡大率を現在の移動テーブルに足している
-			//	XMStoreFloat3(&g_Enemy[i].scl, nowScl + Scl);
-			//	g_Enemy[i].w = TEXTURE_WIDTH * g_Enemy[i].scl.x;
-			//	g_Enemy[i].h = TEXTURE_HEIGHT * g_Enemy[i].scl.y;
+			//	XMStoreFloat3(&g_Tiles[i].scl, nowScl + Scl);
+			//	g_Tiles[i].w = TEXTURE_WIDTH * g_Tiles[i].scl.x;
+			//	g_Tiles[i].h = TEXTURE_HEIGHT * g_Tiles[i].scl.y;
 
 			//	// frameを使て時間経過処理をする
-			//	g_Enemy[i].tileTime += 1.0f / tbl[nowNo].frame;	// 時間を進めている
-			//	if ((int)g_Enemy[i].tileTime >= maxNo)			// 登録テーブル最後まで移動したか？
+			//	g_Tiles[i].tileTime += 1.0f / tbl[nowNo].frame;	// 時間を進めている
+			//	if ((int)g_Tiles[i].tileTime >= maxNo)			// 登録テーブル最後まで移動したか？
 			//	{
-			//		g_Enemy[i].tileTime -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
+			//		g_Tiles[i].tileTime -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
 			//	}
 
 			//}
@@ -226,12 +311,12 @@ void UpdateField(void)
 				PLAYER* player = GetPlayer();
 
 				// エネミーの数分当たり判定を行う
-				for (int j = 0; j < LAYER_MAX; j++)
+				for (int j = 0; j < TILES_PER_LAYER_MAX; j++)
 				{
 					// 生きてるエネミーと当たり判定をする
 					if (player[j].use == TRUE)
 					{
-						BOOL ans = CollisionBB(g_Enemy[i].pos, g_Enemy[i].w, g_Enemy[i].h,
+						BOOL ans = CollisionBB(g_Tiles[i].pos, g_Tiles[i].w, g_Tiles[i].h,
 							player[j].pos, player[j].w, player[j].h);
 						// 当たっている？
 						if (ans == TRUE)
@@ -283,18 +368,18 @@ void DrawField(void)
 
 	BG* bg = GetBG();
 
-	for (int i = 0; i < LAYER_MAX; i++)
+	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
 	{
-		if (g_Enemy[i].use == TRUE)			// このエネミーが使われている？
+		if (g_Tiles[i].use == TRUE)			// このエネミーが使われている？
 		{									// Yes
 			// テクスチャ設定
-			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Enemy[i].texNo]);
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Tiles[i].texNo]);
 
 			//エネミーの位置やテクスチャー座標を反映
-			float px = g_Enemy[i].pos.x - bg->pos.x;	// エネミーの表示位置X
-			float py = g_Enemy[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
-			float pw = g_Enemy[i].w;		// エネミーの表示幅
-			float ph = g_Enemy[i].h;		// エネミーの表示高さ
+			float px = g_Tiles[i].pos.x - bg->pos.x;	// エネミーの表示位置X
+			float py = g_Tiles[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
+			float pw = g_Tiles[i].w;		// エネミーの表示幅
+			float ph = g_Tiles[i].h;		// エネミーの表示高さ
 
 			// アニメーション用
 			//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
@@ -310,7 +395,7 @@ void DrawField(void)
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				g_Enemy[i].rot.z);
+				g_Tiles[i].rot.z);
 
 			// ポリゴン描画
 			GetDeviceContext()->Draw(4, 0);
@@ -350,7 +435,7 @@ void DrawField(void)
 		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
 
 		//ゲージの位置やテクスチャー座標を反映
-		pw = pw * ((float)g_EnemyCount / LAYER_MAX);
+		pw = pw * ((float)g_TileCount / TILES_PER_LAYER_MAX);
 
 		// １枚のポリゴンの頂点とテクスチャ座標を設定
 		SetSpriteLTColor(g_VertexBuffer,
@@ -373,16 +458,16 @@ void DrawField(void)
 //=============================================================================
 // Enemy構造体の先頭アドレスを取得
 //=============================================================================
-FIELD* GetField(void)
+TILE* GetField(void)
 {
-	return &g_Enemy[0];
+	return &g_Tiles[0];
 }
 
 
 // 生きてるエネミーの数
 int GetFieldCount(void)
 {
-	return g_EnemyCount;
+	return g_TileCount;
 }
 
 
