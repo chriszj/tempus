@@ -35,7 +35,8 @@
 static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TILESET_MAX] = { NULL };	// テクスチャ情報
 
-static char* g_TilemapFolder = "data/TILEMAP/";
+static char g_TilemapFolder[] = "data/TILEMAP/";
+static char g_dataFolder[] = "data/";
 
 static TILESET g_Tilesets[TILESET_MAX];
 static MAPLAYER g_MapLayers[MAP_LAYER_MAX];
@@ -73,7 +74,8 @@ HRESULT InitField(void)
 		for (pugi::xml_node xmltileset : doc.child("map").children("tileset"))
 		{
 			TILESET tileset;
-			tileset.firstgid = xmltileset.attribute("firstgid").as_int();
+			tileset.id = tilesetNodeCount;
+			tileset.firstGID = xmltileset.attribute("firstgid").as_int();
 
 			char path[128] = {};
 			const char* source = xmltileset.attribute("source").value();
@@ -82,8 +84,7 @@ HRESULT InitField(void)
 
 			memcpy(path + strlen(path), source, strlen(source));
 
-
-			tileset.source = path;
+			memcpy(tileset.source, path, strlen(path));
 
 			pugi::xml_document tilesetDoc;
 			pugi::xml_parse_result tilesetDocResult = tilesetDoc.load_file(tileset.source);
@@ -92,15 +93,22 @@ HRESULT InitField(void)
 
 				pugi::xml_node tilesetInnerNode = tilesetDoc.child("tileset");
 
-				tileset.name = tilesetInnerNode.attribute("name").value();
-				tileset.tilewidth = tilesetInnerNode.attribute("name").as_int();
-				tileset.tileheight = tilesetInnerNode.attribute("tileheight").as_int();
-				tileset.tilecount = tilesetInnerNode.attribute("tilecount").as_int();
+				const char* name = tilesetInnerNode.attribute("name").value();
+				memcpy(tileset.name, name, strlen(name));
+
+				tileset.tileWidth = tilesetInnerNode.attribute("tilewidth").as_int();
+				tileset.tileHeight = tilesetInnerNode.attribute("tileheight").as_int();
+				tileset.tileCount = tilesetInnerNode.attribute("tilecount").as_int();
 				tileset.columns = tilesetInnerNode.attribute("columns").as_int();
 
 				pugi::xml_node tilesetTextureNode = tilesetInnerNode.child("image");
 
-				tileset.textureSource = tilesetTextureNode.attribute("source").value();
+				const char* textureSource = tilesetTextureNode.attribute("source").value();
+
+				memcpy(tileset.textureSource, g_dataFolder, strlen(g_dataFolder));
+
+				memcpy(tileset.textureSource + strlen(tileset.textureSource), textureSource + 3, strlen(textureSource));
+
 				tileset.textureW = tilesetTextureNode.attribute("width").as_int();
 				tileset.textureH = tilesetTextureNode.attribute("height").as_int();
 
@@ -145,7 +153,7 @@ HRESULT InitField(void)
 
 		g_Texture[i] = NULL;
 
-		if (g_Tilesets[i].firstgid < 0)
+		if (g_Tilesets[i].id < 0)
 			continue;
 
 		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
@@ -173,6 +181,91 @@ HRESULT InitField(void)
 
 	for (int ml = 0; ml < MAP_LAYER_MAX; ml++)
 	{
+		if (g_MapLayers[ml].id < 0)
+			continue;
+
+		int arraySize = strlen(g_MapLayers[ml].rawData); // sizeof(g_MapLayers[ml].rawData);
+
+		int definedTileSize = g_MapLayers[ml].width * g_MapLayers[ml].height;
+
+		int rawDataArray[TILES_PER_LAYER_MAX];
+
+		int converted = 0;
+		const char* tok = g_MapLayers[ml].rawData;
+		int i = 0;
+
+		int tileIndex_X = 0;
+		int tileIndex_Y = 0;
+
+		// データの解析
+		do
+		{
+			int tileId;
+
+			converted = sscanf(tok, "%d", &tileId);
+
+			tok = strchr(tok, ',');
+
+			if (tok == NULL)
+				break;
+
+			TILE nTile;
+
+			nTile.id = tileId;
+			nTile.use = tileId > 0 ? true : false; // タイル ID が 0 の場合、タイルは表示されません。
+
+			if (nTile.use) {
+
+				TILESET* relatedTileSet = GetTilesetFromTileID(nTile.id);
+
+				if (relatedTileSet != NULL) {
+
+					float newX = tileIndex_X * relatedTileSet->tileWidth;
+					float newY = tileIndex_Y * relatedTileSet->tileHeight;
+
+					nTile.pos = XMFLOAT3( newX, newY, 0.0f);
+					nTile.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+					nTile.scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+					nTile.texNo = relatedTileSet->id;
+					nTile.w = relatedTileSet->tileWidth;
+					nTile.h = relatedTileSet->tileHeight;
+
+					int textureIndex = nTile.id - 1;
+
+					int textureUIndex = textureIndex % relatedTileSet->columns;
+					int textureVIndex = (int)(textureIndex / (relatedTileSet->tileCount / relatedTileSet->columns));
+
+					int tileSetTextureWidth = relatedTileSet->textureW;
+					int tileSetTextureHeight = relatedTileSet->textureH;
+					
+					nTile.textureU = (textureUIndex * nTile.w) / tileSetTextureWidth;
+					nTile.textureV = (textureVIndex * nTile.h) / tileSetTextureHeight;
+					nTile.textureWidth = nTile.w / tileSetTextureWidth;
+					nTile.textureHeigt = nTile.h / tileSetTextureHeight;
+
+				}
+				
+			}
+
+			g_MapLayers[ml].tiles[i] = nTile;
+			g_TileCount++;
+
+			tileIndex_X++;
+
+			if (tileIndex_X > g_MapLayers[ml].width - 1)
+			{
+				tileIndex_X = 0;
+				tileIndex_Y++;
+			}
+
+
+			tok += 1;
+			
+			i++;
+
+		} while (converted != 0);
+
+		int demo = 0;
 	
 		//int getSize(char* s) {
 		//	char* t; // first copy the pointer to not change the original
@@ -187,26 +280,26 @@ HRESULT InitField(void)
 	
 	}
 
-	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
-	{
-		g_TileCount++;
-		g_Tiles[i].use = TRUE;
-		g_Tiles[i].pos = XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
-		g_Tiles[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Tiles[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		g_Tiles[i].w = TEXTURE_WIDTH;
-		g_Tiles[i].h = TEXTURE_HEIGHT;
-		g_Tiles[i].texNo = 0;
+	//for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
+	//{
+	//	g_TileCount++;
+	//	g_Tiles[i].use = TRUE;
+	//	g_Tiles[i].pos = XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
+	//	g_Tiles[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	//	g_Tiles[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	//	g_Tiles[i].w = TEXTURE_WIDTH;
+	//	g_Tiles[i].h = TEXTURE_HEIGHT;
+	//	g_Tiles[i].texNo = 0;
 
-		g_Tiles[i].countAnim = 0;
-		g_Tiles[i].patternAnim = 0;
+	//	g_Tiles[i].countAnim = 0;
+	//	g_Tiles[i].patternAnim = 0;
 
-		g_Tiles[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
+	//	g_Tiles[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
-		g_Tiles[i].tileTime = 0.0f;			// 線形補間用のタイマーをクリア
-		g_Tiles[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
-		g_Tiles[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
-	}
+	//	g_Tiles[i].tileTime = 0.0f;			// 線形補間用のタイマーをクリア
+	//	g_Tiles[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
+	//	g_Tiles[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
+	//}
 
 	g_Load = TRUE;
 	return S_OK;
@@ -307,26 +400,26 @@ void UpdateField(void)
 			//}
 
 			// 移動が終わったらエネミーとの当たり判定
-			{
-				PLAYER* player = GetPlayer();
+			//{
+			//	PLAYER* player = GetPlayer();
 
-				// エネミーの数分当たり判定を行う
-				for (int j = 0; j < TILES_PER_LAYER_MAX; j++)
-				{
-					// 生きてるエネミーと当たり判定をする
-					if (player[j].use == TRUE)
-					{
-						BOOL ans = CollisionBB(g_Tiles[i].pos, g_Tiles[i].w, g_Tiles[i].h,
-							player[j].pos, player[j].w, player[j].h);
-						// 当たっている？
-						if (ans == TRUE)
-						{
-							// 当たった時の処理
-							player[j].use = FALSE;	// デバッグで一時的に無敵にしておくか
-						}
-					}
-				}
-			}
+			//	// エネミーの数分当たり判定を行う
+			//	for (int j = 0; j < TILES_PER_LAYER_MAX; j++)
+			//	{
+			//		// 生きてるエネミーと当たり判定をする
+			//		if (player[j].use == TRUE)
+			//		{
+			//			BOOL ans = CollisionBB(g_Tiles[i].pos, g_Tiles[i].w, g_Tiles[i].h,
+			//				player[j].pos, player[j].w, player[j].h);
+			//			// 当たっている？
+			//			if (ans == TRUE)
+			//			{
+			//				// 当たった時の処理
+			//				player[j].use = FALSE;	// デバッグで一時的に無敵にしておくか
+			//			}
+			//		}
+			//	}
+			//}
 		}
 	}
 
@@ -347,7 +440,7 @@ void UpdateField(void)
 //=============================================================================
 // 描画処理
 //=============================================================================
-void DrawField(void)
+void DrawField(int layer)
 {
 	// 頂点バッファ設定
 	UINT stride = sizeof(VERTEX_3D);
@@ -368,18 +461,36 @@ void DrawField(void)
 
 	BG* bg = GetBG();
 
+	int mapLayersCount = sizeof(g_MapLayers) / sizeof(*g_MapLayers);
+
+	if (layer >= mapLayersCount || layer < 0)
+	{
+		OutputDebugStringA("No layer MAP FOUND!");
+		return;
+	}
+
+	MAPLAYER mapLayerToDraw = g_MapLayers[layer];
+
+	if (mapLayerToDraw.id < 0)
+	{
+		OutputDebugStringA("Map Layer is empty!");
+		return;
+	}
+
+
+
 	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
 	{
-		if (g_Tiles[i].use == TRUE)			// このエネミーが使われている？
+		if (mapLayerToDraw.tiles[i].use == TRUE)			// このエネミーが使われている？
 		{									// Yes
 			// テクスチャ設定
-			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Tiles[i].texNo]);
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[mapLayerToDraw.tiles[i].texNo]);
 
 			//エネミーの位置やテクスチャー座標を反映
-			float px = g_Tiles[i].pos.x - bg->pos.x;	// エネミーの表示位置X
-			float py = g_Tiles[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
-			float pw = g_Tiles[i].w;		// エネミーの表示幅
-			float ph = g_Tiles[i].h;		// エネミーの表示高さ
+			float px = mapLayerToDraw.tiles[i].pos.x - bg->pos.x;	// エネミーの表示位置X
+			float py = mapLayerToDraw.tiles[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
+			float pw = mapLayerToDraw.tiles[i].w;		// エネミーの表示幅
+			float ph = mapLayerToDraw.tiles[i].h;		// エネミーの表示高さ
 
 			// アニメーション用
 			//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
@@ -387,15 +498,15 @@ void DrawField(void)
 			//float tx = (float)(g_Player[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// テクスチャの左上X座標
 			//float ty = (float)(g_Player[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// テクスチャの左上Y座標
 
-			float tw = 1.0f;	// テクスチャの幅
-			float th = 1.0f;	// テクスチャの高さ
-			float tx = 0.0f;	// テクスチャの左上X座標
-			float ty = 0.0f;	// テクスチャの左上Y座標
+			float tw = mapLayerToDraw.tiles[i].textureWidth;	// テクスチャの幅
+			float th = mapLayerToDraw.tiles[i].textureHeigt;	// テクスチャの高さ
+			float tx = mapLayerToDraw.tiles[i].textureU;	// テクスチャの左上X座標
+			float ty = mapLayerToDraw.tiles[i].textureV;	// テクスチャの左上Y座標
 
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				g_Tiles[i].rot.z);
+				mapLayerToDraw.tiles[i].rot.z);
 
 			// ポリゴン描画
 			GetDeviceContext()->Draw(4, 0);
@@ -468,6 +579,24 @@ TILE* GetField(void)
 int GetFieldCount(void)
 {
 	return g_TileCount;
+}
+
+TILESET* GetTilesetFromTileID(int tileId)
+{
+	for (int t = 0; t < TILESET_MAX; t++) {
+	
+		int tileIDRangeMinValue = g_Tilesets[t].firstGID;
+		int tileIDrangeMaxValue = g_Tilesets[t].firstGID + g_Tilesets[t].tileCount - 1;
+
+		if (tileId >= tileIDRangeMinValue && tileId <= tileIDrangeMaxValue) 
+		{
+			return &g_Tilesets[t];
+		}
+	
+	}
+
+	return NULL;
+
 }
 
 

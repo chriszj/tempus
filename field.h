@@ -26,31 +26,41 @@
 
 struct TILESET
 {
-	int firstgid = -1;
-	const char *source;
+	int id = -1;
 
-	// <tileset version="1.10" tiledversion="1.11.0" name="Grass" tilewidth="32" tileheight="32" tilecount="64" columns="8">
-	const char *name;
-	int tilewidth;
-	int tileheight;
-	int tilecount;
+	int firstGID = -1;
+	char source[128] = "";
+
+	// <tileset version="1.10" tiledversion="1.11.0" name="Grass" tileWidth="32" tileHeight="32" tileCount="64" columns="8">
+	char name[128] = "";
+	int tileWidth;
+	int tileHeight;
+	int tileCount;
 	int columns;
 
-	const char *textureSource;
+	char textureSource[128] = "";
 	int textureW, textureH;
 
 };
 
 struct TILE
 {
+	int id;
+
 	XMFLOAT3	pos;			// ポリゴンの座標
 	XMFLOAT3	rot;			// ポリゴンの回転量
 	XMFLOAT3	scl;			// ポリゴンの拡大縮小
-	BOOL		use;			// true:使っている  false:未使用
+	BOOL		use = false;	// true:使っている  false:未使用
 	float		w, h;			// 幅と高さ
 	float		countAnim;		// アニメーションカウント
 	int			patternAnim;	// アニメーションパターンナンバー
 	int			texNo;			// テクスチャ番号
+
+	float         textureU;
+	float         textureV;
+	float         textureWidth;
+	float         textureHeigt;
+
 	XMFLOAT3	move;			// 移動速度
 
 
@@ -76,7 +86,7 @@ struct MAPLAYER
 
 	const char* rawData;
 
-	TILE* tiles[TILES_PER_LAYER_MAX];
+	TILE tiles[TILES_PER_LAYER_MAX];
 
 };
 
@@ -87,11 +97,12 @@ struct MAPLAYER
 HRESULT InitField(void);
 void UninitField(void);
 void UpdateField(void);
-void DrawField(void);
+void DrawField(int layer);
 
 TILE* GetField(void);
 
 int GetFieldCount(void);
 
+TILESET* GetTilesetFromTileID(int tileId);
 
 

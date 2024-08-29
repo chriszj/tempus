@@ -368,8 +368,10 @@ void Draw(void)
 		DrawBG();
 		DrawBullet();		// d‚È‚é‡”Ô‚ğˆÓ¯‚µ‚Ä‚Ë
 		DrawEnemy();
-		DrawField();
+		DrawField(0);
 		DrawPlayer();
+		DrawField(1);
+		DrawField(2);
 		DrawEffect();
 		DrawScore();
 		break;
