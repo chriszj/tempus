@@ -39,7 +39,7 @@ static char g_TilemapFolder[] = "data/TILEMAP/";
 static char g_dataFolder[] = "data/";
 
 static TILESET g_Tilesets[TILESET_MAX];
-static MAPLAYER g_MapLayers[MAP_LAYER_MAX];
+static TILELAYER g_TileLayers[MAP_LAYER_MAX];
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
 static TILE	 g_Tiles[TILES_PER_LAYER_MAX];		// エネミー構造体
@@ -52,7 +52,7 @@ static float offsety = 200.0f;
 static float moveFactor = 200.0f;
 static float tileTime = 25.0f;
 
-void ParseTiles(MAPLAYER* mapLayer, const char* rawData)
+void ParseTiles(TILELAYER* mapLayer, const char* rawData)
 {
 	// タイル準備
 	g_TileCount = 0;
@@ -139,7 +139,7 @@ void ParseTiles(MAPLAYER* mapLayer, const char* rawData)
 	
 }
 
-void ParseMap(TILESET tilesets[], MAPLAYER mapLayers[], char* file)
+void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], char* file)
 {
 
 	pugi::xml_document doc;
@@ -199,44 +199,44 @@ void ParseMap(TILESET tilesets[], MAPLAYER mapLayers[], char* file)
 			}
 		}
 
-		int mapLayerNodeCount = 0;
+		int tileLayerNodeCount = 0;
 
 		// マップチップのレイヤーの準備
-		for (pugi::xml_node mapLayerNode : doc.child("map").children("layer"))
+		for (pugi::xml_node tileLayerNode : doc.child("map").children("layer"))
 		{
 
 
 			/*std::string str = "Level is: ";
-			str.append(mapLayerNode.attribute("name").value());
+			str.append(tileLayerNode.attribute("name").value());
 
 			OutputDebugStringA(str.c_str());*/
 
-			mapLayers[mapLayerNodeCount].id = mapLayerNode.attribute("id").as_int();
+			tileLayers[tileLayerNodeCount].id = tileLayerNode.attribute("id").as_int();
 
-			const char* mLName = mapLayerNode.attribute("name").value();
-			memcpy(mapLayers[mapLayerNodeCount].name, mLName, strlen(mLName));
+			const char* tLName = tileLayerNode.attribute("name").value();
+			memcpy(tileLayers[tileLayerNodeCount].name, tLName, strlen(tLName));
 
-			const char* mLClass = mapLayerNode.attribute("class").value();
-			memcpy(mapLayers[mapLayerNodeCount].layerClass, mLClass, strlen(mLClass));
+			const char* tLClass = tileLayerNode.attribute("class").value();
+			memcpy(tileLayers[tileLayerNodeCount].layerClass, tLClass, strlen(tLClass));
 
-			mapLayers[mapLayerNodeCount].width = mapLayerNode.attribute("width").as_int();
-			mapLayers[mapLayerNodeCount].height = mapLayerNode.attribute("height").as_int();
+			tileLayers[tileLayerNodeCount].width = tileLayerNode.attribute("width").as_int();
+			tileLayers[tileLayerNodeCount].height = tileLayerNode.attribute("height").as_int();
 
 			char debug[128] = "";
 
-			memcpy(debug, mLClass, strlen(mLClass));
+			memcpy(debug, tLClass, strlen(tLClass));
 
 			int result = strcmp(debug, MAP_DEBUG_KEY);
 
 			if (result == 0 && !MAP_DRAW_DEBUG)
 			{
-				mapLayerNodeCount++;
+				tileLayerNodeCount++;
 				continue;
 			}
 
-			ParseTiles(&mapLayers[mapLayerNodeCount], mapLayerNode.child("data").child_value());
+			ParseTiles(&tileLayers[tileLayerNodeCount], tileLayerNode.child("data").child_value());
 
-			mapLayerNodeCount++;
+			tileLayerNodeCount++;
 		}
 
 	}
@@ -250,7 +250,7 @@ HRESULT InitField(void)
 {
 	ID3D11Device* pDevice = GetDevice();
 
-	ParseMap(g_Tilesets,g_MapLayers, "data/TILEMAP/map.tmx");
+	ParseMap(g_Tilesets,g_TileLayers, "data/TILEMAP/map.tmx");
 
 	//テクスチャ生成
 	for (int i = 0; i < TILESET_MAX; i++)
@@ -314,9 +314,9 @@ void UninitField(void)
 	{
 		for (int t = 0; t < TILES_PER_LAYER_MAX; t++)
 		{
-			g_MapLayers[ml].tiles[t] = {};
+			g_TileLayers[ml].tiles[t] = {};
 		}
-		g_MapLayers[ml].Reset();
+		g_TileLayers[ml].Reset();
 	}
 
 	g_Load = FALSE;
@@ -392,15 +392,15 @@ void DrawField(int layer)
 
 	BG* bg = GetBG();
 
-	int mapLayersCount = sizeof(g_MapLayers) / sizeof(*g_MapLayers);
+	int tileLayersCount = sizeof(g_TileLayers) / sizeof(*g_TileLayers);
 
-	if (layer >= mapLayersCount || layer < 0)
+	if (layer >= tileLayersCount || layer < 0)
 	{
 		OutputDebugStringA("No layer MAP FOUND!");
 		return;
 	}
 
-	MAPLAYER* mapLayerToDraw = &g_MapLayers[layer];
+	TILELAYER* mapLayerToDraw = &g_TileLayers[layer];
 
 	if (mapLayerToDraw->id < 0)
 	{

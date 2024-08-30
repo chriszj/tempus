@@ -21,6 +21,7 @@
 #define MAP_SCALE       (2)
 #define MAP_DRAW_DEBUG  true
 #define MAP_DEBUG_KEY   "Debug"
+#define MAP_OBJGRP_OBJ_MAX (200)
 
 //*****************************************************************************
 // ç\ë¢ëÃíËã`
@@ -75,7 +76,7 @@ struct TILE
 	//float				move_time;			// é¿çséûä‘
 };
 
-struct MAPLAYER
+struct TILELAYER
 {
 
 	int id = -1;
@@ -104,6 +105,38 @@ struct MAPLAYER
 		}
 
 	}
+
+};
+
+struct ObjectGroup
+{
+	int id;
+	char name[128] = "";
+	char objectGroupClass[128] = "";
+
+	Object objects[MAP_OBJGRP_OBJ_MAX];
+
+	void Reset(void) {
+
+		id = -1;
+		memset(name, 0, sizeof(name));
+		memset(objectGroupClass, 0, sizeof(objectGroupClass));
+
+		for (int t = 0; t < TILES_PER_LAYER_MAX; t++)
+		{
+			objects[t] = {};
+		}
+
+	}
+};
+
+struct Object
+{
+	int id;
+	char name[128] = "";
+	char objectClass[128] = "";
+
+	int x, y, width, height;
 
 };
 

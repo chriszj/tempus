@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="55">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="64">
  <editorsettings>
   <export target="export/map..tmj" format="json"/>
  </editorsettings>
@@ -80,7 +80,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer id="8" name="Interactable" class="Debug" width="30" height="20" locked="1">
+ <layer id="8" name="Interactable" class="Debug" width="30" height="20" visible="0" locked="1">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -104,7 +104,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="5" name="Wall" visible="0" locked="1">
+ <objectgroup id="5" name="Wall" class="Wall" visible="0">
   <object id="2" x="96" y="64" width="672" height="64"/>
   <object id="6" x="64" y="64" width="32" height="352"/>
   <object id="8" x="96" y="352" width="160" height="64"/>
@@ -118,25 +118,10 @@
   <object id="19" x="416" y="288" width="32" height="32"/>
   <object id="21" x="512" y="128" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="6" name="Interactables" locked="1">
-  <object id="23" name="start" type="location" x="192" y="224">
-   <point/>
-  </object>
-  <object id="30" gid="577" x="384" y="192" width="32" height="32"/>
-  <object id="31" gid="577" x="352" y="192" width="32" height="32"/>
-  <object id="32" gid="577" x="352" y="160" width="32" height="32"/>
-  <object id="33" gid="577" x="352" y="192" width="32" height="32"/>
-  <object id="34" gid="577" x="160" y="192" width="32" height="32"/>
-  <object id="35" gid="577" x="192" y="192" width="32" height="32"/>
-  <object id="36" gid="577" x="192" y="224" width="32" height="32"/>
-  <object id="37" gid="577" x="160" y="192" width="32" height="32"/>
-  <object id="38" gid="577" x="160" y="192" width="32" height="32"/>
-  <object id="51" x="448" y="160" width="32" height="32"/>
-  <object id="52" name="Door" type="Door" x="415.333" y="122.667">
-   <point/>
-  </object>
-  <object id="54" x="656" y="254">
-   <point/>
-  </object>
+ <objectgroup id="6" name="Locations" class="Locations">
+  <object id="56" name="Sign" x="464" y="176"/>
+  <object id="59" name="Door" x="416" y="104"/>
+  <object id="60" name="Player" x="208" y="208"/>
+  <object id="62" name="Save" x="656" y="240"/>
  </objectgroup>
 </map>
