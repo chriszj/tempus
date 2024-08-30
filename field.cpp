@@ -90,12 +90,16 @@ void ParseTiles(MAPLAYER* mapLayer, const char* rawData)
 				float newX = tileIndex_X * relatedTileSet->tileWidth;
 				float newY = tileIndex_Y * relatedTileSet->tileHeight;
 
-				nTile.pos = XMFLOAT3(newX, newY, 0.0f);
+				nTile.pos = XMFLOAT3(newX*MAP_SCALE, newY*MAP_SCALE, 0.0f);
 				nTile.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				nTile.scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+				nTile.scl = XMFLOAT3(1.0f*MAP_SCALE, 1.0f*MAP_SCALE, 1.0f*MAP_SCALE);
 				nTile.texNo = relatedTileSet->id;
-				nTile.w = relatedTileSet->tileWidth;
-				nTile.h = relatedTileSet->tileHeight;
+
+				float tileSetTileWidth = relatedTileSet->tileWidth;
+				float tileSetTileHeight = relatedTileSet->tileHeight;
+
+				nTile.w = tileSetTileWidth*nTile.scl.x;
+				nTile.h = tileSetTileHeight*nTile.scl.y;
 
 				int textureIndex = nTile.id - relatedTileSet->firstGID;
 
@@ -105,10 +109,10 @@ void ParseTiles(MAPLAYER* mapLayer, const char* rawData)
 				int tileSetTextureWidth = relatedTileSet->textureW;
 				int tileSetTextureHeight = relatedTileSet->textureH;
 
-				nTile.textureU = (textureUIndex * nTile.w) / tileSetTextureWidth;
-				nTile.textureV = (textureVIndex * nTile.h) / tileSetTextureHeight;
-				nTile.textureWidth = nTile.w / tileSetTextureWidth;
-				nTile.textureHeigt = nTile.h / tileSetTextureHeight;
+				nTile.textureU = (textureUIndex * tileSetTileWidth) / tileSetTextureWidth;
+				nTile.textureV = (textureVIndex * tileSetTileHeight) / tileSetTextureHeight;
+				nTile.textureWidth = tileSetTileWidth / tileSetTextureWidth;
+				nTile.textureHeigt = tileSetTileHeight / tileSetTextureHeight;
 
 			}
 
