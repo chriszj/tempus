@@ -52,17 +52,94 @@ static float offsety = 200.0f;
 static float moveFactor = 200.0f;
 static float tileTime = 25.0f;
 
-
-
-//=============================================================================
-// 初期化処理
-//=============================================================================
-HRESULT InitField(void)
+void ParseTiles(MAPLAYER* mapLayer, const char* rawData)
 {
-	ID3D11Device* pDevice = GetDevice();
+	// タイル準備
+	g_TileCount = 0;
+
+	int converted = 0;
+	const char* tok = rawData;
+	int i = 0;
+
+	int tileIndex_X = 0;
+	int tileIndex_Y = 0;
+
+	// データの解析
+	do
+	{
+		int tileId;
+
+		converted = sscanf(tok, "%d", &tileId);
+
+		tok = strchr(tok, ',');
+
+		if (tok == NULL)
+			break;
+
+		TILE nTile;
+
+		nTile.id = tileId;
+		nTile.use = tileId > 0 ? true : false; // タイル ID が 0 の場合、タイルは表示されません。
+
+		if (nTile.use) {
+
+			TILESET* relatedTileSet = GetTilesetFromTileID(nTile.id);
+
+			if (relatedTileSet != NULL) {
+
+				float newX = tileIndex_X * relatedTileSet->tileWidth;
+				float newY = tileIndex_Y * relatedTileSet->tileHeight;
+
+				nTile.pos = XMFLOAT3(newX, newY, 0.0f);
+				nTile.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+				nTile.scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+				nTile.texNo = relatedTileSet->id;
+				nTile.w = relatedTileSet->tileWidth;
+				nTile.h = relatedTileSet->tileHeight;
+
+				int textureIndex = nTile.id - relatedTileSet->firstGID;
+
+				int textureUIndex = textureIndex % relatedTileSet->columns;
+				int textureVIndex = (int)(textureIndex / (relatedTileSet->tileCount / relatedTileSet->columns));
+
+				int tileSetTextureWidth = relatedTileSet->textureW;
+				int tileSetTextureHeight = relatedTileSet->textureH;
+
+				nTile.textureU = (textureUIndex * nTile.w) / tileSetTextureWidth;
+				nTile.textureV = (textureVIndex * nTile.h) / tileSetTextureHeight;
+				nTile.textureWidth = nTile.w / tileSetTextureWidth;
+				nTile.textureHeigt = nTile.h / tileSetTextureHeight;
+
+			}
+
+		}
+
+		mapLayer->tiles[i] = nTile;
+		g_TileCount++;
+
+		tileIndex_X++;
+
+		if (tileIndex_X >mapLayer->width - 1)
+		{
+			tileIndex_X = 0;
+			tileIndex_Y++;
+		}
+
+
+		tok += 1;
+
+		i++;
+
+	} while (converted != 0);
+
+	
+}
+
+void ParseMap(TILESET tilesets[], MAPLAYER mapLayers[], char* file)
+{
 
 	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_file("data/TILEMAP/map.tmx");
+	pugi::xml_parse_result result = doc.load_file(file);
 
 	// マップチップの準備
 	if (result)
@@ -112,7 +189,7 @@ HRESULT InitField(void)
 				tileset.textureW = tilesetTextureNode.attribute("width").as_int();
 				tileset.textureH = tilesetTextureNode.attribute("height").as_int();
 
-				g_Tilesets[tilesetNodeCount] = tileset;
+				tilesets[tilesetNodeCount] = tileset;
 				tilesetNodeCount++;
 
 			}
@@ -125,27 +202,36 @@ HRESULT InitField(void)
 		{
 
 
-			std::string str = "Level is: ";
+			/*std::string str = "Level is: ";
 			str.append(mapLayerNode.attribute("name").value());
 
-			OutputDebugStringA(str.c_str());
+			OutputDebugStringA(str.c_str());*/
 
+			mapLayers[mapLayerNodeCount].id = mapLayerNode.attribute("id").as_int();
 
-			MAPLAYER mapLayer;
+			const char* mLName = mapLayerNode.attribute("name").value();
+			memcpy(mapLayers[mapLayerNodeCount].name, mLName, strlen(mLName));
+			
+			mapLayers[mapLayerNodeCount].width = mapLayerNode.attribute("width").as_int();
+			mapLayers[mapLayerNodeCount].height = mapLayerNode.attribute("height").as_int();
 
-			mapLayer.id = mapLayerNode.attribute("id").as_int();
-			mapLayer.name = mapLayerNode.attribute("name").value();
-			mapLayer.width = mapLayerNode.attribute("width").as_int();
-			mapLayer.height = mapLayerNode.attribute("height").as_int();
-
-			mapLayer.rawData = mapLayerNode.child("data").child_value();
-
-			g_MapLayers[mapLayerNodeCount] = mapLayer;
+			ParseTiles(&mapLayers[mapLayerNodeCount], mapLayerNode.child("data").child_value());
 
 			mapLayerNodeCount++;
 		}
 
 	}
+
+}
+
+//=============================================================================
+// 初期化処理
+//=============================================================================
+HRESULT InitField(void)
+{
+	ID3D11Device* pDevice = GetDevice();
+
+	ParseMap(g_Tilesets,g_MapLayers, "data/TILEMAP/map.tmx");
 
 	//テクスチャ生成
 	for (int i = 0; i < TILESET_MAX; i++)
@@ -165,7 +251,6 @@ HRESULT InitField(void)
 
 	}
 
-
 	// 頂点バッファ生成
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
@@ -174,132 +259,6 @@ HRESULT InitField(void)
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
-
-
-	// タイル準備
-	g_TileCount = 0;
-
-	for (int ml = 0; ml < MAP_LAYER_MAX; ml++)
-	{
-		if (g_MapLayers[ml].id < 0)
-			continue;
-
-		int arraySize = strlen(g_MapLayers[ml].rawData); // sizeof(g_MapLayers[ml].rawData);
-
-		int definedTileSize = g_MapLayers[ml].width * g_MapLayers[ml].height;
-
-		int rawDataArray[TILES_PER_LAYER_MAX];
-
-		int converted = 0;
-		const char* tok = g_MapLayers[ml].rawData;
-		int i = 0;
-
-		int tileIndex_X = 0;
-		int tileIndex_Y = 0;
-
-		// データの解析
-		do
-		{
-			int tileId;
-
-			converted = sscanf(tok, "%d", &tileId);
-
-			tok = strchr(tok, ',');
-
-			if (tok == NULL)
-				break;
-
-			TILE nTile;
-
-			nTile.id = tileId;
-			nTile.use = tileId > 0 ? true : false; // タイル ID が 0 の場合、タイルは表示されません。
-
-			if (nTile.use) {
-
-				TILESET* relatedTileSet = GetTilesetFromTileID(nTile.id);
-
-				if (relatedTileSet != NULL) {
-
-					float newX = tileIndex_X * relatedTileSet->tileWidth;
-					float newY = tileIndex_Y * relatedTileSet->tileHeight;
-
-					nTile.pos = XMFLOAT3( newX, newY, 0.0f);
-					nTile.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-					nTile.scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-					nTile.texNo = relatedTileSet->id;
-					nTile.w = relatedTileSet->tileWidth;
-					nTile.h = relatedTileSet->tileHeight;
-
-					int textureIndex = nTile.id - relatedTileSet->firstGID;
-
-					int textureUIndex = textureIndex % relatedTileSet->columns;
-					int textureVIndex = (int)(textureIndex / (relatedTileSet->tileCount / relatedTileSet->columns));
-
-					int tileSetTextureWidth = relatedTileSet->textureW;
-					int tileSetTextureHeight = relatedTileSet->textureH;
-					
-					nTile.textureU = (textureUIndex * nTile.w) / tileSetTextureWidth;
-					nTile.textureV = (textureVIndex * nTile.h) / tileSetTextureHeight;
-					nTile.textureWidth = nTile.w / tileSetTextureWidth;
-					nTile.textureHeigt = nTile.h / tileSetTextureHeight;
-
-				}
-				
-			}
-
-			g_MapLayers[ml].tiles[i] = nTile;
-			g_TileCount++;
-
-			tileIndex_X++;
-
-			if (tileIndex_X > g_MapLayers[ml].width - 1)
-			{
-				tileIndex_X = 0;
-				tileIndex_Y++;
-			}
-
-
-			tok += 1;
-			
-			i++;
-
-		} while (converted != 0);
-
-		int demo = 0;
-	
-		//int getSize(char* s) {
-		//	char* t; // first copy the pointer to not change the original
-		//	int size = 0;
-
-		//	for (t = s; *t != '\0'; t++) {
-		//		size++;
-		//	}
-
-		//	return size;
-		//}
-	
-	}
-
-	//for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
-	//{
-	//	g_TileCount++;
-	//	g_Tiles[i].use = TRUE;
-	//	g_Tiles[i].pos = XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
-	//	g_Tiles[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	//	g_Tiles[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	//	g_Tiles[i].w = TEXTURE_WIDTH;
-	//	g_Tiles[i].h = TEXTURE_HEIGHT;
-	//	g_Tiles[i].texNo = 0;
-
-	//	g_Tiles[i].countAnim = 0;
-	//	g_Tiles[i].patternAnim = 0;
-
-	//	g_Tiles[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
-
-	//	g_Tiles[i].tileTime = 0.0f;			// 線形補間用のタイマーをクリア
-	//	g_Tiles[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
-	//	g_Tiles[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
-	//}
 
 	g_Load = TRUE;
 	return S_OK;
@@ -325,6 +284,20 @@ void UninitField(void)
 			g_Texture[i]->Release();
 			g_Texture[i] = NULL;
 		}
+	}
+
+	for (int ts = 0; ts < TILESET_MAX; ts++)
+	{
+		g_Tilesets[ts] = {};
+	}
+
+	for (int ml = 0; ml < MAP_LAYER_MAX; ml++)
+	{
+		for (int t = 0; t < TILES_PER_LAYER_MAX; t++)
+		{
+			g_MapLayers[ml].tiles[t] = {};
+		}
+		g_MapLayers[ml].Reset();
 	}
 
 	g_Load = FALSE;
@@ -357,69 +330,7 @@ void UpdateField(void)
 				g_Tiles[i].patternAnim = (g_Tiles[i].patternAnim + 1) % ANIM_PATTERN_NUM;
 			}
 
-			// 移動処理
-			//if (g_Tiles[i].tblMax > 0)	// 線形補間を実行する？
-			//{	// 線形補間の処理
-			//	int nowNo = (int)g_Tiles[i].tileTime;			// 整数分であるテーブル番号を取り出している
-			//	int maxNo = g_Tiles[i].tblMax;				// 登録テーブル数を数えている
-			//	int nextNo = (nowNo + 1) % maxNo;			// 移動先テーブルの番号を求めている
-			//	INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Tiles[i].tblNo];	// 行動テーブルのアドレスを取得
-			//	
-			//	XMVECTOR nowPos = XMLoadFloat3(&tbl[nowNo].pos);	// XMVECTORへ変換
-			//	XMVECTOR nowRot = XMLoadFloat3(&tbl[nowNo].rot);	// XMVECTORへ変換
-			//	XMVECTOR nowScl = XMLoadFloat3(&tbl[nowNo].scl);	// XMVECTORへ変換
-			//	
-			//	XMVECTOR Pos = XMLoadFloat3(&tbl[nextNo].pos) - nowPos;	// XYZ移動量を計算している
-			//	XMVECTOR Rot = XMLoadFloat3(&tbl[nextNo].rot) - nowRot;	// XYZ回転量を計算している
-			//	XMVECTOR Scl = XMLoadFloat3(&tbl[nextNo].scl) - nowScl;	// XYZ拡大率を計算している
-			//	
-			//	float nowTime = g_Tiles[i].tileTime - nowNo;	// 時間部分である少数を取り出している
-			//	
-			//	Pos *= nowTime;								// 現在の移動量を計算している
-			//	Rot *= nowTime;								// 現在の回転量を計算している
-			//	Scl *= nowTime;								// 現在の拡大率を計算している
-
-			//	// 計算して求めた移動量を現在の移動テーブルXYZに足している＝表示座標を求めている
-			//	XMStoreFloat3(&g_Tiles[i].pos, nowPos + Pos);
-
-			//	// 計算して求めた回転量を現在の移動テーブルに足している
-			//	XMStoreFloat3(&g_Tiles[i].rot, nowRot + Rot);
-
-			//	// 計算して求めた拡大率を現在の移動テーブルに足している
-			//	XMStoreFloat3(&g_Tiles[i].scl, nowScl + Scl);
-			//	g_Tiles[i].w = TEXTURE_WIDTH * g_Tiles[i].scl.x;
-			//	g_Tiles[i].h = TEXTURE_HEIGHT * g_Tiles[i].scl.y;
-
-			//	// frameを使て時間経過処理をする
-			//	g_Tiles[i].tileTime += 1.0f / tbl[nowNo].frame;	// 時間を進めている
-			//	if ((int)g_Tiles[i].tileTime >= maxNo)			// 登録テーブル最後まで移動したか？
-			//	{
-			//		g_Tiles[i].tileTime -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
-			//	}
-
-			//}
-
-			// 移動が終わったらエネミーとの当たり判定
-			//{
-			//	PLAYER* player = GetPlayer();
-
-			//	// エネミーの数分当たり判定を行う
-			//	for (int j = 0; j < TILES_PER_LAYER_MAX; j++)
-			//	{
-			//		// 生きてるエネミーと当たり判定をする
-			//		if (player[j].use == TRUE)
-			//		{
-			//			BOOL ans = CollisionBB(g_Tiles[i].pos, g_Tiles[i].w, g_Tiles[i].h,
-			//				player[j].pos, player[j].w, player[j].h);
-			//			// 当たっている？
-			//			if (ans == TRUE)
-			//			{
-			//				// 当たった時の処理
-			//				player[j].use = FALSE;	// デバッグで一時的に無敵にしておくか
-			//			}
-			//		}
-			//	}
-			//}
+			
 		}
 	}
 
@@ -442,6 +353,7 @@ void UpdateField(void)
 //=============================================================================
 void DrawField(int layer)
 {
+
 	// 頂点バッファ設定
 	UINT stride = sizeof(VERTEX_3D);
 	UINT offset = 0;
@@ -469,28 +381,26 @@ void DrawField(int layer)
 		return;
 	}
 
-	MAPLAYER mapLayerToDraw = g_MapLayers[layer];
+	MAPLAYER* mapLayerToDraw = &g_MapLayers[layer];
 
-	if (mapLayerToDraw.id < 0)
+	if (mapLayerToDraw->id < 0)
 	{
 		OutputDebugStringA("Map Layer is empty!");
 		return;
 	}
 
-
-
 	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
 	{
-		if (mapLayerToDraw.tiles[i].use == TRUE)			// このエネミーが使われている？
+		if (mapLayerToDraw->tiles[i].use == TRUE)			// このエネミーが使われている？
 		{									// Yes
 			// テクスチャ設定
-			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[mapLayerToDraw.tiles[i].texNo]);
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[mapLayerToDraw->tiles[i].texNo]);
 
 			//エネミーの位置やテクスチャー座標を反映
-			float px = mapLayerToDraw.tiles[i].pos.x - bg->pos.x;	// エネミーの表示位置X
-			float py = mapLayerToDraw.tiles[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
-			float pw = mapLayerToDraw.tiles[i].w;		// エネミーの表示幅
-			float ph = mapLayerToDraw.tiles[i].h;		// エネミーの表示高さ
+			float px = mapLayerToDraw->tiles[i].pos.x - bg->pos.x;	// エネミーの表示位置X
+			float py = mapLayerToDraw->tiles[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
+			float pw = mapLayerToDraw->tiles[i].w;		// エネミーの表示幅
+			float ph = mapLayerToDraw->tiles[i].h;		// エネミーの表示高さ
 
 			// アニメーション用
 			//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
@@ -498,76 +408,26 @@ void DrawField(int layer)
 			//float tx = (float)(g_Player[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// テクスチャの左上X座標
 			//float ty = (float)(g_Player[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// テクスチャの左上Y座標
 
-			float tw = mapLayerToDraw.tiles[i].textureWidth;	// テクスチャの幅
-			float th = mapLayerToDraw.tiles[i].textureHeigt;	// テクスチャの高さ
-			float tx = mapLayerToDraw.tiles[i].textureU;	// テクスチャの左上X座標
-			float ty = mapLayerToDraw.tiles[i].textureV;	// テクスチャの左上Y座標
+			float tw = mapLayerToDraw->tiles[i].textureWidth;	// テクスチャの幅
+			float th = mapLayerToDraw->tiles[i].textureHeigt;	// テクスチャの高さ
+			float tx = mapLayerToDraw->tiles[i].textureU;	// テクスチャの左上X座標
+			float ty = mapLayerToDraw->tiles[i].textureV;	// テクスチャの左上Y座標
 
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				mapLayerToDraw.tiles[i].rot.z);
+				mapLayerToDraw->tiles[i].rot.z);
 
 			// ポリゴン描画
 			GetDeviceContext()->Draw(4, 0);
 		}
 	}
 
-
-	// ゲージのテスト
-	{
-		// 下敷きのゲージ（枠的な物）
-		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
-
-		//ゲージの位置やテクスチャー座標を反映
-		float px = 600.0f;		// ゲージの表示位置X
-		float py =  10.0f;		// ゲージの表示位置Y
-		float pw = 300.0f;		// ゲージの表示幅
-		float ph =  30.0f;		// ゲージの表示高さ
-
-		float tw = 1.0f;	// テクスチャの幅
-		float th = 1.0f;	// テクスチャの高さ
-		float tx = 0.0f;	// テクスチャの左上X座標
-		float ty = 0.0f;	// テクスチャの左上Y座標
-
-		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		SetSpriteLTColor(g_VertexBuffer,
-			px, py, pw, ph,
-			tx, ty, tw, th,
-			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
-
-		// ポリゴン描画
-		GetDeviceContext()->Draw(4, 0);
-
-
-		// エネミーの数に従ってゲージの長さを表示してみる
-		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
-
-		//ゲージの位置やテクスチャー座標を反映
-		pw = pw * ((float)g_TileCount / TILES_PER_LAYER_MAX);
-
-		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		SetSpriteLTColor(g_VertexBuffer,
-			px, py, pw, ph,
-			tx, ty, tw, th,
-			XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
-
-		// ポリゴン描画
-		GetDeviceContext()->Draw(4, 0);
-
-
-	}
-
-
-
-
 }
 
 
 //=============================================================================
-// Enemy構造体の先頭アドレスを取得
+// Field構造体の先頭アドレスを取得
 //=============================================================================
 TILE* GetField(void)
 {

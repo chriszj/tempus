@@ -76,18 +76,30 @@ struct TILE
 
 struct MAPLAYER
 {
-	//<layer id="1" name="Layer0" width="30" height="20" locked="1">
+
 	int id = -1;
 
-	const char* name;
+	char name[128] = "";
 
 	int width;
 
 	int height;
 
-	const char* rawData;
-
 	TILE tiles[TILES_PER_LAYER_MAX];
+
+	void Reset(void){
+
+		id = -1;
+		memset(name, 0, sizeof(name));
+		width = 0;
+		height = 0;
+
+		for (int t = 0; t < TILES_PER_LAYER_MAX; t++)
+		{
+			tiles[t] = {};
+		}
+
+	}
 
 };
 
