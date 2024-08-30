@@ -372,6 +372,7 @@ void Draw(void)
 		DrawPlayer();
 		DrawField(1);
 		DrawField(2);
+		DrawField(3);
 		DrawEffect();
 		DrawScore();
 		break;

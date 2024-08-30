@@ -19,7 +19,8 @@
 #define TILESET_MAX     (10)
 #define MAP_LAYER_MAX   (10)
 #define MAP_SCALE       (2)
-
+#define MAP_DRAW_DEBUG  true
+#define MAP_DEBUG_KEY   "Debug"
 
 //*****************************************************************************
 // ç\ë¢ëÃíËã`
@@ -81,6 +82,8 @@ struct MAPLAYER
 
 	char name[128] = "";
 
+	char layerClass[128] = "";
+
 	int width;
 
 	int height;
@@ -91,6 +94,7 @@ struct MAPLAYER
 
 		id = -1;
 		memset(name, 0, sizeof(name));
+		memset(layerClass, 0, sizeof(layerClass));
 		width = 0;
 		height = 0;
 

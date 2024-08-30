@@ -215,9 +215,24 @@ void ParseMap(TILESET tilesets[], MAPLAYER mapLayers[], char* file)
 
 			const char* mLName = mapLayerNode.attribute("name").value();
 			memcpy(mapLayers[mapLayerNodeCount].name, mLName, strlen(mLName));
-			
+
+			const char* mLClass = mapLayerNode.attribute("class").value();
+			memcpy(mapLayers[mapLayerNodeCount].layerClass, mLClass, strlen(mLClass));
+
 			mapLayers[mapLayerNodeCount].width = mapLayerNode.attribute("width").as_int();
 			mapLayers[mapLayerNodeCount].height = mapLayerNode.attribute("height").as_int();
+
+			char debug[128] = "";
+
+			memcpy(debug, mLClass, strlen(mLClass));
+
+			int result = strcmp(debug, MAP_DEBUG_KEY);
+
+			if (result == 0 && !MAP_DRAW_DEBUG)
+			{
+				mapLayerNodeCount++;
+				continue;
+			}
 
 			ParseTiles(&mapLayers[mapLayerNodeCount], mapLayerNode.child("data").child_value());
 
