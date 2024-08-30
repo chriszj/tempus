@@ -18,6 +18,7 @@
 #define TILES_PER_LAYER_MAX		(1000)		// エネミーのMax人数
 #define TILESET_MAX     (10)
 #define MAP_LAYER_MAX   (10)
+#define MAP_SCALE       (2)
 
 
 //*****************************************************************************

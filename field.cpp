@@ -230,7 +230,7 @@ HRESULT InitField(void)
 					nTile.w = relatedTileSet->tileWidth;
 					nTile.h = relatedTileSet->tileHeight;
 
-					int textureIndex = nTile.id - 1;
+					int textureIndex = nTile.id - relatedTileSet->firstGID;
 
 					int textureUIndex = textureIndex % relatedTileSet->columns;
 					int textureVIndex = (int)(textureIndex / (relatedTileSet->tileCount / relatedTileSet->columns));
