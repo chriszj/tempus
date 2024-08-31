@@ -40,6 +40,7 @@ static char g_dataFolder[] = "data/";
 
 static TILESET g_Tilesets[TILESET_MAX];
 static TILELAYER g_TileLayers[MAP_LAYER_MAX];
+static FIELDOBJECTGROUP g_ObjectGroups[MAP_OBJGROUPS_MAX];
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
 static TILE	 g_Tiles[TILES_PER_LAYER_MAX];		// エネミー構造体
@@ -139,7 +140,7 @@ void ParseTiles(TILELAYER* mapLayer, const char* rawData)
 	
 }
 
-void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], char* file)
+void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objectGroups[], char* file)
 {
 
 	pugi::xml_document doc;
@@ -205,7 +206,6 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], char* file)
 		for (pugi::xml_node tileLayerNode : doc.child("map").children("layer"))
 		{
 
-
 			/*std::string str = "Level is: ";
 			str.append(tileLayerNode.attribute("name").value());
 
@@ -239,6 +239,44 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], char* file)
 			tileLayerNodeCount++;
 		}
 
+		int objectGroupNodeCount = 0;
+
+		for (pugi::xml_node objectGroupNode : doc.child("map").children("objectgroup")) 
+		{
+		
+			objectGroups[objectGroupNodeCount].id = objectGroupNode.attribute("id").as_int();
+
+			const char* oGName = objectGroupNode.attribute("name").value();
+			memcpy(objectGroups[objectGroupNodeCount].name, oGName, strlen(oGName));
+
+			const char* oGClass = objectGroupNode.attribute("class").value();
+			memcpy(objectGroups[objectGroupNodeCount].objectGroupClass, oGClass, strlen(oGClass));
+
+			int objectsNodeCount = 0;
+
+			for (pugi::xml_node fieldObjectNode : objectGroupNode.children("object")) {
+
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].id = fieldObjectNode.attribute("id").as_int();;
+
+				const char* oName = fieldObjectNode.attribute("name").value();
+				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].name, oName, strlen(oName));
+
+				const char* oClass = fieldObjectNode.attribute("class").value();
+				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].objectClass, oClass, strlen(oClass));
+
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = fieldObjectNode.attribute("x").as_int();;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = fieldObjectNode.attribute("y").as_int();;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_int();;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_int();;
+
+				objectsNodeCount++;
+
+			}
+
+			objectGroupNodeCount++;			
+			
+		}
+
 	}
 
 }
@@ -250,7 +288,7 @@ HRESULT InitField(void)
 {
 	ID3D11Device* pDevice = GetDevice();
 
-	ParseMap(g_Tilesets,g_TileLayers, "data/TILEMAP/map.tmx");
+	ParseMap(g_Tilesets,g_TileLayers, g_ObjectGroups, "data/TILEMAP/map.tmx");
 
 	//テクスチャ生成
 	for (int i = 0; i < TILESET_MAX; i++)
@@ -475,6 +513,30 @@ TILESET* GetTilesetFromTileID(int tileId)
 	}
 
 	return NULL;
+
+}
+
+FIELDOBJECT** GetFieldObjectsByClass(const char* objectClass)
+{
+	FIELDOBJECT* fieldObjects[MAP_OBJGRP_OBJ_MAX];
+
+	int foundObjects = 0;
+
+	for (int og = 0; og < MAP_OBJGROUPS_MAX; og++)
+	{
+
+		for (int o = 0; o < MAP_OBJGRP_OBJ_MAX; o++)
+		{
+			if (strcmp(g_ObjectGroups[og].fObjects[o].objectClass, objectClass) == 0)
+			{
+				fieldObjects[foundObjects] = &g_ObjectGroups[og].fObjects[o];
+				foundObjects++;
+			}
+		}
+
+	}
+
+	return fieldObjects;
 
 }
 

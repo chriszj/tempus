@@ -21,6 +21,7 @@
 #define MAP_SCALE       (2)
 #define MAP_DRAW_DEBUG  true
 #define MAP_DEBUG_KEY   "Debug"
+#define MAP_OBJGROUPS_MAX  (10)
 #define MAP_OBJGRP_OBJ_MAX (200)
 
 //*****************************************************************************
@@ -108,29 +109,7 @@ struct TILELAYER
 
 };
 
-struct ObjectGroup
-{
-	int id;
-	char name[128] = "";
-	char objectGroupClass[128] = "";
-
-	Object objects[MAP_OBJGRP_OBJ_MAX];
-
-	void Reset(void) {
-
-		id = -1;
-		memset(name, 0, sizeof(name));
-		memset(objectGroupClass, 0, sizeof(objectGroupClass));
-
-		for (int t = 0; t < TILES_PER_LAYER_MAX; t++)
-		{
-			objects[t] = {};
-		}
-
-	}
-};
-
-struct Object
+struct FIELDOBJECT
 {
 	int id;
 	char name[128] = "";
@@ -138,6 +117,28 @@ struct Object
 
 	int x, y, width, height;
 
+};
+
+struct FIELDOBJECTGROUP
+{
+	int id;
+	char name[128] = "";
+	char objectGroupClass[128] = "";
+
+	FIELDOBJECT fObjects[MAP_OBJGRP_OBJ_MAX];
+
+	void Reset(void) {
+
+		id = -1;
+		memset(name, 0, sizeof(name));
+		memset(objectGroupClass, 0, sizeof(objectGroupClass));
+
+		for (int t = 0; t < MAP_OBJGRP_OBJ_MAX; t++)
+		{
+			fObjects[t] = {};
+		}
+
+	}
 };
 
 
