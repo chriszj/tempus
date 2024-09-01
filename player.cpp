@@ -34,6 +34,11 @@
 #define	PLAYER_JUMP_CNT_MAX			(30)		// 30フレームで着地する
 #define	PLAYER_JUMP_Y_MAX			(300.0f)	// ジャンプの高さ
 
+#define PLAYER_COLLIDER_WIDTH       (50.0f)
+#define PLAYER_COLLIDER_HEIGHT      (50.0f)
+#define PLAYER_COLLIDER_OFFSETX     (-4.0f)
+#define PLAYER_COLLIDER_OFFSETY     (12.0f)
+
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -113,6 +118,7 @@ HRESULT InitPlayer(void)
 		g_Player[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Player[i].w = TEXTURE_WIDTH;
 		g_Player[i].h = TEXTURE_HEIGHT;
+		g_Player[i].collider = COLLIDER2DBOX(PLAYER_COLLIDER_OFFSETX, PLAYER_COLLIDER_OFFSETY, PLAYER_COLLIDER_WIDTH, PLAYER_COLLIDER_HEIGHT);
 		g_Player[i].texNo = 0;
 
 		g_Player[i].countAnim = 0;
@@ -350,38 +356,13 @@ void UpdatePlayer(void)
 				newXPos.x += g_Player[i].move.x;
 				newYPos.y += g_Player[i].move.y;
 				
-
 				for (int w = 0; w < MAP_OBJGRP_OBJ_MAX; w++)
 				{
 					XMFLOAT3 wallPos = XMFLOAT3(walls[w].x, walls[w].y, 0.0f);
-					float wallWidth = walls[w].width;
-					float wallHeight = walls[w].height;
-
-					float wallR = wallPos.x + wallWidth;
-					float wallL = wallPos.x;
-					float wallT = wallPos.y;
-					float wallB = wallPos.y + wallHeight;
-
-					//if (CheckField(g_Player[i].y, newX) == 1)
-					//{
-					//	g_Player[i].velocity_x = 0;
-					//	newX = g_Player[i].x;
-					//}
-
-					//// 上面にあるチェック処理 
-					//if (CheckField(g_Player[i].y + 1, g_Player[i].x) == 1)
-					//{
-					//	g_Player[i].velocity_y = 0;
-					//	g_Player[i].on_ground = 1;
-					//	newY = g_Player[i].y;
-					//}
+					COLLIDER2DBOX wallCollider = COLLIDER2DBOX(0.0f, 0.0f, walls[w].width, walls[w].height);
 
 					// X方の当たり判定
-					
-					
-
-					BOOL ansX = CollisionBB(newXPos, g_Player[i].w, g_Player[i].h,
-						wallPos, wallWidth, wallHeight);
+					BOOL ansX = CollisionBB(newXPos, g_Player[i].collider,wallPos, wallCollider);
 
 					if (ansX)
 					{
@@ -390,8 +371,7 @@ void UpdatePlayer(void)
 					}
 
 					// Y方の当たり判定
-					BOOL ansY = CollisionBB(newYPos, g_Player[i].w, g_Player[i].h,
-						wallPos, wallWidth, wallHeight);
+					BOOL ansY = CollisionBB(newYPos, g_Player[i].collider,wallPos, wallCollider);
 
 					if (ansY)
 					{
@@ -399,31 +379,7 @@ void UpdatePlayer(void)
 						newYPos.y = g_Player[i].pos.y;
 					}
 
-					// 当たっている？
-					/*if (ansX == TRUE) {
-
-						if (g_Player[i].pos.x < wallR)
-						{
-							g_Player[i].pos.x = wallR;
-						}
-
-						if (g_Player[i].pos.x > wallL)
-						{
-							g_Player[i].pos.x = wallL;
-						}
-
-						if (g_Player[i].pos.y < wallB)
-						{
-							g_Player[i].pos.y = wallB;
-						}
-
-						if (g_Player[i].pos.y > wallT)
-						{
-							g_Player[i].pos.y = wallT;
-						}
-
-					}*/
-				
+					
 				}
 
 				g_Player[i].pos.x = newXPos.x;

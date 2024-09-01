@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="91">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="92">
  <editorsettings>
   <export target="export/map..tmj" format="json"/>
  </editorsettings>
@@ -106,11 +106,11 @@
  </layer>
  <objectgroup id="5" name="Wall" class="Wall">
   <object id="70" x="480" y="256" width="32" height="32"/>
-  <object id="73" x="256" y="320" width="448" height="64"/>
+  <object id="73" x="256" y="344" width="448" height="40"/>
   <object id="75" x="0" y="320" width="32" height="32"/>
-  <object id="76" x="96" y="64" width="672" height="64"/>
-  <object id="77" x="728" y="224" width="168" height="64"/>
-  <object id="78" x="696" y="288" width="40" height="64"/>
+  <object id="76" x="96" y="64" width="672" height="48"/>
+  <object id="77" x="728" y="248" width="168" height="40"/>
+  <object id="78" x="696" y="312" width="40" height="40"/>
   <object id="79" x="416" y="288" width="32" height="24"/>
   <object id="80" x="352" y="264" width="32" height="48"/>
   <object id="83" x="104" y="136" width="16" height="16"/>

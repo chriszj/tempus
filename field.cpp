@@ -536,10 +536,10 @@ void DrawField(int layer)
 		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[TILESET_MAX - 1]);
 
 		//エネミーの位置やテクスチャー座標を反映
-		float px = player[p].pos.x - bg->pos.x;
-		float py = player[p].pos.y - bg->pos.y;	// エネミーの表示位置Y
-		float pw = player[p].w;		// エネミーの表示幅
-		float ph = player[p].h;		// エネミーの表示高さ
+		float px = player[p].pos.x + player[p].collider.offsetX - bg->pos.x;
+		float py = player[p].pos.y + player[p].collider.offsetY - bg->pos.y;	// エネミーの表示位置Y
+		float pw = player[p].collider.width;		// エネミーの表示幅
+		float ph = player[p].collider.height;		// エネミーの表示高さ
 
 		// アニメーション用
 		//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅

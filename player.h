@@ -10,6 +10,7 @@
 #include "renderer.h"
 #include "debugproc.h"
 #include "sprite.h"
+#include "collision.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -40,6 +41,7 @@ struct PLAYER
 	XMFLOAT3	rot;			// ポリゴンの回転量
 	BOOL		use;			// true:使っている  false:未使用
 	float		w, h;			// 幅と高さ
+	COLLIDER2DBOX collider;       // 当たり判定の改善のため
 	float		countAnim;		// アニメーションカウント
 	int			patternAnim;	// アニメーションパターンナンバー
 	int			texNo;			// テクスチャ番号
