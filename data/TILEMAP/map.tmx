@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="64">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="91">
  <editorsettings>
   <export target="export/map..tmj" format="json"/>
  </editorsettings>
@@ -32,7 +32,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer id="2" name="Layer1" width="30" height="20">
+ <layer id="2" name="Layer1" width="30" height="20" locked="1">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -44,7 +44,7 @@
 0,0,101,342,343,344,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,85,115,164,115,167,115,0,0,
 0,0,101,358,359,360,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,131,131,131,183,131,0,0,
 0,0,101,374,375,376,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,85,126,0,0,0,0,0,0,0,
-0,0,133,89,391,422,420,85,115,115,115,115,115,115,115,115,115,115,115,167,115,126,142,0,0,0,0,0,0,0,
+726,0,133,89,391,422,420,85,115,115,115,115,115,115,115,115,115,115,115,167,115,126,142,0,0,0,0,0,0,0,
 0,0,0,114,115,115,115,116,131,131,131,131,131,131,131,131,131,131,131,183,131,132,0,0,0,0,0,0,0,0,
 0,0,0,130,131,131,131,132,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -105,18 +105,20 @@
 </data>
  </layer>
  <objectgroup id="5" name="Wall" class="Wall">
-  <object id="2" type="Wall" x="96" y="64" width="672" height="64"/>
-  <object id="6" type="Wall" x="64" y="64" width="32" height="352"/>
-  <object id="8" type="Wall" x="96" y="352" width="160" height="64"/>
-  <object id="10" type="Wall" x="256" y="320" width="448" height="64"/>
-  <object id="13" type="Wall" x="768" y="64" width="32" height="224"/>
-  <object id="14" type="Wall" x="736" y="224" width="32" height="64"/>
-  <object id="15" type="Wall" x="704" y="288" width="32" height="64"/>
-  <object id="16" type="Wall" x="128" y="320" width="96" height="32"/>
-  <object id="17" type="Wall" x="96" y="128" width="32" height="32"/>
-  <object id="18" x="352" y="256" width="32" height="64"/>
-  <object id="19" type="Wall" x="416" y="288" width="32" height="32"/>
-  <object id="21" type="Wall" x="512" y="128" width="64" height="64"/>
+  <object id="70" x="480" y="256" width="32" height="32"/>
+  <object id="73" x="256" y="320" width="448" height="64"/>
+  <object id="75" x="0" y="320" width="32" height="32"/>
+  <object id="76" x="96" y="64" width="672" height="64"/>
+  <object id="77" x="728" y="224" width="168" height="64"/>
+  <object id="78" x="696" y="288" width="40" height="64"/>
+  <object id="79" x="416" y="288" width="32" height="24"/>
+  <object id="80" x="352" y="264" width="32" height="48"/>
+  <object id="83" x="104" y="136" width="16" height="16"/>
+  <object id="85" x="72" y="64" width="24" height="256"/>
+  <object id="87" x="72" y="320" width="32" height="96"/>
+  <object id="88" x="104" y="352" width="152" height="64"/>
+  <object id="89" x="160" y="320" width="32" height="32"/>
+  <object id="90" x="200" y="328" width="16" height="16"/>
  </objectgroup>
  <objectgroup id="6" name="Locations" class="Locations" visible="0">
   <object id="56" name="Sign A" type="HelpSign" x="464" y="176"/>

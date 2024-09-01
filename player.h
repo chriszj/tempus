@@ -17,6 +17,8 @@
 #define PLAYER_MAX			(1)		// プレイヤーのMax人数
 
 #define	PLAYER_OFFSET_CNT	(16)	// 16分身
+#define PLAYER_WALK_SPEED   (4)
+#define PLAYER_DASH_SPEED   (5)
 
 enum
 {

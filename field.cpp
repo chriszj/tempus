@@ -37,6 +37,10 @@ static ID3D11ShaderResourceView	*g_Texture[TILESET_MAX] = { NULL };	// ƒeƒNƒXƒ`ƒ
 
 static char g_TilemapFolder[] = "data/TILEMAP/";
 static char g_dataFolder[] = "data/";
+static char* g_debugTextures[1] = {
+	"data/TEXTURE/bar_white.png",
+};
+static int debugTextureIndex = -1;
 
 static TILESET g_Tilesets[TILESET_MAX];
 static TILELAYER g_TileLayers[MAP_LAYER_MAX];
@@ -88,8 +92,8 @@ void ParseTiles(TILELAYER* mapLayer, const char* rawData)
 
 			if (relatedTileSet != NULL) {
 
-				float newX = tileIndex_X * relatedTileSet->tileWidth;
-				float newY = tileIndex_Y * relatedTileSet->tileHeight;
+				float newX = (tileIndex_X * relatedTileSet->tileWidth) + relatedTileSet->tileWidth / 2;
+				float newY = (tileIndex_Y * relatedTileSet->tileHeight) + relatedTileSet->tileWidth / 2;
 
 				nTile.pos = XMFLOAT3(newX*MAP_SCALE, newY*MAP_SCALE, 0.0f);
 				nTile.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -264,10 +268,12 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 				const char* oClass = fieldObjectNode.attribute("type").value();
 				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].objectType, oClass, strlen(oClass));
 
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = fieldObjectNode.attribute("x").as_float();
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = fieldObjectNode.attribute("y").as_float();;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_float();;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_float();;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_float() * MAP_SCALE;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_float() * MAP_SCALE;
+
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = (fieldObjectNode.attribute("x").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width / 2;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = (fieldObjectNode.attribute("y").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height / 2;
+				
 
 				objectsNodeCount++;
 
@@ -307,6 +313,19 @@ HRESULT InitField(void)
 			NULL);
 
 	}
+
+	// •Ç‚Ì“–‚½‚è”»’è‚ÌƒfƒoƒbƒO‚ÌƒeƒLƒXƒ`ƒƒ[
+	if (MAP_DRAW_DEBUG_WALLS) {
+
+		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
+			g_debugTextures[0],
+			NULL,
+			NULL,
+			&g_Texture[TILESET_MAX-1],
+			NULL);
+
+	}
+
 
 	// ’¸“_ƒoƒbƒtƒ@¶¬
 	D3D11_BUFFER_DESC bd;
@@ -459,12 +478,6 @@ void DrawField(int layer)
 			float pw = mapLayerToDraw->tiles[i].w;		// ƒGƒlƒ~[‚Ì•\Ž¦•
 			float ph = mapLayerToDraw->tiles[i].h;		// ƒGƒlƒ~[‚Ì•\Ž¦‚‚³
 
-			// ƒAƒjƒ[ƒVƒ‡ƒ“—p
-			//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// ƒeƒNƒXƒ`ƒƒ‚Ì•
-			//float th = 1.0f / TEXTURE_PATTERN_DIVIDE_Y;	// ƒeƒNƒXƒ`ƒƒ‚Ì‚‚³
-			//float tx = (float)(g_Player[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãXÀ•W
-			//float ty = (float)(g_Player[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãYÀ•W
-
 			float tw = mapLayerToDraw->tiles[i].textureWidth;	// ƒeƒNƒXƒ`ƒƒ‚Ì•
 			float th = mapLayerToDraw->tiles[i].textureHeigt;	// ƒeƒNƒXƒ`ƒƒ‚Ì‚‚³
 			float tx = mapLayerToDraw->tiles[i].textureU;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãXÀ•W
@@ -478,6 +491,73 @@ void DrawField(int layer)
 			// ƒ|ƒŠƒSƒ“•`‰æ
 			GetDeviceContext()->Draw(4, 0);
 		}
+	}
+
+	// •Ç‚Ì“–‚½‚è”»’è‚Ì•\Ž¦
+	if (!MAP_DRAW_DEBUG_WALLS)
+		return;
+
+	FIELDOBJECT* walls = GetFieldObjectsFromGroup(FOBJGROUP_WALL);
+	for (int w = 0; w < MAP_OBJGRP_OBJ_MAX; w++) 
+	{
+
+		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[TILESET_MAX-1]);
+
+		//ƒGƒlƒ~[‚ÌˆÊ’u‚âƒeƒNƒXƒ`ƒƒ[À•W‚ð”½‰f
+		float px = walls[w].x - bg->pos.x;
+		float py = walls[w].y - bg->pos.y;	// ƒGƒlƒ~[‚Ì•\Ž¦ˆÊ’uY
+		float pw = walls[w].width;		// ƒGƒlƒ~[‚Ì•\Ž¦•
+		float ph = walls[w].height;		// ƒGƒlƒ~[‚Ì•\Ž¦‚‚³
+
+		// ƒAƒjƒ[ƒVƒ‡ƒ“—p
+		//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// ƒeƒNƒXƒ`ƒƒ‚Ì•
+		//float th = 1.0f / TEXTURE_PATTERN_DIVIDE_Y;	// ƒeƒNƒXƒ`ƒƒ‚Ì‚‚³
+		//float tx = (float)(g_Player[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãXÀ•W
+		//float ty = (float)(g_Player[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãYÀ•W
+
+		float tw = 1.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì•
+		float th = 1.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì‚‚³
+		float tx = 0.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãXÀ•W
+		float ty = 0.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãYÀ•W
+
+		// ‚P–‡‚Ìƒ|ƒŠƒSƒ“‚Ì’¸“_‚ÆƒeƒNƒXƒ`ƒƒÀ•W‚ðÝ’è
+		SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
+			XMFLOAT4(0.0f, 0.0f, 1.0f, 0.2f),0.0f);
+
+		// ƒ|ƒŠƒSƒ“•`‰æ
+		GetDeviceContext()->Draw(4, 0);
+
+	}
+
+	PLAYER* player = GetPlayer();
+
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[TILESET_MAX - 1]);
+
+		//ƒGƒlƒ~[‚ÌˆÊ’u‚âƒeƒNƒXƒ`ƒƒ[À•W‚ð”½‰f
+		float px = player[p].pos.x - bg->pos.x;
+		float py = player[p].pos.y - bg->pos.y;	// ƒGƒlƒ~[‚Ì•\Ž¦ˆÊ’uY
+		float pw = player[p].w;		// ƒGƒlƒ~[‚Ì•\Ž¦•
+		float ph = player[p].h;		// ƒGƒlƒ~[‚Ì•\Ž¦‚‚³
+
+		// ƒAƒjƒ[ƒVƒ‡ƒ“—p
+		//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// ƒeƒNƒXƒ`ƒƒ‚Ì•
+		//float th = 1.0f / TEXTURE_PATTERN_DIVIDE_Y;	// ƒeƒNƒXƒ`ƒƒ‚Ì‚‚³
+		//float tx = (float)(g_Player[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãXÀ•W
+		//float ty = (float)(g_Player[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãYÀ•W
+
+		float tw = 1.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì•
+		float th = 1.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì‚‚³
+		float tx = 0.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãXÀ•W
+		float ty = 0.0f;	// ƒeƒNƒXƒ`ƒƒ‚Ì¶ãYÀ•W
+
+		// ‚P–‡‚Ìƒ|ƒŠƒSƒ“‚Ì’¸“_‚ÆƒeƒNƒXƒ`ƒƒÀ•W‚ðÝ’è
+		SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
+			XMFLOAT4(0.0f, 1.0f, 0.0f, 0.2f), 0.0f);
+
+		// ƒ|ƒŠƒSƒ“•`‰æ
+		GetDeviceContext()->Draw(4, 0);
 	}
 
 }

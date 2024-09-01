@@ -101,7 +101,7 @@ HRESULT InitPlayer(void)
 
 	if (fieldPositions != NULL)
 	{
-		startPosition = XMFLOAT3((fieldPositions[0].x * MAP_SCALE) - (TEXTURE_WIDTH / 4), (fieldPositions[0].y * MAP_SCALE)-(TEXTURE_HEIGHT/2), 0.0f);
+		startPosition = XMFLOAT3((fieldPositions[0].x) - (TEXTURE_WIDTH / 4), (fieldPositions[0].y)-(TEXTURE_HEIGHT/2), 0.0f);
 	}
 
 	// プレイヤー構造体の初期化
@@ -207,10 +207,12 @@ void UpdatePlayer(void)
 
 			// キー入力で移動 
 			{
-				float speed = g_Player[i].move.x;
+				float speed = PLAYER_WALK_SPEED;
 
 				g_Player[i].moving = FALSE;
 				g_Player[i].dash = FALSE;
+				g_Player[i].move.x = 0;
+				g_Player[i].move.y = 0;
 
 				if (GetKeyboardPress(DIK_C) || IsButtonPressed(0, BUTTON_A))
 				{
@@ -219,34 +221,34 @@ void UpdatePlayer(void)
 				}
 
 
-				if (GetKeyboardPress(DIK_DOWN))
+				if (GetKeyboardPress(DIK_DOWN) || IsButtonPressed(0, BUTTON_DOWN))
 				{
-					g_Player[i].pos.y += speed;
+					g_Player[i].move.y += speed;
 					g_Player[i].dir = CHAR_DIR_DOWN;
 					g_Player[i].moving = TRUE;
 				}
-				else if (GetKeyboardPress(DIK_UP))
+				else if (GetKeyboardPress(DIK_UP) || IsButtonPressed(0, BUTTON_UP))
 				{
-					g_Player[i].pos.y -= speed;
+					g_Player[i].move.y -= speed;
 					g_Player[i].dir = CHAR_DIR_UP;
 					g_Player[i].moving = TRUE;
 				}
 
-				if (GetKeyboardPress(DIK_RIGHT))
+				if (GetKeyboardPress(DIK_RIGHT) || IsButtonPressed(0, BUTTON_RIGHT))
 				{
-					g_Player[i].pos.x += speed;
+					g_Player[i].move.x += speed;
 					g_Player[i].dir = CHAR_DIR_RIGHT;
 					g_Player[i].moving = TRUE;
 				}
-				else if (GetKeyboardPress(DIK_LEFT))
+				else if (GetKeyboardPress(DIK_LEFT) || IsButtonPressed(0, BUTTON_LEFT))
 				{
-					g_Player[i].pos.x -= speed;
+					g_Player[i].move.x -= speed;
 					g_Player[i].dir = CHAR_DIR_LEFT;
 					g_Player[i].moving = TRUE;
 				}
 
 				// ゲームパッドでで移動処理
-				if (IsButtonPressed(0, BUTTON_DOWN))
+				/*if (IsButtonPressed(0, BUTTON_DOWN))
 				{
 					g_Player[i].pos.y += speed;
 					g_Player[i].dir = CHAR_DIR_DOWN;
@@ -270,7 +272,7 @@ void UpdatePlayer(void)
 					g_Player[i].pos.x -= speed;
 					g_Player[i].dir = CHAR_DIR_LEFT;
 					g_Player[i].moving = TRUE;
-				}
+				}*/
 
 				// 力業ジャンプ処理
 				/*if (g_jumpCnt > 0)
@@ -343,24 +345,64 @@ void UpdatePlayer(void)
 				// Colliders???
 				FIELDOBJECT* walls = GetFieldObjectsFromGroup(FOBJGROUP_WALL);
 
+				XMFLOAT3 newXPos = XMFLOAT3(g_Player[i].pos);
+				XMFLOAT3 newYPos = XMFLOAT3(g_Player[i].pos);
+				newXPos.x += g_Player[i].move.x;
+				newYPos.y += g_Player[i].move.y;
+				
+
 				for (int w = 0; w < MAP_OBJGRP_OBJ_MAX; w++)
 				{
-					XMFLOAT3 wallPos = XMFLOAT3(walls[w].x * MAP_SCALE, walls[w].y * MAP_SCALE, 0.0f);
-					float wallWidth = walls[w].width * MAP_SCALE;
-					float wallHeight = walls[w].height * MAP_SCALE;
+					XMFLOAT3 wallPos = XMFLOAT3(walls[w].x, walls[w].y, 0.0f);
+					float wallWidth = walls[w].width;
+					float wallHeight = walls[w].height;
 
 					float wallR = wallPos.x + wallWidth;
 					float wallL = wallPos.x;
 					float wallT = wallPos.y;
 					float wallB = wallPos.y + wallHeight;
 
-					BOOL ans = CollisionBB(g_Player[i].pos, g_Player[i].w, g_Player[i].h,
+					//if (CheckField(g_Player[i].y, newX) == 1)
+					//{
+					//	g_Player[i].velocity_x = 0;
+					//	newX = g_Player[i].x;
+					//}
+
+					//// 上面にあるチェック処理 
+					//if (CheckField(g_Player[i].y + 1, g_Player[i].x) == 1)
+					//{
+					//	g_Player[i].velocity_y = 0;
+					//	g_Player[i].on_ground = 1;
+					//	newY = g_Player[i].y;
+					//}
+
+					// X方の当たり判定
+					
+					
+
+					BOOL ansX = CollisionBB(newXPos, g_Player[i].w, g_Player[i].h,
 						wallPos, wallWidth, wallHeight);
 
-					// 当たっている？
-					if (ans == TRUE) {
+					if (ansX)
+					{
+						g_Player[i].move.x = 0;
+						newXPos.x = g_Player[i].pos.x;
+					}
 
-						/*if (g_Player[i].pos.x < wallR)
+					// Y方の当たり判定
+					BOOL ansY = CollisionBB(newYPos, g_Player[i].w, g_Player[i].h,
+						wallPos, wallWidth, wallHeight);
+
+					if (ansY)
+					{
+						g_Player[i].move.y = 0;
+						newYPos.y = g_Player[i].pos.y;
+					}
+
+					// 当たっている？
+					/*if (ansX == TRUE) {
+
+						if (g_Player[i].pos.x < wallR)
 						{
 							g_Player[i].pos.x = wallR;
 						}
@@ -368,21 +410,24 @@ void UpdatePlayer(void)
 						if (g_Player[i].pos.x > wallL)
 						{
 							g_Player[i].pos.x = wallL;
-						}*/
+						}
 
-						/*if (g_Player[i].pos.y < wallB)
+						if (g_Player[i].pos.y < wallB)
 						{
 							g_Player[i].pos.y = wallB;
-						}*/
+						}
 
 						if (g_Player[i].pos.y > wallT)
 						{
 							g_Player[i].pos.y = wallT;
 						}
 
-					}
+					}*/
 				
 				}
+
+				g_Player[i].pos.x = newXPos.x;
+				g_Player[i].pos.y = newYPos.y;
 
 				// プレイヤーの立ち位置からMAPのスクロール座標を計算する
 				bg->pos.x = g_Player[i].pos.x - PLAYER_DISP_X;
