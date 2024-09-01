@@ -16,13 +16,17 @@
 // マクロ定義
 //*****************************************************************************
 #define TILES_PER_LAYER_MAX		(1000)		// エネミーのMax人数
-#define TILESET_MAX     (10)
-#define MAP_LAYER_MAX   (10)
-#define MAP_SCALE       (2)
-#define MAP_DRAW_DEBUG  true
-#define MAP_DEBUG_KEY   "Debug"
-#define MAP_OBJGROUPS_MAX  (10)
-#define MAP_OBJGRP_OBJ_MAX (200)
+#define TILESET_MAX				(10)
+#define MAP_LAYER_MAX			(10)
+#define MAP_SCALE				(2)
+#define MAP_DRAW_DEBUG			true
+#define MAP_DEBUG_KEY			"Debug"
+#define MAP_OBJGROUPS_MAX		(10)
+#define MAP_OBJGRP_OBJ_MAX		(200)
+
+#define FOBJTYPE_PLAYERSTART	"PlayerStartPoint"
+#define FOBJGROUP_WALL			"Wall"
+#define FOBJGROUP_LOCATIONS		"Locations"
 
 //*****************************************************************************
 // 構造体定義
@@ -37,8 +41,8 @@ struct TILESET
 
 	// <tileset version="1.10" tiledversion="1.11.0" name="Grass" tileWidth="32" tileHeight="32" tileCount="64" columns="8">
 	char name[128] = "";
-	int tileWidth;
-	int tileHeight;
+	float tileWidth;
+	float tileHeight;
 	int tileCount;
 	int columns;
 
@@ -86,9 +90,9 @@ struct TILELAYER
 
 	char layerClass[128] = "";
 
-	int width;
+	float width;
 
-	int height;
+	float height;
 
 	TILE tiles[TILES_PER_LAYER_MAX];
 
@@ -113,9 +117,9 @@ struct FIELDOBJECT
 {
 	int id;
 	char name[128] = "";
-	char objectClass[128] = "";
+	char objectType[128] = "";
 
-	int x, y, width, height;
+	float x, y, width, height;
 
 };
 
@@ -156,4 +160,7 @@ int GetFieldCount(void);
 
 TILESET* GetTilesetFromTileID(int tileId);
 
+FIELDOBJECT** GetFieldObjectsByClass(const char* objectType);
+FIELDOBJECT* GetFieldObjectsFromGroup(const char* objectGroup);
+FIELDOBJECT* GetFieldObjectByNameFromGroup(const char* objectGroup, const char* objectName);
 

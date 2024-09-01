@@ -178,8 +178,8 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 				const char* name = tilesetInnerNode.attribute("name").value();
 				memcpy(tileset.name, name, strlen(name));
 
-				tileset.tileWidth = tilesetInnerNode.attribute("tilewidth").as_int();
-				tileset.tileHeight = tilesetInnerNode.attribute("tileheight").as_int();
+				tileset.tileWidth = tilesetInnerNode.attribute("tilewidth").as_float();
+				tileset.tileHeight = tilesetInnerNode.attribute("tileheight").as_float();
 				tileset.tileCount = tilesetInnerNode.attribute("tilecount").as_int();
 				tileset.columns = tilesetInnerNode.attribute("columns").as_int();
 
@@ -219,8 +219,8 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 			const char* tLClass = tileLayerNode.attribute("class").value();
 			memcpy(tileLayers[tileLayerNodeCount].layerClass, tLClass, strlen(tLClass));
 
-			tileLayers[tileLayerNodeCount].width = tileLayerNode.attribute("width").as_int();
-			tileLayers[tileLayerNodeCount].height = tileLayerNode.attribute("height").as_int();
+			tileLayers[tileLayerNodeCount].width = tileLayerNode.attribute("width").as_float();
+			tileLayers[tileLayerNodeCount].height = tileLayerNode.attribute("height").as_float();
 
 			char debug[128] = "";
 
@@ -261,13 +261,13 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 				const char* oName = fieldObjectNode.attribute("name").value();
 				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].name, oName, strlen(oName));
 
-				const char* oClass = fieldObjectNode.attribute("class").value();
-				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].objectClass, oClass, strlen(oClass));
+				const char* oClass = fieldObjectNode.attribute("type").value();
+				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].objectType, oClass, strlen(oClass));
 
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = fieldObjectNode.attribute("x").as_int();;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = fieldObjectNode.attribute("y").as_int();;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_int();;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_int();;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = fieldObjectNode.attribute("x").as_float();
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = fieldObjectNode.attribute("y").as_float();;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_float();;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_float();;
 
 				objectsNodeCount++;
 
@@ -516,7 +516,7 @@ TILESET* GetTilesetFromTileID(int tileId)
 
 }
 
-FIELDOBJECT** GetFieldObjectsByClass(const char* objectClass)
+FIELDOBJECT** GetFieldObjectsByClass(const char* objectType)
 {
 	FIELDOBJECT* fieldObjects[MAP_OBJGRP_OBJ_MAX];
 
@@ -527,7 +527,7 @@ FIELDOBJECT** GetFieldObjectsByClass(const char* objectClass)
 
 		for (int o = 0; o < MAP_OBJGRP_OBJ_MAX; o++)
 		{
-			if (strcmp(g_ObjectGroups[og].fObjects[o].objectClass, objectClass) == 0)
+			if (strcmp(g_ObjectGroups[og].fObjects[o].objectType, objectType) == 0)
 			{
 				fieldObjects[foundObjects] = &g_ObjectGroups[og].fObjects[o];
 				foundObjects++;
@@ -536,7 +536,76 @@ FIELDOBJECT** GetFieldObjectsByClass(const char* objectClass)
 
 	}
 
+	if (foundObjects == 0)
+		return NULL;
+
 	return fieldObjects;
+
+}
+
+FIELDOBJECT* GetFieldObjectsFromGroup(const char* objectGroup)
+{
+	FIELDOBJECT *fieldObjects = NULL;
+
+	int foundGroups = 0;
+
+	for (int og = 0; og < MAP_OBJGROUPS_MAX; og++)
+	{
+
+
+		if (strcmp(g_ObjectGroups[og].objectGroupClass, objectGroup) == 0)
+		{
+
+			fieldObjects = g_ObjectGroups[og].fObjects;
+						
+			foundGroups++;
+
+			// 現在、検索には一つのグループのみの返しができます。
+			break;
+		}
+
+	}
+
+	return fieldObjects;
+
+}
+
+FIELDOBJECT* GetFieldObjectByNameFromGroup(const char* objectGroup, const char* objectName)
+{
+	FIELDOBJECT* fieldObject = NULL;
+
+	int foundGroups = 0;
+
+	for (int og = 0; og < MAP_OBJGROUPS_MAX; og++)
+	{
+
+
+		if (strcmp(g_ObjectGroups[og].objectGroupClass, objectGroup) == 0)
+		{
+
+			for (int o = 0; o < MAP_OBJGRP_OBJ_MAX; o++)
+			{
+
+				if (strcmp(g_ObjectGroups[og].objectGroupClass, objectGroup) == 0) 
+				{
+					fieldObject = &g_ObjectGroups[og].fObjects[o];
+
+
+					// 現在、検索には最初のオブジェクトのみの返しができます。
+					break;
+				}
+
+			}
+
+			foundGroups++;
+
+			// 現在、検索には最初のグループのみの返しができます。
+			break;
+		}
+
+	}
+
+	return fieldObject;
 
 }
 

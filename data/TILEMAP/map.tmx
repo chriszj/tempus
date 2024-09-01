@@ -104,24 +104,24 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="5" name="Wall" class="Wall" visible="0">
-  <object id="2" x="96" y="64" width="672" height="64"/>
-  <object id="6" x="64" y="64" width="32" height="352"/>
-  <object id="8" x="96" y="352" width="160" height="64"/>
-  <object id="10" x="256" y="320" width="448" height="64"/>
-  <object id="13" x="768" y="64" width="32" height="224"/>
-  <object id="14" x="736" y="224" width="32" height="64"/>
-  <object id="15" x="704" y="288" width="32" height="64"/>
-  <object id="16" x="128" y="320" width="96" height="32"/>
-  <object id="17" x="96" y="128" width="32" height="32"/>
+ <objectgroup id="5" name="Wall" class="Wall">
+  <object id="2" type="Wall" x="96" y="64" width="672" height="64"/>
+  <object id="6" type="Wall" x="64" y="64" width="32" height="352"/>
+  <object id="8" type="Wall" x="96" y="352" width="160" height="64"/>
+  <object id="10" type="Wall" x="256" y="320" width="448" height="64"/>
+  <object id="13" type="Wall" x="768" y="64" width="32" height="224"/>
+  <object id="14" type="Wall" x="736" y="224" width="32" height="64"/>
+  <object id="15" type="Wall" x="704" y="288" width="32" height="64"/>
+  <object id="16" type="Wall" x="128" y="320" width="96" height="32"/>
+  <object id="17" type="Wall" x="96" y="128" width="32" height="32"/>
   <object id="18" x="352" y="256" width="32" height="64"/>
-  <object id="19" x="416" y="288" width="32" height="32"/>
-  <object id="21" x="512" y="128" width="64" height="64"/>
+  <object id="19" type="Wall" x="416" y="288" width="32" height="32"/>
+  <object id="21" type="Wall" x="512" y="128" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="6" name="Locations" class="Locations">
-  <object id="56" name="Sign" x="464" y="176"/>
-  <object id="59" name="Door" x="416" y="104"/>
-  <object id="60" name="Player" x="208" y="208"/>
-  <object id="62" name="Save" x="656" y="240"/>
+ <objectgroup id="6" name="Locations" class="Locations" visible="0">
+  <object id="56" name="Sign A" type="HelpSign" x="464" y="176"/>
+  <object id="59" name="Door A" type="Door" x="416" y="104"/>
+  <object id="60" name="StartPoint" type="PlayerStartPoint" x="336" y="209"/>
+  <object id="62" name="Save 1" type="Save" x="656" y="240"/>
  </objectgroup>
 </map>

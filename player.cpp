@@ -7,6 +7,7 @@
 #include "player.h"
 #include "input.h"
 #include "bg.h"
+#include "field.h"
 #include "bullet.h"
 #include "enemy.h"
 #include "collision.h"
@@ -68,7 +69,7 @@ static int		g_jump[PLAYER_JUMP_CNT_MAX] =
 //=============================================================================
 HRESULT InitPlayer(void)
 {
-	ID3D11Device *pDevice = GetDevice();
+	ID3D11Device* pDevice = GetDevice();
 
 	//テクスチャ生成
 	for (int i = 0; i < TEXTURE_MAX; i++)
@@ -94,12 +95,21 @@ HRESULT InitPlayer(void)
 
 	g_PlayerCount = 0;						// 生きてるプレイヤーの数
 
+	XMFLOAT3 startPosition = XMFLOAT3(400.0f, 400.0f, 0.0f);
+
+	FIELDOBJECT* fieldPositions = GetFieldObjectByNameFromGroup(FOBJGROUP_LOCATIONS, FOBJTYPE_PLAYERSTART);
+
+	if (fieldPositions != NULL)
+	{
+		startPosition = XMFLOAT3((fieldPositions[0].x * MAP_SCALE) - (TEXTURE_WIDTH / 4), (fieldPositions[0].y * MAP_SCALE)-(TEXTURE_HEIGHT/2), 0.0f);
+	}
+
 	// プレイヤー構造体の初期化
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		g_PlayerCount++;
 		g_Player[i].use = TRUE;
-		g_Player[i].pos = XMFLOAT3(400.0f, 400.0f, 0.0f);	// 中心点から表示
+		g_Player[i].pos = startPosition;	// 中心点から表示
 		g_Player[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Player[i].w = TEXTURE_WIDTH;
 		g_Player[i].h = TEXTURE_HEIGHT;
@@ -328,6 +338,50 @@ void UpdatePlayer(void)
 				if (g_Player[i].pos.y > bg->h)
 				{
 					g_Player[i].pos.y = bg->h;
+				}
+
+				// Colliders???
+				FIELDOBJECT* walls = GetFieldObjectsFromGroup(FOBJGROUP_WALL);
+
+				for (int w = 0; w < MAP_OBJGRP_OBJ_MAX; w++)
+				{
+					XMFLOAT3 wallPos = XMFLOAT3(walls[w].x * MAP_SCALE, walls[w].y * MAP_SCALE, 0.0f);
+					float wallWidth = walls[w].width * MAP_SCALE;
+					float wallHeight = walls[w].height * MAP_SCALE;
+
+					float wallR = wallPos.x + wallWidth;
+					float wallL = wallPos.x;
+					float wallT = wallPos.y;
+					float wallB = wallPos.y + wallHeight;
+
+					BOOL ans = CollisionBB(g_Player[i].pos, g_Player[i].w, g_Player[i].h,
+						wallPos, wallWidth, wallHeight);
+
+					// 当たっている？
+					if (ans == TRUE) {
+
+						/*if (g_Player[i].pos.x < wallR)
+						{
+							g_Player[i].pos.x = wallR;
+						}
+
+						if (g_Player[i].pos.x > wallL)
+						{
+							g_Player[i].pos.x = wallL;
+						}*/
+
+						/*if (g_Player[i].pos.y < wallB)
+						{
+							g_Player[i].pos.y = wallB;
+						}*/
+
+						if (g_Player[i].pos.y > wallT)
+						{
+							g_Player[i].pos.y = wallT;
+						}
+
+					}
+				
 				}
 
 				// プレイヤーの立ち位置からMAPのスクロール座標を計算する
