@@ -66,7 +66,7 @@ void UninitGUI(void);
 void UpdateGUI(void);
 void DrawGUI(void);
 
-BMPTEXT* AddScore(const char* text);
+BMPTEXT* AddText(const char* text);
 int GetScore(void);
 void SetScore(int score);
 
