@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// スコア処理 [score.h]
+// グラフィックユーザーインターフェース処理 [gui.h]
 // Author : 
 //
 //=============================================================================
@@ -11,7 +11,8 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define FONTCHAR_MAX		(20000)		// スコアの最大値
+#define FONTCHAR_MAX		(20000)
+#define FONTTEXTURE_MAX		(8)		// テクスチャの数
 #define TEXTCHAR_MAX		(500)
 #define TEXTOBJECTS_MAX     (50)
 
@@ -30,18 +31,6 @@ struct BMPCHAR
 
 };
 
-struct BMPTEXT {
-
-	BOOL use = false;
-
-	float x, y;
-
-	char richText[TEXTCHAR_MAX] = "";
-
-	BMPCHAR* textChars[TEXTCHAR_MAX];
-
-};
-
 struct BMPPAGE {
 
 	int id = -1;
@@ -52,9 +41,31 @@ struct BMPPAGE {
 struct BMPFONT {
 
 	//  <common lineHeight="32" base="26" scaleW="2048" scaleH="2048" pages="2" packed="0" alphaChnl="1" redChnl="0" greenChnl="0" blueChnl="0"/>
-	int lineHeight, base, scaleW, scaleH;
+	int lineHeight, base, scaleW, scaleH = -1;
+
+	BMPPAGE pages[FONTTEXTURE_MAX];
 
 	BMPCHAR chars[FONTCHAR_MAX];
+
+	void Reset(void) {
+		lineHeight = base = scaleW = scaleH = -1;
+		memset(pages, 0, sizeof(pages));
+		memset(chars, 0, sizeof(chars));
+	}
+};
+
+struct BMPTEXT {
+
+	BOOL use = false;
+
+	float x, y;
+
+	float scale = 1.0f;
+
+	wchar_t richText[TEXTCHAR_MAX] = L"";
+
+	BMPCHAR* textChars[TEXTCHAR_MAX];
+
 };
 
 
@@ -66,8 +77,6 @@ void UninitGUI(void);
 void UpdateGUI(void);
 void DrawGUI(void);
 
-BMPTEXT* AddText(const char* text);
-int GetScore(void);
-void SetScore(int score);
-
-
+BMPTEXT* GetUnusedText();
+void SetText(BMPTEXT* bmpText, wchar_t* text);
+void ClearGUI(void);

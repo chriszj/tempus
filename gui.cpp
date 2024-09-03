@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// グラフィックユーザーインターフェース処理 [score.cpp]
+// グラフィックユーザーインターフェース処理 [gui.cpp]
 // Author : 
 //
 //=============================================================================
@@ -9,30 +9,29 @@
 #include "score.h"
 #include "sprite.h"
 #include "gui.h"
+#include "pugixml.hpp"
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define TEXTURE_WIDTH				(16)	// キャラサイズ
 #define TEXTURE_HEIGHT				(32)	// 
-#define TEXTURE_MAX					(1)		// テクスチャの数
-
 
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-
+void ParseFont(BMPFONT* font, char* file);
 
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
 static ID3D11Buffer				*g_VertexBuffer = NULL;		// 頂点情報
-static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
+static ID3D11ShaderResourceView* g_Texture[FONTTEXTURE_MAX] = { NULL };	// テクスチャ情報
 
-static char *g_TexturName[] = {
-	"data/TEXTURE/number16x32.png",
-};
+static char g_FontFolder[] = "data/TEXTURE/FONT/";
 
+static BMPFONT g_Font;
+static BMPTEXT g_Texts[TEXTOBJECTS_MAX];
 
 static bool						g_Use;						// true:使っている  false:未使用
 static float					g_w, g_h;					// 幅と高さ
@@ -50,12 +49,19 @@ HRESULT InitGUI(void)
 {
 	ID3D11Device *pDevice = GetDevice();
 
+
+	ParseFont(&g_Font, "data/TEXTURE/FONT/cjk-jp.fnt");
+
 	//テクスチャ生成
-	for (int i = 0; i < TEXTURE_MAX; i++)
+	for (int i = 0; i < FONTTEXTURE_MAX; i++)
 	{
 		g_Texture[i] = NULL;
+
+		if (g_Font.pages[i].id < 0)
+			continue;
+
 		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
-			g_TexturName[i],
+			g_Font.pages[i].file,
 			NULL,
 			NULL,
 			&g_Texture[i],
@@ -96,7 +102,7 @@ void UninitGUI(void)
 		g_VertexBuffer = NULL;
 	}
 
-	for (int i = 0; i < TEXTURE_MAX; i++)
+	for (int i = 0; i < FONTTEXTURE_MAX; i++)
 	{
 		if (g_Texture[i])
 		{
@@ -104,6 +110,8 @@ void UninitGUI(void)
 			g_Texture[i] = NULL;
 		}
 	}
+
+	g_Font.Reset();
 
 }
 
@@ -113,6 +121,24 @@ void UninitGUI(void)
 void UpdateGUI(void)
 {
 
+	/*for (int t = 0; t < TEXTOBJECTS_MAX; t++)
+	{
+
+		if (!g_Texts[t].use)
+			continue;
+
+		for (int c = 0; c < TEXTCHAR_MAX; c++) {
+
+			BMPCHAR* fontChar = g_Texts[t].textChars[c];
+
+			if (fontChar->id < 0)
+				continue;
+
+
+
+			fontChar =   
+		}
+	}*/
 
 #ifdef _DEBUG	// デバッグ情報を表示する
 	//char *str = GetDebugStr();
@@ -138,75 +164,208 @@ void DrawGUI(void)
 	// プリミティブトポロジ設定
 	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
+	
+
 	// マテリアル設定
 	MATERIAL material;
 	ZeroMemory(&material, sizeof(material));
 	material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	SetMaterial(material);
 
-	// テクスチャ設定
-	GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_TexNo]);
+	
 
-	// 桁数分処理する
-	int number = g_Score;
-	for (int i = 0; i < SCORE_DIGIT; i++)
+	for (int t = 0; t < TEXTOBJECTS_MAX; t++) 
 	{
-		// 今回表示する桁の数字
-		float x = (float)(number % 10);
+		
+		if (!g_Texts[t].use)
+			continue;
 
-		// スコアの位置やテクスチャー座標を反映
-		float px = g_Pos.x - g_w*i;	// スコアの表示位置X
-		float py = g_Pos.y;			// スコアの表示位置Y
-		float pw = g_w;				// スコアの表示幅
-		float ph = g_h;				// スコアの表示高さ
+		int textLineIndex = 0;
 
-		float tw = 1.0f / 10;		// テクスチャの幅
-		float th = 1.0f / 1;		// テクスチャの高さ
-		float tx = x * tw;			// テクスチャの左上X座標
-		float ty = 0.0f;			// テクスチャの左上Y座標
+		float textCharIndex = 0;
+	
+		for (int c = 0; c < TEXTCHAR_MAX; c++) {
 
-		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		SetSpriteColor(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
-			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+			BMPCHAR* fontChar = g_Texts[t].textChars[c];
 
-		// ポリゴン描画
-		GetDeviceContext()->Draw(4, 0);
+			if (fontChar == NULL)
+				continue;
 
-		// 次の桁へ
-		number /= 10;
+			if (fontChar->id == 10)
+			{
+				textLineIndex++;
+				textCharIndex = 0;
+				continue;
+			}
+
+			// テクスチャ設定
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[fontChar->page]);
+
+			// スコアの位置やテクスチャー座標を反映
+			float px = g_Texts[t].x + textCharIndex;	// スコアの表示位置X
+			float py = g_Texts[t].y + (textLineIndex * g_Font.lineHeight * g_Texts[t].scale);			// スコアの表示位置Y
+
+			px -= fontChar->xoffset/2 * g_Texts[t].scale;
+			py += fontChar->yoffset/2 * g_Texts[t].scale;
+
+			float pw = fontChar->width * g_Texts[t].scale;				// スコアの表示幅
+			float ph = fontChar->height * g_Texts[t].scale;				// スコアの表示高さ
+
+			float tx = fontChar->textureU;		// テクスチャの幅
+			float ty = fontChar->textureV;		// テクスチャの高さ
+			float tw = fontChar->textureWidth;			// テクスチャの左上X座標
+			float th = fontChar->textureHeigt;			// テクスチャの左上Y座標
+
+			textCharIndex += pw + (fontChar->xoffset * g_Texts[t].scale);
+
+			// １枚のポリゴンの頂点とテクスチャ座標を設定
+			SetSpriteColor(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
+				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+
+			// ポリゴン描画
+			GetDeviceContext()->Draw(4, 0);
+
+		}
+		
 	}
+
 }
 
+
+void ParseFont(BMPFONT* font, char* file) {
+
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(file);
+
+	// マップチップの準備
+	if (result)
+	{
+
+		pugi::xml_node fontNode = doc.child("font");
+
+		font->lineHeight = fontNode.child("common").attribute("lineHeight").as_int();
+		font->base = fontNode.child("common").attribute("base").as_int();
+		font->scaleW = fontNode.child("common").attribute("scaleW").as_int();
+		font->scaleH = fontNode.child("common").attribute("scaleH").as_int();
+
+		int fontPagesCount = 0;
+
+		// フォントのテキスチャーの準備
+		for (pugi::xml_node xmlFontPage : fontNode.child("pages").children("page"))
+		{
+
+			BMPPAGE* fontPage = &font->pages[fontPagesCount];
+
+			fontPage->id = xmlFontPage.attribute("id").as_int();
+
+			char path[128] = {};
+			const char* source = xmlFontPage.attribute("file").value();
+
+			memcpy(path, g_FontFolder, strlen(g_FontFolder));
+			memcpy(path + strlen(path), source, strlen(source));
+			memcpy(fontPage->file, path, strlen(path));
+
+			fontPagesCount++;
+		}
+
+		int fontCharsCount = 0;
+
+		for (pugi::xml_node xmlFontPage : fontNode.child("chars").children("char"))
+		{
+			BMPCHAR* fontChar = &font->chars[fontCharsCount];
+
+			fontChar->id = xmlFontPage.attribute("id").as_int();
+			// <char id="32" x="303" y="2046" width="3" height="1" xoffset="-1" yoffset="31" xadvance="6" page="0" chnl="15" />
+			fontChar->x = xmlFontPage.attribute("x").as_int();
+			fontChar->y = xmlFontPage.attribute("y").as_int();
+			fontChar->width = xmlFontPage.attribute("width").as_int();
+			fontChar->height = xmlFontPage.attribute("height").as_int();
+			fontChar->xoffset = xmlFontPage.attribute("xoffset").as_int();
+			fontChar->yoffset = xmlFontPage.attribute("yoffset").as_int();
+			fontChar->xadvance = xmlFontPage.attribute("xadvance").as_int();
+			fontChar->page = xmlFontPage.attribute("page").as_int();
+			fontChar->chnl = xmlFontPage.attribute("chnl").as_int();
+
+			fontChar->textureU = (float)fontChar->x / (float)font->scaleW;
+			fontChar->textureV = (float)fontChar->y / (float)font->scaleH;
+			fontChar->textureWidth = (float)fontChar->width / (float)font->scaleW;
+			fontChar->textureHeigt = (float)fontChar->height / (float)font->scaleH;
+
+			fontCharsCount++;
+
+		}
+
+		BMPCHAR* lineBreakChar = &font->chars[fontCharsCount];
+		lineBreakChar->id = 10;
+		lineBreakChar->x = 0;
+		lineBreakChar->y = 0;
+		lineBreakChar->width = 0;
+		lineBreakChar->height = 0;
+		lineBreakChar->xoffset = 0;
+		lineBreakChar->yoffset = 0;
+		lineBreakChar->xadvance = 0;
+		lineBreakChar->page = 0;
+		lineBreakChar->chnl = 0;
+
+		lineBreakChar->textureU = 0;
+		lineBreakChar->textureV = 0;
+		lineBreakChar->textureWidth = 0;
+		lineBreakChar->textureHeigt = 0;
+
+	}
+}
 
 //=============================================================================
 // スコアを加算する
 // 引数:add :追加する点数。マイナスも可能
 //=============================================================================
-BMPTEXT* AddText(const char* text)
+BMPTEXT* GetUnusedText()
 {
-	/*g_Score += add;
-	if (g_Score > SCORE_MAX)
+
+	for (int i = 0; i < TEXTOBJECTS_MAX; i++)
 	{
-		g_Score = SCORE_MAX;
-	}*/
+
+		if (!g_Texts[i].use)
+		{
+			g_Texts[i].use = true;
+			return &g_Texts[i];
+		}
+
+	}
+
 	return NULL;
 }
 
-void RemoveText(BMPTEXT* text) 
-{
-	text->use = false;
+void SetText(BMPTEXT* bmpText, wchar_t* text) { 
+
+	int charLength = wcslen(text);
+	memcpy(bmpText->richText, text, charLength*sizeof(wchar_t));
+
+	for (int i = 0; i < charLength; i++) {
+
+		uint32_t unicodeId = text[i];
+
+		for (int c = 0; c < FONTCHAR_MAX; c++) {
+
+			if (g_Font.chars[c].id == unicodeId) {
+				bmpText->textChars[i] = &g_Font.chars[c];
+				break;
+			}
+		}
+
+	}
+
+	int ok = 1;
+
 }
 
-
-int GetScore(void)
+void ClearGUI(void) 
 {
-	return g_Score;
+	for (int i = 0; i < TEXTOBJECTS_MAX; i++) 
+	{
+		
+		g_Texts[i].use = false;
+	
+	}
 }
-
-
-void SetScore(int score)
-{
-	g_Score = score;
-}
-
 

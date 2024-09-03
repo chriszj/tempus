@@ -6,6 +6,7 @@
 //=============================================================================
 #include "title.h"
 #include "input.h"
+#include "gui.h"
 #include "fade.h"
 
 //*****************************************************************************
@@ -92,6 +93,15 @@ HRESULT InitTitle(void)
 
 	effect_dx = 100.0f;
 	effect_dy = 100.0f;
+
+	BMPTEXT* myText = GetUnusedText();
+	myText->x = 300;
+	myText->y = 250;
+	myText->scale = 0.5f;
+
+	//wchar_t buf[] = L"‚±‚ê‚Í»ì‚Å‚·I";
+	
+	SetText(myText, L"‚±‚ê‚Í–{‚Å‚·\n‚¿‚È‚İ‚ÉB");
 
 	g_Load = TRUE;
 	return S_OK;

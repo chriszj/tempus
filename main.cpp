@@ -19,6 +19,7 @@
 #include "score.h"
 #include "result.h"
 #include "sound.h"
+#include "gui.h"
 #include "fade.h"
 
 #include "file.h"
@@ -256,6 +257,9 @@ HRESULT Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	// サウンド処理の初期化
 	InitSound(hWnd);
 
+	// グラフィックユーザーインタフェースの初期化
+	InitGUI();
+
 	// フェード処理の初期化
 	InitFade();
 
@@ -273,6 +277,9 @@ void Uninit(void)
 {
 	// 終了のモードをセット
 	SetMode(MODE_MAX);
+
+	// グラフィックユーザーインタフェースの終了処理
+	UninitGUI();
 
 	// フェードの終了処理
 	UninitFade();
@@ -334,6 +341,7 @@ void Update(void)
 		break;
 	}
 
+	UpdateGUI();
 	UpdateFade();			// フェードの更新処理
 }
 
@@ -383,7 +391,7 @@ void Draw(void)
 		break;
 	}
 
-
+	DrawGUI();
 	DrawFade();				// フェード画面の描画
 
 

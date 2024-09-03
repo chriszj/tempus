@@ -27,7 +27,8 @@
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-
+void ParseTiles(TILELAYER* mapLayer, const char* rawData);
+void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objectGroups[], char* file);
 
 //*****************************************************************************
 // グローバル変数
@@ -47,239 +48,9 @@ static TILELAYER g_TileLayers[MAP_LAYER_MAX];
 static FIELDOBJECTGROUP g_ObjectGroups[MAP_OBJGROUPS_MAX];
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
-static TILE	 g_Tiles[TILES_PER_LAYER_MAX];		// エネミー構造体
+static TILE	 g_Tiles[TILES_PER_LAYER_MAX];		// タイル構造体
 
 static int	 g_TileCount = TILES_PER_LAYER_MAX;
-
-void ParseTiles(TILELAYER* mapLayer, const char* rawData)
-{
-	// タイル準備
-	g_TileCount = 0;
-
-	int converted = 0;
-	const char* tok = rawData;
-	int i = 0;
-
-	int tileIndex_X = 0;
-	int tileIndex_Y = 0;
-
-	// データの解析
-	do
-	{
-		int tileId;
-
-		converted = sscanf(tok, "%d", &tileId);
-
-		tok = strchr(tok, ',');
-
-		if (tok == NULL)
-			break;
-
-		TILE nTile;
-
-		nTile.id = tileId;
-		nTile.use = tileId > 0 ? true : false; // タイル ID が 0 の場合、タイルは表示されません。
-
-		if (nTile.use) {
-
-			TILESET* relatedTileSet = GetTilesetFromTileID(nTile.id);
-
-			if (relatedTileSet != NULL) {
-
-				float newX = (tileIndex_X * relatedTileSet->tileWidth) + relatedTileSet->tileWidth / 2;
-				float newY = (tileIndex_Y * relatedTileSet->tileHeight) + relatedTileSet->tileWidth / 2;
-
-				nTile.pos = XMFLOAT3(newX*MAP_SCALE, newY*MAP_SCALE, 0.0f);
-				nTile.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				nTile.scl = XMFLOAT3(1.0f*MAP_SCALE, 1.0f*MAP_SCALE, 1.0f*MAP_SCALE);
-				nTile.texNo = relatedTileSet->id;
-
-				float tileSetTileWidth = relatedTileSet->tileWidth;
-				float tileSetTileHeight = relatedTileSet->tileHeight;
-
-				nTile.w = tileSetTileWidth*nTile.scl.x;
-				nTile.h = tileSetTileHeight*nTile.scl.y;
-
-				int textureIndex = nTile.id - relatedTileSet->firstGID;
-
-				int textureUIndex = textureIndex % relatedTileSet->columns;
-				int textureVIndex = (int)(textureIndex / (relatedTileSet->tileCount / relatedTileSet->columns));
-
-				int tileSetTextureWidth = relatedTileSet->textureW;
-				int tileSetTextureHeight = relatedTileSet->textureH;
-
-				nTile.textureU = (textureUIndex * tileSetTileWidth) / tileSetTextureWidth;
-				nTile.textureV = (textureVIndex * tileSetTileHeight) / tileSetTextureHeight;
-				nTile.textureWidth = tileSetTileWidth / tileSetTextureWidth;
-				nTile.textureHeigt = tileSetTileHeight / tileSetTextureHeight;
-
-			}
-
-		}
-
-		mapLayer->tiles[i] = nTile;
-		g_TileCount++;
-
-		tileIndex_X++;
-
-		if (tileIndex_X >mapLayer->width - 1)
-		{
-			tileIndex_X = 0;
-			tileIndex_Y++;
-		}
-
-
-		tok += 1;
-
-		i++;
-
-	} while (converted != 0);
-
-	
-}
-
-void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objectGroups[], char* file)
-{
-
-	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_file(file);
-
-	// マップチップの準備
-	if (result)
-	{
-
-		int tilesetNodeCount = 0;
-
-		// マップチップのテキスチャーの準備
-		for (pugi::xml_node xmltileset : doc.child("map").children("tileset"))
-		{
-			TILESET tileset;
-			tileset.id = tilesetNodeCount;
-			tileset.firstGID = xmltileset.attribute("firstgid").as_int();
-
-			char path[128] = {};
-			const char* source = xmltileset.attribute("source").value();
-
-			memcpy(path, g_TilemapFolder, strlen(g_TilemapFolder));
-
-			memcpy(path + strlen(path), source, strlen(source));
-
-			memcpy(tileset.source, path, strlen(path));
-
-			pugi::xml_document tilesetDoc;
-			pugi::xml_parse_result tilesetDocResult = tilesetDoc.load_file(tileset.source);
-
-			if (tilesetDocResult) {
-
-				pugi::xml_node tilesetInnerNode = tilesetDoc.child("tileset");
-
-				const char* name = tilesetInnerNode.attribute("name").value();
-				memcpy(tileset.name, name, strlen(name));
-
-				tileset.tileWidth = tilesetInnerNode.attribute("tilewidth").as_float();
-				tileset.tileHeight = tilesetInnerNode.attribute("tileheight").as_float();
-				tileset.tileCount = tilesetInnerNode.attribute("tilecount").as_int();
-				tileset.columns = tilesetInnerNode.attribute("columns").as_int();
-
-				pugi::xml_node tilesetTextureNode = tilesetInnerNode.child("image");
-
-				const char* textureSource = tilesetTextureNode.attribute("source").value();
-
-				memcpy(tileset.textureSource, g_dataFolder, strlen(g_dataFolder));
-
-				memcpy(tileset.textureSource + strlen(tileset.textureSource), textureSource + 3, strlen(textureSource));
-
-				tileset.textureW = tilesetTextureNode.attribute("width").as_int();
-				tileset.textureH = tilesetTextureNode.attribute("height").as_int();
-
-				tilesets[tilesetNodeCount] = tileset;
-				tilesetNodeCount++;
-
-			}
-		}
-
-		int tileLayerNodeCount = 0;
-
-		// マップチップのレイヤーの準備
-		for (pugi::xml_node tileLayerNode : doc.child("map").children("layer"))
-		{
-
-			/*std::string str = "Level is: ";
-			str.append(tileLayerNode.attribute("name").value());
-
-			OutputDebugStringA(str.c_str());*/
-
-			tileLayers[tileLayerNodeCount].id = tileLayerNode.attribute("id").as_int();
-
-			const char* tLName = tileLayerNode.attribute("name").value();
-			memcpy(tileLayers[tileLayerNodeCount].name, tLName, strlen(tLName));
-
-			const char* tLClass = tileLayerNode.attribute("class").value();
-			memcpy(tileLayers[tileLayerNodeCount].layerClass, tLClass, strlen(tLClass));
-
-			tileLayers[tileLayerNodeCount].width = tileLayerNode.attribute("width").as_float();
-			tileLayers[tileLayerNodeCount].height = tileLayerNode.attribute("height").as_float();
-
-			char debug[128] = "";
-
-			memcpy(debug, tLClass, strlen(tLClass));
-
-			int result = strcmp(debug, MAP_DEBUG_KEY);
-
-			if (result == 0 && !MAP_DRAW_DEBUG)
-			{
-				tileLayerNodeCount++;
-				continue;
-			}
-
-			ParseTiles(&tileLayers[tileLayerNodeCount], tileLayerNode.child("data").child_value());
-
-			tileLayerNodeCount++;
-		}
-
-		int objectGroupNodeCount = 0;
-
-		for (pugi::xml_node objectGroupNode : doc.child("map").children("objectgroup")) 
-		{
-		
-			objectGroups[objectGroupNodeCount].id = objectGroupNode.attribute("id").as_int();
-
-			const char* oGName = objectGroupNode.attribute("name").value();
-			memcpy(objectGroups[objectGroupNodeCount].name, oGName, strlen(oGName));
-
-			const char* oGClass = objectGroupNode.attribute("class").value();
-			memcpy(objectGroups[objectGroupNodeCount].objectGroupClass, oGClass, strlen(oGClass));
-
-			int objectsNodeCount = 0;
-
-			for (pugi::xml_node fieldObjectNode : objectGroupNode.children("object")) {
-
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].id = fieldObjectNode.attribute("id").as_int();;
-
-				const char* oName = fieldObjectNode.attribute("name").value();
-				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].name, oName, strlen(oName));
-
-				const char* oClass = fieldObjectNode.attribute("type").value();
-				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].objectType, oClass, strlen(oClass));
-
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_float() * MAP_SCALE;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_float() * MAP_SCALE;
-
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = (fieldObjectNode.attribute("x").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width / 2;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = (fieldObjectNode.attribute("y").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height / 2;
-				
-
-				objectsNodeCount++;
-
-			}
-
-			objectGroupNodeCount++;			
-			
-		}
-
-	}
-
-}
 
 //=============================================================================
 // 初期化処理
@@ -533,6 +304,235 @@ void DrawField(int layer)
 
 }
 
+void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objectGroups[], char* file)
+{
+
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(file);
+
+	// マップチップの準備
+	if (result)
+	{
+
+		int tilesetNodeCount = 0;
+
+		// マップチップのテキスチャーの準備
+		for (pugi::xml_node xmltileset : doc.child("map").children("tileset"))
+		{
+			TILESET tileset;
+			tileset.id = tilesetNodeCount;
+			tileset.firstGID = xmltileset.attribute("firstgid").as_int();
+
+			char path[128] = {};
+			const char* source = xmltileset.attribute("source").value();
+
+			memcpy(path, g_TilemapFolder, strlen(g_TilemapFolder));
+
+			memcpy(path + strlen(path), source, strlen(source));
+
+			memcpy(tileset.source, path, strlen(path));
+
+			pugi::xml_document tilesetDoc;
+			pugi::xml_parse_result tilesetDocResult = tilesetDoc.load_file(tileset.source);
+
+			if (tilesetDocResult) {
+
+				pugi::xml_node tilesetInnerNode = tilesetDoc.child("tileset");
+
+				const char* name = tilesetInnerNode.attribute("name").value();
+				memcpy(tileset.name, name, strlen(name));
+
+				tileset.tileWidth = tilesetInnerNode.attribute("tilewidth").as_float();
+				tileset.tileHeight = tilesetInnerNode.attribute("tileheight").as_float();
+				tileset.tileCount = tilesetInnerNode.attribute("tilecount").as_int();
+				tileset.columns = tilesetInnerNode.attribute("columns").as_int();
+
+				pugi::xml_node tilesetTextureNode = tilesetInnerNode.child("image");
+
+				const char* textureSource = tilesetTextureNode.attribute("source").value();
+
+				memcpy(tileset.textureSource, g_dataFolder, strlen(g_dataFolder));
+
+				memcpy(tileset.textureSource + strlen(tileset.textureSource), textureSource + 3, strlen(textureSource));
+
+				tileset.textureW = tilesetTextureNode.attribute("width").as_int();
+				tileset.textureH = tilesetTextureNode.attribute("height").as_int();
+
+				tilesets[tilesetNodeCount] = tileset;
+				tilesetNodeCount++;
+
+			}
+		}
+
+		int tileLayerNodeCount = 0;
+
+		// マップチップのレイヤーの準備
+		for (pugi::xml_node tileLayerNode : doc.child("map").children("layer"))
+		{
+
+			/*std::string str = "Level is: ";
+			str.append(tileLayerNode.attribute("name").value());
+
+			OutputDebugStringA(str.c_str());*/
+
+			tileLayers[tileLayerNodeCount].id = tileLayerNode.attribute("id").as_int();
+
+			const char* tLName = tileLayerNode.attribute("name").value();
+			memcpy(tileLayers[tileLayerNodeCount].name, tLName, strlen(tLName));
+
+			const char* tLClass = tileLayerNode.attribute("class").value();
+			memcpy(tileLayers[tileLayerNodeCount].layerClass, tLClass, strlen(tLClass));
+
+			tileLayers[tileLayerNodeCount].width = tileLayerNode.attribute("width").as_float();
+			tileLayers[tileLayerNodeCount].height = tileLayerNode.attribute("height").as_float();
+
+			char debug[128] = "";
+
+			memcpy(debug, tLClass, strlen(tLClass));
+
+			int result = strcmp(debug, MAP_DEBUG_KEY);
+
+			if (result == 0 && !MAP_DRAW_DEBUG)
+			{
+				tileLayerNodeCount++;
+				continue;
+			}
+
+			ParseTiles(&tileLayers[tileLayerNodeCount], tileLayerNode.child("data").child_value());
+
+			tileLayerNodeCount++;
+		}
+
+		int objectGroupNodeCount = 0;
+
+		for (pugi::xml_node objectGroupNode : doc.child("map").children("objectgroup"))
+		{
+
+			objectGroups[objectGroupNodeCount].id = objectGroupNode.attribute("id").as_int();
+
+			const char* oGName = objectGroupNode.attribute("name").value();
+			memcpy(objectGroups[objectGroupNodeCount].name, oGName, strlen(oGName));
+
+			const char* oGClass = objectGroupNode.attribute("class").value();
+			memcpy(objectGroups[objectGroupNodeCount].objectGroupClass, oGClass, strlen(oGClass));
+
+			int objectsNodeCount = 0;
+
+			for (pugi::xml_node fieldObjectNode : objectGroupNode.children("object")) {
+
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].id = fieldObjectNode.attribute("id").as_int();;
+
+				const char* oName = fieldObjectNode.attribute("name").value();
+				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].name, oName, strlen(oName));
+
+				const char* oClass = fieldObjectNode.attribute("type").value();
+				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].objectType, oClass, strlen(oClass));
+
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_float() * MAP_SCALE;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_float() * MAP_SCALE;
+
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = (fieldObjectNode.attribute("x").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width / 2;
+				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = (fieldObjectNode.attribute("y").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height / 2;
+
+
+				objectsNodeCount++;
+
+			}
+
+			objectGroupNodeCount++;
+
+		}
+
+	}
+
+}
+
+void ParseTiles(TILELAYER* mapLayer, const char* rawData)
+{
+	// タイル準備
+	g_TileCount = 0;
+
+	int converted = 0;
+	const char* tok = rawData;
+	int i = 0;
+
+	int tileIndex_X = 0;
+	int tileIndex_Y = 0;
+
+	// データの解析
+	do
+	{
+		int tileId;
+
+		converted = sscanf(tok, "%d", &tileId);
+
+		tok = strchr(tok, ',');
+
+		if (tok == NULL)
+			break;
+
+		TILE nTile;
+
+		nTile.id = tileId;
+		nTile.use = tileId > 0 ? true : false; // タイル ID が 0 の場合、タイルは表示されません。
+
+		if (nTile.use) {
+
+			TILESET* relatedTileSet = GetTilesetFromTileID(nTile.id);
+
+			if (relatedTileSet != NULL) {
+
+				float newX = (tileIndex_X * relatedTileSet->tileWidth) + relatedTileSet->tileWidth / 2;
+				float newY = (tileIndex_Y * relatedTileSet->tileHeight) + relatedTileSet->tileWidth / 2;
+
+				nTile.pos = XMFLOAT3(newX * MAP_SCALE, newY * MAP_SCALE, 0.0f);
+				nTile.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+				nTile.scl = XMFLOAT3(1.0f * MAP_SCALE, 1.0f * MAP_SCALE, 1.0f * MAP_SCALE);
+				nTile.texNo = relatedTileSet->id;
+
+				float tileSetTileWidth = relatedTileSet->tileWidth;
+				float tileSetTileHeight = relatedTileSet->tileHeight;
+
+				nTile.w = tileSetTileWidth * nTile.scl.x;
+				nTile.h = tileSetTileHeight * nTile.scl.y;
+
+				int textureIndex = nTile.id - relatedTileSet->firstGID;
+
+				int textureUIndex = textureIndex % relatedTileSet->columns;
+				int textureVIndex = (int)(textureIndex / (relatedTileSet->tileCount / relatedTileSet->columns));
+
+				int tileSetTextureWidth = relatedTileSet->textureW;
+				int tileSetTextureHeight = relatedTileSet->textureH;
+
+				nTile.textureU = (textureUIndex * tileSetTileWidth) / tileSetTextureWidth;
+				nTile.textureV = (textureVIndex * tileSetTileHeight) / tileSetTextureHeight;
+				nTile.textureWidth = tileSetTileWidth / tileSetTextureWidth;
+				nTile.textureHeigt = tileSetTileHeight / tileSetTextureHeight;
+
+			}
+
+		}
+
+		mapLayer->tiles[i] = nTile;
+		g_TileCount++;
+
+		tileIndex_X++;
+
+		if (tileIndex_X > mapLayer->width - 1)
+		{
+			tileIndex_X = 0;
+			tileIndex_Y++;
+		}
+
+
+		tok += 1;
+
+		i++;
+
+	} while (converted != 0);
+
+
+}
 
 //=============================================================================
 // Field構造体の先頭アドレスを取得
