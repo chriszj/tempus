@@ -362,6 +362,7 @@ void Draw(void)
 	{
 	case MODE_TITLE:		// タイトル画面の描画
 		DrawTitle();
+		
 		break;
 
 	case MODE_GAME:			// ゲーム画面の描画

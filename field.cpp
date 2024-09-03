@@ -51,12 +51,6 @@ static TILE	 g_Tiles[TILES_PER_LAYER_MAX];		// エネミー構造体
 
 static int	 g_TileCount = TILES_PER_LAYER_MAX;
 
-static float offsetx = 200.0f;
-static float offsety = 200.0f;
-
-static float moveFactor = 200.0f;
-static float tileTime = 25.0f;
-
 void ParseTiles(TILELAYER* mapLayer, const char* rawData)
 {
 	// タイル準備
@@ -385,30 +379,7 @@ void UninitField(void)
 void UpdateField(void)
 {
 	if (g_Load == FALSE) return;
-	g_TileCount = 0;			// 生きてるエネミーの数
-
-	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
-	{
-		// 生きてるエネミーだけ処理をする
-		if (g_Tiles[i].use == TRUE)
-		{
-			g_TileCount++;		// 生きてた敵の数
-			
-			// 地形との当たり判定用に座標のバックアップを取っておく
-			XMFLOAT3 pos_old = g_Tiles[i].pos;
-
-			// アニメーション  
-			g_Tiles[i].countAnim += 1.0f;
-			if (g_Tiles[i].countAnim > ANIM_WAIT)
-			{
-				g_Tiles[i].countAnim = 0.0f;
-				// パターンの切り替え
-				g_Tiles[i].patternAnim = (g_Tiles[i].patternAnim + 1) % ANIM_PATTERN_NUM;
-			}
-
-			
-		}
-	}
+	
 
 
 	//// エネミー全滅チェック
