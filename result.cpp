@@ -8,13 +8,16 @@
 #include "input.h"
 #include "score.h"
 #include "fade.h"
+#include "gui.h"
+#include <string>
+#include <iostream>
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define TEXTURE_WIDTH				(SCREEN_WIDTH)	// 背景サイズ
 #define TEXTURE_HEIGHT				(SCREEN_HEIGHT)	// 
-#define TEXTURE_MAX					(3)				// テクスチャの数
+#define TEXTURE_MAX					(4)				// テクスチャの数
 
 #define TEXTURE_WIDTH_LOGO			(480)			// ロゴサイズ
 #define TEXTURE_HEIGHT_LOGO			(80)			// 
@@ -31,7 +34,8 @@ static ID3D11Buffer				*g_VertexBuffer = NULL;		// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char *g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/bg001.jpg",
+	"data/TEXTURE/return-win.png",
+	"data/TEXTURE/return-loose.png",
 	"data/TEXTURE/result_logo.png",
 	"data/TEXTURE/number16x32.png",
 };
@@ -44,11 +48,15 @@ static int						g_TexNo;					// テクスチャ番号
 
 static BOOL						g_Load = FALSE;
 
+static int                      g_resultType = RESULTTYPE_WIN;
+
 //=============================================================================
 // 初期化処理
 //=============================================================================
-HRESULT InitResult(void)
+HRESULT InitResult(int resultType)
 {
+	g_resultType = resultType;
+
 	ID3D11Device *pDevice = GetDevice();
 
 	//テクスチャ生成
@@ -83,6 +91,17 @@ HRESULT InitResult(void)
 
 	// BGM再生
 
+	BMPTEXT* myText = GetUnusedText();
+	myText->x = g_Pos.x;
+	myText->y = g_h / 2;
+	myText->scale = 1.5f;
+
+	std::wstring wstr = std::to_wstring(GetScore());
+
+	SetText(myText, (wchar_t*)wstr.c_str());
+
+	/*SetText(myText, L"これは本です\nちなみに。");*/
+
 
 	g_Load = TRUE;
 	return S_OK;
@@ -109,6 +128,8 @@ void UninitResult(void)
 			g_Texture[i] = NULL;
 		}
 	}
+
+	ClearGUI();
 
 	g_Load = FALSE;
 }
@@ -165,7 +186,7 @@ void DrawResult(void)
 	// リザルトの背景を描画
 	{
 		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[0]);
+		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_resultType]);
 
 		// １枚のポリゴンの頂点とテクスチャ座標を設定
 		SetSpriteLeftTop(g_VertexBuffer, 0.0f, 0.0f, g_w, g_h, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -175,53 +196,53 @@ void DrawResult(void)
 	}
 
 	// リザルトのロゴを描画
-	{
-		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
+	//{
+	//	// テクスチャ設定
+	//	GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[2]);
 
-		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		SetSprite(g_VertexBuffer, g_Pos.x, g_Pos.y, TEXTURE_WIDTH_LOGO, TEXTURE_HEIGHT_LOGO, 0.0f, 0.0f, 1.0f, 1.0f);
+	//	// １枚のポリゴンの頂点とテクスチャ座標を設定
+	//	SetSprite(g_VertexBuffer, g_Pos.x, g_Pos.y, TEXTURE_WIDTH_LOGO, TEXTURE_HEIGHT_LOGO, 0.0f, 0.0f, 1.0f, 1.0f);
 
-		// ポリゴン描画
-		GetDeviceContext()->Draw(4, 0);
-	}
+	//	// ポリゴン描画
+	//	GetDeviceContext()->Draw(4, 0);
+	//}
 
 
 	// スコア表示
-	{
-		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[2]);
+	//{
+	//	// テクスチャ設定
+	//	GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[3]);
 
-		// 桁数分処理する
-		int number = GetScore();
-		for (int i = 0; i < SCORE_DIGIT; i++)
-		{
-			// 今回表示する桁の数字
-			float x = (float)(number % 10);
+	//	// 桁数分処理する
+	//	int number = GetScore();
+	//	for (int i = 0; i < SCORE_DIGIT; i++)
+	//	{
+	//		// 今回表示する桁の数字
+	//		float x = (float)(number % 10);
 
-			// スコアの位置やテクスチャー座標を反映
-			float pw = 16*4;			// スコアの表示幅
-			float ph = 32*4;			// スコアの表示高さ
-			float px = 600.0f - i*pw;	// スコアの表示位置X
-			float py = 300.0f;			// スコアの表示位置Y
+	//		// スコアの位置やテクスチャー座標を反映
+	//		float pw = 16*4;			// スコアの表示幅
+	//		float ph = 32*4;			// スコアの表示高さ
+	//		float px = 600.0f - i*pw;	// スコアの表示位置X
+	//		float py = 300.0f;			// スコアの表示位置Y
 
-			float tw = 1.0f / 10;		// テクスチャの幅
-			float th = 1.0f / 1;		// テクスチャの高さ
-			float tx = x * tw;			// テクスチャの左上X座標
-			float ty = 0.0f;			// テクスチャの左上Y座標
+	//		float tw = 1.0f / 10;		// テクスチャの幅
+	//		float th = 1.0f / 1;		// テクスチャの高さ
+	//		float tx = x * tw;			// テクスチャの左上X座標
+	//		float ty = 0.0f;			// テクスチャの左上Y座標
 
-			// １枚のポリゴンの頂点とテクスチャ座標を設定
-			SetSpriteColor(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
-				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	//		// １枚のポリゴンの頂点とテクスチャ座標を設定
+	//		SetSpriteColor(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
+	//			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
-			// ポリゴン描画
-			GetDeviceContext()->Draw(4, 0);
+	//		// ポリゴン描画
+	//		GetDeviceContext()->Draw(4, 0);
 
-			// 次の桁へ
-			number /= 10;
-		}
+	//		// 次の桁へ
+	//		number /= 10;
+	//	}
 
-	}
+	//}
 
 
 

@@ -332,14 +332,21 @@ void Update(void)
 			int ans = CheckGameClear();
 			if (ans != 0)
 			{
-				//SetMode(MODE_RESULT);
-				SetFade(FADE_OUT, MODE_RESULT);
+				if (ans == 2) {
+					SetFade(FADE_OUT, MODE_GAMEOVER);
+				}
+				else {
+
+					//SetMode(MODE_RESULT);
+					SetFade(FADE_OUT, MODE_RESULT);
+				}
 			}
 		}
 
 		break;
-
+		
 	case MODE_RESULT:		// リザルト画面の更新
+	case MODE_GAMEOVER:
 		UpdateResult();
 		break;
 	}
@@ -379,18 +386,19 @@ void Draw(void)
 	case MODE_GAME:			// ゲーム画面の描画
 		DrawBG();
 		DrawBullet();		// 重なる順番を意識してね
-		DrawEnemy();
 		DrawField(0);
-		DrawPlayer();
 		DrawField(1);
-		DrawField(2);
 		DrawField(3);
+		DrawPlayer();
+		DrawEnemy();
+		DrawField(2);
 		DrawEffect();
 		DrawTimeMachineGUI();
 		DrawScore();
 		break;
 
 	case MODE_RESULT:		// リザルト画面の描画
+	case MODE_GAMEOVER:
 		DrawResult();
 		break;
 	}
@@ -503,7 +511,12 @@ void SetMode(int mode)
 		break;
 
 	case MODE_RESULT:
-		InitResult();
+		InitResult(RESULTTYPE_WIN);
+		PlaySound(SOUND_LABEL_BGM_sample002);
+		break;
+
+	case MODE_GAMEOVER:
+		InitResult(RESULTTYPE_LOOSE);
 		PlaySound(SOUND_LABEL_BGM_sample002);
 		break;
 
@@ -536,7 +549,10 @@ int CheckGameClear(void)
 
 	// プレイヤーの数が０ならエネミーの勝ちとする
 	cnt = GetPlayerCount();
-	if (cnt <= 0)
+
+	int remainingTime = TIMELIMIT_SECONDS - GetTimeMachineElapsedTime();
+
+	if (cnt <= 0 || remainingTime < 1)
 	{
 		return 2;	// エネミーの勝ち
 	}

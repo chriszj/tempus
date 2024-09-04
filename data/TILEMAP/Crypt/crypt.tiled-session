@@ -1,0 +1,347 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "level1.tmx",
+    "automapping.whileDrawing": false,
+    "expandedProjectPaths": [
+        ".",
+        "Rules"
+    ],
+    "fileStates": {
+        ":/automap-tiles.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1
+        },
+        "Atlas-Props-sprites.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
+        "Atlas-Props.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
+        "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/level0.tmx": {
+            "expandedObjectLayers": [
+                2,
+                3
+            ],
+            "scale": 3.61,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 159.97229916897507,
+                "y": 159.97229916897507
+            }
+        },
+        "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/old/Grass.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/old/Plant.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/old/Props.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/old/Struct.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/old/Wall.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/old/map.tmx": {
+            "expandedObjectLayers": [
+                5,
+                6
+            ],
+            "scale": 1.2033333333333331,
+            "selectedLayer": 5,
+            "viewCenter": {
+                "x": 479.9168975069253,
+                "y": 320.3601108033242
+            }
+        },
+        "Crypt example map.tmx": {
+            "scale": 0.381484375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 960.7208683186567,
+                "y": 640.9174687691993
+            }
+        },
+        "Rules/balluster1-wall2-rule0-resets all tiles to initial state.tmx": {
+            "scale": 0.76296875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 480.36043415932835,
+                "y": 480.36043415932835
+            }
+        },
+        "Rules/balluster1-wall2-rule1-places all tiles.tmx": {
+            "scale": 1.1444531249999998,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 320.24028943955227,
+                "y": 160.3385896648236
+            }
+        },
+        "Rules/balluster1-wall2-rule2-dead ends and variations.tmx": {
+            "scale": 0.5722265624999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 640.4805788791045,
+                "y": 640.4805788791045
+            }
+        },
+        "Rules/balluster2-wall3-rule0-resets all tiles to initial state.tmx": {
+            "scale": 0.76296875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 480.36043415932835,
+                "y": 480.36043415932835
+            }
+        },
+        "Rules/balluster2-wall3-rule1-places all tiles.tmx": {
+            "scale": 1.1444531249999998,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 320.24028943955227,
+                "y": 303.63847361594657
+            }
+        },
+        "Rules/balluster2-wall3-rule2-dead ends and variations.tmx": {
+            "scale": 0.5722265624999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 640.4805788791045,
+                "y": 640.4805788791045
+            }
+        },
+        "Rules/balluster3-rule0-resets all tiles to initial state.tmx": {
+            "scale": 0.45778125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 800.6007235988807,
+                "y": 479.4866543791386
+            }
+        },
+        "Rules/balluster3-rule1-places all tiles.tmx": {
+            "scale": 0.76296875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 480.36043415932835,
+                "y": 480.36043415932835
+            }
+        },
+        "Rules/balluster3-rule2-dead ends and variations.tmx": {
+            "scale": 0.5722265624999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 640.4805788791045,
+                "y": 640.4805788791045
+            }
+        },
+        "Rules/balluster4-rule0-removes striped tiles.tmx": {
+            "scale": 4.577812499999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 80.06007235988807,
+                "y": 80.06007235988807
+            }
+        },
+        "Rules/baluster-2-rule.tmx": {
+            "scale": 0.381484375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 960.7208683186567,
+                "y": 321.1140692197421
+            }
+        },
+        "Rules/wall-1-rule0-erases all generated tiles and resets them to their initial state.tmx": {
+            "scale": 0.46609375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 638.2836071069394,
+                "y": 992.289641300704
+            }
+        },
+        "Rules/wall-1-rule1-places all tiles.tmx": {
+            "scale": 0.28611328124999996,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1280.961157758209,
+                "y": 1371.8342548979458
+            }
+        },
+        "Rules/wall-1-rule2-applies variations.tmx": {
+            "scale": 0.5722265624999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 640.4805788791045,
+                "y": 766.3048672264321
+            }
+        },
+        "Rules/wall-2-rule0-erases all generated tiles and resets them to their initial state.tmx": {
+            "scale": 0.46609375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 638.2836071069394,
+                "y": 992.289641300704
+            }
+        },
+        "Rules/wall-2-rule1-places all tiles.tmx": {
+            "scale": 0.28611328124999996,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1280.961157758209,
+                "y": 1371.8342548979458
+            }
+        },
+        "Rules/wall-2-rule2-applies variations.tmx": {
+            "scale": 0.5722265624999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 640.4805788791045,
+                "y": 766.3048672264321
+            }
+        },
+        "Rules/wall-3-rule0-erases all generated tiles and resets them to their initial state.tmx": {
+            "scale": 0.46609375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 638.2836071069394,
+                "y": 992.289641300704
+            }
+        },
+        "Rules/wall-3-rule1-places all tiles.tmx": {
+            "scale": 0.28611328124999996,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1279.2135981978295,
+                "y": 798.6347190934536
+            }
+        },
+        "Rules/wall-3-rule2-applies variations.tmx": {
+            "scale": 0.5722265624999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 640.4805788791045,
+                "y": 766.3048672264321
+            }
+        },
+        "Sample Map.tmx": {
+            "expandedObjectLayers": [
+                12,
+                16,
+                15
+            ],
+            "scale": 1.5,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 560.3333333333333,
+                "y": 400.33333333333326
+            }
+        },
+        "Tileset-Terrain.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
+        "Tilesets/Tileset - wall 1.tsx": {
+            "scaleInDock": 1
+        },
+        "Tilesets/Tileset - wall 2.tsx": {
+            "scaleInDock": 1
+        },
+        "Tilesets/Tileset - wall 3.tsx": {
+            "scaleInDock": 1
+        },
+        "Tilesets/Tileset-Terrain.tsx": {
+            "scaleInDock": 1
+        },
+        "level0.tmx": {
+            "expandedObjectLayers": [
+                3,
+                2
+            ],
+            "scale": 3.61,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 159.9722991689751,
+                "y": 159.97229916897507
+            }
+        },
+        "level1.tmx": {
+            "expandedObjectLayers": [
+                3,
+                5,
+                4
+            ],
+            "scale": 2,
+            "selectedLayer": 7,
+            "viewCenter": {
+                "x": 1397.25,
+                "y": 1605.25
+            }
+        },
+        "level1s.tmx": {
+            "expandedObjectLayers": [
+                3,
+                4
+            ],
+            "scale": 1,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 480.5,
+                "y": 480.5
+            }
+        },
+        "wall 1.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
+        "wall 2.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
+        "wall 3.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        }
+    },
+    "last.externalTilesetPath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/Crypt",
+    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Crypt/Props/animated/doors2",
+    "map.height": 10,
+    "map.lastUsedFormat": "tmx",
+    "map.width": 10,
+    "openFiles": [
+        "Rules/wall-3-rule1-places all tiles.tmx",
+        "Crypt example map.tmx",
+        "Sample Map.tmx",
+        "level1s.tmx",
+        "Tileset-Terrain.tsx",
+        "level0.tmx",
+        "Atlas-Props-sprites.tsx",
+        "Atlas-Props.tsx",
+        "level1.tmx"
+    ],
+    "project": "crypt.tiled-project",
+    "recentFiles": [
+        "Rules/wall-3-rule1-places all tiles.tmx",
+        "Crypt example map.tmx",
+        "Sample Map.tmx",
+        "level1s.tmx",
+        "Tileset-Terrain.tsx",
+        "level0.tmx",
+        "Atlas-Props-sprites.tsx",
+        "Atlas-Props.tsx",
+        "level1.tmx",
+        "wall 3.tsx",
+        "wall 2.tsx",
+        "wall 1.tsx"
+    ]
+}

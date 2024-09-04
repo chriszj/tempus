@@ -9,6 +9,7 @@
 #include "timemachine.h"
 #include "sprite.h"
 #include "gui.h"
+#include "enemy.h"
 #include <iostream>
 #include <chrono>
 #include <ctime>
@@ -105,14 +106,14 @@ HRESULT InitTimeMachine(void)
 
 	//g_StartTime = 
 	g_ElapsedTimeText = GetUnusedText();
-	g_ElapsedTimeText->x = 200;
-	g_ElapsedTimeText->y = 150;
+	g_ElapsedTimeText->x = SCREEN_WIDTH - 70;
+	g_ElapsedTimeText->y = 25;
 	SetText(g_ElapsedTimeText, L"              Elapsed Time; ");
 
 	g_snapshotIndex = GetUnusedText();
-	g_snapshotIndex->x = 200;
-	g_snapshotIndex->y = 250;
-	SetText(g_snapshotIndex, L"              SnapShot Index; ");
+	g_snapshotIndex->x = 70;
+	g_snapshotIndex->y = 25;
+	SetText(g_snapshotIndex, L"Enemies; ");
 
 	return S_OK;
 }
@@ -238,11 +239,16 @@ void UpdateTimeMachine(void)
 	g_ElapsedTime += timeSpan;
 
 
-	std::wstring wstr = std::to_wstring(g_ElapsedTime / 1);
+	std::wstring wstr = std::to_wstring(TIMELIMIT_SECONDS - (g_ElapsedTime / 1000));
 
 	SetText(g_ElapsedTimeText, (wchar_t*)wstr.c_str());
 
-	std::wstring wstr2 = std::to_wstring(g_CurrentTimeStateIndex);
+
+
+	std::wstring wstr2 = std::to_wstring(ENEMY_MAX - GetEnemyCount());
+
+	wstr2.append(L" / ");
+	wstr2.append( std::to_wstring(ENEMY_MAX));
 
 	SetText(g_snapshotIndex, (wchar_t*)wstr2.c_str());
 
@@ -393,6 +399,12 @@ void FastForwardTimeMachine(int speedMiliseconds)
 	g_ElapsedTime += speedMiliseconds;
 
 	g_ElapsedTime = min(g_LastElapsedTime, max(g_ElapsedTime, 0));
+
+}
+
+int GetTimeMachineElapsedTime() {
+
+	return g_ElapsedTime / 1000;
 
 }
 

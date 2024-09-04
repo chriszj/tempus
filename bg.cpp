@@ -5,12 +5,13 @@
 //
 //=============================================================================
 #include "bg.h"
+#include "field.h"
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define TEXTURE_WIDTH				(8000)			// (SCREEN_WIDTH)	// 背景サイズ
-#define TEXTURE_HEIGHT				(1080)			// (SCREEN_HEIGHT)	// 
+#define TEXTURE_WIDTH				(102*32*MAP_SCALE)			// (SCREEN_WIDTH)	// 背景サイズ
+#define TEXTURE_HEIGHT				(82*32*MAP_SCALE)			// (SCREEN_HEIGHT)	// 
 #define TEXTURE_MAX					(3)				// テクスチャの数
 
 #define TEXTURE_WIDTH_LOGO			(480)			// ロゴサイズ

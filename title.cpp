@@ -31,7 +31,7 @@ static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char *g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/bg000.jpg",
+	"data/TEXTURE/return-cover.png",
 	"data/TEXTURE/title.png",
 	"data/TEXTURE/effect000.jpg",
 };
@@ -94,14 +94,14 @@ HRESULT InitTitle(void)
 	effect_dx = 100.0f;
 	effect_dy = 100.0f;
 
-	BMPTEXT* myText = GetUnusedText();
-	myText->x = 300;
-	myText->y = 250;
-	myText->scale = 0.5f;
+	//BMPTEXT* myText = GetUnusedText();
+	//myText->x = 300;
+	//myText->y = 250;
+	//myText->scale = 0.5f;
 
-	//wchar_t buf[] = L"これは製作です！";
-	
-	SetText(myText, L"これは本です\nちなみに。");
+	////wchar_t buf[] = L"これは製作です！";
+	//
+	//SetText(myText, L"これは本です\nちなみに。");
 
 	g_Load = TRUE;
 	return S_OK;
@@ -228,26 +228,26 @@ void DrawTitle(void)
 
 	// 加減算のテスト
 //	SetBlendState(BLEND_MODE_ADD);		// 加算合成
-	SetBlendState(BLEND_MODE_SUBTRACT);	// 減算合成
-		
-	// テクスチャ設定
-	GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[2]);
-	
-	for (int i = 0; i < 30; i++)
-	{
-		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		float dx = effect_dx;
-		float dy = effect_dy;
-		float sx = (float)(rand() % 100);
-		float sy = (float)(rand() % 100);
+	//SetBlendState(BLEND_MODE_SUBTRACT);	// 減算合成
+	//	
+	//// テクスチャ設定
+	//GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[2]);
+	//
+	//for (int i = 0; i < 30; i++)
+	//{
+	//	// １枚のポリゴンの頂点とテクスチャ座標を設定
+	//	float dx = effect_dx;
+	//	float dy = effect_dy;
+	//	float sx = (float)(rand() % 100);
+	//	float sy = (float)(rand() % 100);
 
-		SetSpriteColor(g_VertexBuffer, dx + sx, dy + sy, 50, 50, 0.0f, 0.0f, 1.0f, 1.0f,
-			XMFLOAT4(1.0f, 0.3f, 1.0f, 0.5f));
+	//	SetSpriteColor(g_VertexBuffer, dx + sx, dy + sy, 50, 50, 0.0f, 0.0f, 1.0f, 1.0f,
+	//		XMFLOAT4(1.0f, 0.3f, 1.0f, 0.5f));
 
-		// ポリゴン描画
-		GetDeviceContext()->Draw(4, 0);
-	}
-	SetBlendState(BLEND_MODE_ALPHABLEND);	// 半透明処理を元に戻す
+	//	// ポリゴン描画
+	//	GetDeviceContext()->Draw(4, 0);
+	//}
+	//SetBlendState(BLEND_MODE_ALPHABLEND);	// 半透明処理を元に戻す
 
 
 }

@@ -12,6 +12,7 @@
 //*****************************************************************************
 #define TIMESTATE_MAX			(5000)		// スコアの最大値
 #define TIMEOBJECTS_MAX			(100)			// 桁数
+#define TIMELIMIT_SECONDS        (50)
 
 //*****************************************************************************
 // 構造体定義
@@ -58,6 +59,7 @@ void DeactivateTimeMachine(void);
 BOOL IsTimeMachineActive(void);
 void RewindTimeMachine(int speedMiliseconds);
 void FastForwardTimeMachine(int speedMiliseconds);
+int GetTimeMachineElapsedTime();
 
 
 

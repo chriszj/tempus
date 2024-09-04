@@ -15,10 +15,10 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define TILES_PER_LAYER_MAX		(1000)		// エネミーのMax人数
+#define TILES_PER_LAYER_MAX		(15000)		// エネミーのMax人数
 #define TILESET_MAX				(10)
 #define MAP_LAYER_MAX			(10)
-#define MAP_SCALE				(2)
+#define MAP_SCALE				(1.5)
 #define MAP_DRAW_DEBUG			true
 #define MAP_DRAW_DEBUG_WALLS    false
 #define MAP_DEBUG_KEY			"Debug"
@@ -28,6 +28,7 @@
 #define FOBJTYPE_PLAYERSTART	"PlayerStartPoint"
 #define FOBJGROUP_WALL			"Wall"
 #define FOBJGROUP_LOCATIONS		"Locations"
+#define FOBJGROUP_ENEMY		    "Enemy"
 
 //*****************************************************************************
 // 構造体定義

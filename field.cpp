@@ -36,7 +36,7 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TILESET_MAX] = { NULL };	// テクスチャ情報
 
-static char g_TilemapFolder[] = "data/TILEMAP/";
+static char g_TilemapFolder[] = "data/TILEMAP/Crypt/";
 static char g_dataFolder[] = "data/";
 static char* g_debugTextures[1] = {
 	"data/TEXTURE/bar_white.png",
@@ -59,7 +59,7 @@ HRESULT InitField(void)
 {
 	ID3D11Device* pDevice = GetDevice();
 
-	ParseMap(g_Tilesets,g_TileLayers, g_ObjectGroups, "data/TILEMAP/map.tmx");
+	ParseMap(g_Tilesets,g_TileLayers, g_ObjectGroups, "data/TILEMAP/Crypt/level1.tmx");
 
 	//テクスチャ生成
 	for (int i = 0; i < TILESET_MAX; i++)
@@ -211,6 +211,8 @@ void DrawField(int layer)
 	{
 		if (mapLayerToDraw->tiles[i].use == TRUE)			// このエネミーが使われている？
 		{									// Yes
+
+			
 			// テクスチャ設定
 			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[mapLayerToDraw->tiles[i].texNo]);
 
@@ -224,6 +226,14 @@ void DrawField(int layer)
 			float th = mapLayerToDraw->tiles[i].textureHeigt;	// テクスチャの高さ
 			float tx = mapLayerToDraw->tiles[i].textureU;	// テクスチャの左上X座標
 			float ty = mapLayerToDraw->tiles[i].textureV;	// テクスチャの左上Y座標
+
+			if (px < -pw ||
+				px > SCREEN_WIDTH + pw ||
+				py < -ph ||
+				py > SCREEN_HEIGHT + ph)
+			{
+				continue;
+			}
 
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
@@ -353,7 +363,7 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 
 				memcpy(tileset.textureSource, g_dataFolder, strlen(g_dataFolder));
 
-				memcpy(tileset.textureSource + strlen(tileset.textureSource), textureSource + 3, strlen(textureSource));
+				memcpy(tileset.textureSource + strlen(tileset.textureSource), textureSource + 6, strlen(textureSource));
 
 				tileset.textureW = tilesetTextureNode.attribute("width").as_int();
 				tileset.textureH = tilesetTextureNode.attribute("height").as_int();
@@ -499,7 +509,8 @@ void ParseTiles(TILELAYER* mapLayer, const char* rawData)
 				int textureIndex = nTile.id - relatedTileSet->firstGID;
 
 				int textureUIndex = textureIndex % relatedTileSet->columns;
-				int textureVIndex = (int)(textureIndex / (relatedTileSet->tileCount / relatedTileSet->columns));
+
+				int textureVIndex = floor(textureIndex / relatedTileSet->columns);
 
 				int tileSetTextureWidth = relatedTileSet->textureW;
 				int tileSetTextureHeight = relatedTileSet->textureH;

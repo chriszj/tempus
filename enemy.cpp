@@ -9,6 +9,7 @@
 #include "player.h"
 #include "fade.h"
 #include "collision.h"
+#include "field.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -17,7 +18,7 @@
 #define TEXTURE_HEIGHT				(200/2)	// 
 #define TEXTURE_MAX					(2)		// テクスチャの数
 
-#define TEXTURE_PATTERN_DIVIDE_X	(1)		// アニメパターンのテクスチャ内分割数（X)
+#define TEXTURE_PATTERN_DIVIDE_X	(12)		// アニメパターンのテクスチャ内分割数（X)
 #define TEXTURE_PATTERN_DIVIDE_Y	(1)		// アニメパターンのテクスチャ内分割数（Y)
 #define ANIM_PATTERN_NUM			(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
 #define ANIM_WAIT					(4)		// アニメーションの切り替わるWait値
@@ -35,7 +36,7 @@ static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char *g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/enemy00.png",
+	"data/TEXTURE/candle-burning-only fire.png",
 	"data/TEXTURE/bar_white.png",
 };
 
@@ -49,15 +50,15 @@ static float offsetx = 200.0f;
 static float offsety = 200.0f;
 
 static float moveFactor = 200.0f;
-static float time = 25.0f;
+static float e_time = 25.0f;
 
 static INTERPOLATION_DATA g_MoveTbl0[] = {
 	//座標									回転率							拡大率					時間
-	{ XMFLOAT3( offsetx,  offsety, 0.0f),	XMFLOAT3(0.0f, 0.0f, 5.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	time },
-	{ XMFLOAT3( offsetx + moveFactor,  offsety, 0.0f),	XMFLOAT3(0.0f, 0.0f, 2.0f),	XMFLOAT3(0.3f, 1.0f, 1.0f),	time },
-	{ XMFLOAT3( offsetx, offsety + (moveFactor*0.9f), 0.0f),	XMFLOAT3(0.0f, 0.0f, -3.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	time },
-	{ XMFLOAT3( offsetx + (moveFactor/2),  offsety - (moveFactor*0.4f), 0.0f),	XMFLOAT3(0.0f, 0.0f, 3.0f),	XMFLOAT3(0.3f, 1.0f, 1.0f),	time},
-	{ XMFLOAT3( offsetx + moveFactor, offsety + (moveFactor*0.9f), 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(-1.0f, 1.0f, 1.0f),	time },
+	{ XMFLOAT3( offsetx,  offsety, 0.0f),	XMFLOAT3(0.0f, 0.0f, 5.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	e_time },
+	{ XMFLOAT3( offsetx + moveFactor,  offsety, 0.0f),	XMFLOAT3(0.0f, 0.0f, 2.0f),	XMFLOAT3(0.3f, 1.0f, 1.0f),	e_time },
+	{ XMFLOAT3( offsetx, offsety + (moveFactor*0.9f), 0.0f),	XMFLOAT3(0.0f, 0.0f, -3.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	e_time },
+	{ XMFLOAT3( offsetx + (moveFactor/2),  offsety - (moveFactor*0.4f), 0.0f),	XMFLOAT3(0.0f, 0.0f, 3.0f),	XMFLOAT3(0.3f, 1.0f, 1.0f),	e_time},
+	{ XMFLOAT3( offsetx + moveFactor, offsety + (moveFactor*0.9f), 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(-1.0f, 1.0f, 1.0f),	e_time },
 
 };
 
@@ -114,14 +115,23 @@ HRESULT InitEnemy(void)
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
+	FIELDOBJECT* fieldPositions = GetFieldObjectsFromGroup(FOBJGROUP_ENEMY);
 
 	// エネミー構造体の初期化
 	g_EnemyCount = 0;
 	for (int i = 0; i < ENEMY_MAX; i++)
 	{
+
+		XMFLOAT3 startPosition = XMFLOAT3(400.0f, 400.0f, 0.0f);
+
+		if (fieldPositions != NULL)
+		{
+			startPosition = XMFLOAT3((fieldPositions[i].x) - (TEXTURE_WIDTH / 4), (fieldPositions[i].y) - (TEXTURE_HEIGHT / 2), 0.0f);
+		}
+
 		g_EnemyCount++;
 		g_Enemy[i].use = TRUE;
-		g_Enemy[i].pos = XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
+		g_Enemy[i].pos = startPosition;//XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
 		g_Enemy[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Enemy[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		g_Enemy[i].w = TEXTURE_WIDTH;
@@ -138,20 +148,20 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
 	}
 
-	// 0番だけ線形補間で動かしてみる
-	g_Enemy[0].time = 0.0f;		// 線形補間用のタイマーをクリア
-	g_Enemy[0].tblNo = 0;		// 再生するアニメデータの先頭アドレスをセット
-	g_Enemy[0].tblMax = sizeof(g_MoveTbl0) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
+	//// 0番だけ線形補間で動かしてみる
+	//g_Enemy[0].time = 0.0f;		// 線形補間用のタイマーをクリア
+	//g_Enemy[0].tblNo = 0;		// 再生するアニメデータの先頭アドレスをセット
+	//g_Enemy[0].tblMax = sizeof(g_MoveTbl0) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
 
-	// 1番だけ線形補間で動かしてみる
-	g_Enemy[1].time = 0.0f;		// 線形補間用のタイマーをクリア
-	g_Enemy[1].tblNo = 1;		// 再生するアニメデータの先頭アドレスをセット
-	g_Enemy[1].tblMax = sizeof(g_MoveTbl1) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
+	//// 1番だけ線形補間で動かしてみる
+	//g_Enemy[1].time = 0.0f;		// 線形補間用のタイマーをクリア
+	//g_Enemy[1].tblNo = 1;		// 再生するアニメデータの先頭アドレスをセット
+	//g_Enemy[1].tblMax = sizeof(g_MoveTbl1) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
 
-	// 2番だけ線形補間で動かしてみる
-	g_Enemy[2].time = 0.0f;		// 線形補間用のタイマーをクリア
-	g_Enemy[2].tblNo = 2;		// 再生するアニメデータの先頭アドレスをセット
-	g_Enemy[2].tblMax = sizeof(g_MoveTbl2) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
+	//// 2番だけ線形補間で動かしてみる
+	//g_Enemy[2].time = 0.0f;		// 線形補間用のタイマーをクリア
+	//g_Enemy[2].tblNo = 2;		// 再生するアニメデータの先頭アドレスをセット
+	//g_Enemy[2].tblMax = sizeof(g_MoveTbl2) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
 
 	g_Load = TRUE;
 	return S_OK;
@@ -327,15 +337,15 @@ void DrawEnemy(void)
 			float ph = g_Enemy[i].h;		// エネミーの表示高さ
 
 			// アニメーション用
-			//float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
-			//float th = 1.0f / TEXTURE_PATTERN_DIVIDE_Y;	// テクスチャの高さ
-			//float tx = (float)(g_Player[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// テクスチャの左上X座標
-			//float ty = (float)(g_Player[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// テクスチャの左上Y座標
+			float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
+			float th = 1.0f / TEXTURE_PATTERN_DIVIDE_Y;	// テクスチャの高さ
+			float tx = (float)(g_Enemy[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// テクスチャの左上X座標
+			float ty = (float)(g_Enemy[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// テクスチャの左上Y座標
 
-			float tw = 1.0f;	// テクスチャの幅
-			float th = 1.0f;	// テクスチャの高さ
-			float tx = 0.0f;	// テクスチャの左上X座標
-			float ty = 0.0f;	// テクスチャの左上Y座標
+			//float tw = 1.0f;	// テクスチャの幅
+			//float th = 1.0f;	// テクスチャの高さ
+			//float tx = 0.0f;	// テクスチャの左上X座標
+			//float ty = 0.0f;	// テクスチャの左上Y座標
 
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
@@ -352,44 +362,44 @@ void DrawEnemy(void)
 	{
 		// 下敷きのゲージ（枠的な物）
 		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
+		//GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
 
-		//ゲージの位置やテクスチャー座標を反映
-		float px = 600.0f;		// ゲージの表示位置X
-		float py =  10.0f;		// ゲージの表示位置Y
-		float pw = 300.0f;		// ゲージの表示幅
-		float ph =  30.0f;		// ゲージの表示高さ
+		////ゲージの位置やテクスチャー座標を反映
+		//float px = 600.0f;		// ゲージの表示位置X
+		//float py =  10.0f;		// ゲージの表示位置Y
+		//float pw = 300.0f;		// ゲージの表示幅
+		//float ph =  30.0f;		// ゲージの表示高さ
 
-		float tw = 1.0f;	// テクスチャの幅
-		float th = 1.0f;	// テクスチャの高さ
-		float tx = 0.0f;	// テクスチャの左上X座標
-		float ty = 0.0f;	// テクスチャの左上Y座標
+		//float tw = 1.0f;	// テクスチャの幅
+		//float th = 1.0f;	// テクスチャの高さ
+		//float tx = 0.0f;	// テクスチャの左上X座標
+		//float ty = 0.0f;	// テクスチャの左上Y座標
 
-		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		SetSpriteLTColor(g_VertexBuffer,
-			px, py, pw, ph,
-			tx, ty, tw, th,
-			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+		//// １枚のポリゴンの頂点とテクスチャ座標を設定
+		//SetSpriteLTColor(g_VertexBuffer,
+		//	px, py, pw, ph,
+		//	tx, ty, tw, th,
+		//	XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 
-		// ポリゴン描画
-		GetDeviceContext()->Draw(4, 0);
+		//// ポリゴン描画
+		//GetDeviceContext()->Draw(4, 0);
 
 
-		// エネミーの数に従ってゲージの長さを表示してみる
-		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
+		//// エネミーの数に従ってゲージの長さを表示してみる
+		//// テクスチャ設定
+		//GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[1]);
 
-		//ゲージの位置やテクスチャー座標を反映
-		pw = pw * ((float)g_EnemyCount / ENEMY_MAX);
+		////ゲージの位置やテクスチャー座標を反映
+		//pw = pw * ((float)g_EnemyCount / ENEMY_MAX);
 
-		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		SetSpriteLTColor(g_VertexBuffer,
-			px, py, pw, ph,
-			tx, ty, tw, th,
-			XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+		//// １枚のポリゴンの頂点とテクスチャ座標を設定
+		//SetSpriteLTColor(g_VertexBuffer,
+		//	px, py, pw, ph,
+		//	tx, ty, tw, th,
+		//	XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
 
-		// ポリゴン描画
-		GetDeviceContext()->Draw(4, 0);
+		//// ポリゴン描画
+		//GetDeviceContext()->Draw(4, 0);
 
 
 	}

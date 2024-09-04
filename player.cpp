@@ -240,8 +240,8 @@ void UpdatePlayer(void)
 
 					if (GetKeyboardPress(DIK_C) || IsButtonPressed(0, BUTTON_A))
 					{
-						speed *= 4;
-						g_Player[i].dash = TRUE;
+						//speed *= 4;
+						//g_Player[i].dash = TRUE;
 					}
 
 
@@ -413,8 +413,8 @@ void UpdatePlayer(void)
 							// 生きてるエネミーと当たり判定をする
 							if (enemy[j].use == TRUE)
 							{
-								BOOL ans = CollisionBB(g_Player[i].pos, g_Player[i].w, g_Player[i].h,
-									enemy[j].pos, enemy[j].w, enemy[j].h);
+								BOOL ans = CollisionBB(g_Player[i].pos, g_Player[i].w/2, g_Player[i].h/2,
+									enemy[j].pos, enemy[j].w/2, enemy[j].h/2);
 								// 当たっている？
 								if (ans == TRUE)
 								{
@@ -427,7 +427,7 @@ void UpdatePlayer(void)
 					}
 
 					// バレット処理
-					if (GetKeyboardTrigger(DIK_SPACE))
+					/*if (GetKeyboardTrigger(DIK_SPACE))
 					{
 						XMFLOAT3 pos = g_Player[i].pos;
 						pos.y += g_Player[i].jumpY;
@@ -439,7 +439,7 @@ void UpdatePlayer(void)
 						XMFLOAT3 pos = g_Player[i].pos;
 						pos.y += g_Player[i].jumpY;
 						SetBullet(pos);
-					}
+					}*/
 
 					/// タイムステートの登録
 					PushToTimeState(&g_Player[i].timeState, &g_Player[i]);
@@ -474,19 +474,19 @@ void UpdatePlayer(void)
 		}
 	}
 
-	if (GetKeyboardTrigger(DIK_T)) {
+	if (GetKeyboardTrigger(DIK_T) || IsButtonTriggered(0, BUTTON_X)) {
 		
 		DeactivateTimeMachine();
 		
 	}
 
-	if (GetKeyboardPress(DIK_Q)) {
+	if (GetKeyboardPress(DIK_Q) || IsButtonPressed(0,BUTTON_L)) {
 
 		RewindTimeMachine(60);
 
 	}
 
-	if (GetKeyboardPress(DIK_E)) {
+	if (GetKeyboardPress(DIK_E) || IsButtonPressed(0, BUTTON_R)) {
 
 		FastForwardTimeMachine(60);
 
