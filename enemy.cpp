@@ -267,7 +267,7 @@ void UpdateEnemy(void)
 						if (ans == TRUE)
 						{
 							// 当たった時の処理
-							player[j].use = FALSE;	// デバッグで一時的に無敵にしておくか
+							//player[j].use = FALSE;	// デバッグで一時的に無敵にしておくか
 						}
 					}
 				}

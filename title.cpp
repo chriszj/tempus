@@ -1,8 +1,8 @@
 //=============================================================================
 //
 // ƒ^ƒCƒgƒ‹‰æ–Êˆ— [title.cpp]
-// Author : 
-//
+// Author : <a href="https://www.freepik.com/free-ai-image/digital-painting-old-clock_209274784.htm#fromView=search&page=1&position=7&uuid=93abe2c6-19c8-4201-a3c5-a1282740a862">Image by freepik</a>
+// <a href="https://www.freepik.com/free-vector/vintage-monochrome-clocks-repair-elements-set_9587948.htm#fromView=search&page=2&position=49&uuid=b58c9776-e7a8-4f41-9d7a-d137d6e5a76d">Image by macrovector on Freepik</a>
 //=============================================================================
 #include "title.h"
 #include "input.h"

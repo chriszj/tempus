@@ -155,6 +155,7 @@
     <ClInclude Include="sound.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="gui.h" />
+    <ClInclude Include="timemachine.h" />
     <ClInclude Include="title.h" />
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +179,7 @@
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="gui.cpp" />
+    <ClCompile Include="timemachine.cpp" />
     <ClCompile Include="title.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

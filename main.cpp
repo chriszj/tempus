@@ -21,6 +21,7 @@
 #include "sound.h"
 #include "gui.h"
 #include "fade.h"
+#include "timemachine.h"
 
 #include "file.h"
 
@@ -316,6 +317,8 @@ void Update(void)
 		break;
 
 	case MODE_GAME:			// ゲーム画面の更新
+
+		UpdateTimeMachine();
 		UpdateBG();
 		UpdateField();
 		UpdatePlayer();
@@ -383,6 +386,7 @@ void Draw(void)
 		DrawField(2);
 		DrawField(3);
 		DrawEffect();
+		DrawTimeMachineGUI();
 		DrawScore();
 		break;
 
@@ -436,6 +440,9 @@ void SetMode(int mode)
 
 	// モードを変える前に全部メモリを解放しちゃう
 
+	// タイムマシンの終了処理
+	UninitTimeMachine();
+
 	// タイトル画面の終了処理
 	UninitTitle();
 
@@ -476,6 +483,7 @@ void SetMode(int mode)
 
 	case MODE_GAME:
 		// ゲーム画面の初期化
+		InitTimeMachine();
 		InitBG();
 		InitField();
 		InitPlayer();

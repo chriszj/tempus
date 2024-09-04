@@ -11,6 +11,7 @@
 #include "debugproc.h"
 #include "sprite.h"
 #include "collision.h"
+#include "timemachine.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -37,6 +38,8 @@ enum
 
 struct PLAYER
 {
+	TIMESTATE timeState;
+
 	XMFLOAT3	pos;			// ポリゴンの座標
 	XMFLOAT3	rot;			// ポリゴンの回転量
 	BOOL		use;			// true:使っている  false:未使用

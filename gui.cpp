@@ -33,7 +33,7 @@ static char g_FontFolder[] = "data/TEXTURE/FONT/";
 static BMPFONT g_Font;
 static BMPTEXT g_Texts[TEXTOBJECTS_MAX];
 
-static bool						g_Use;						// true:使っている  false:未使用
+static BOOL						g_Use;						// true:使っている  false:未使用
 static float					g_w, g_h;					// 幅と高さ
 static XMFLOAT3					g_Pos;						// ポリゴンの座標
 static int						g_TexNo;					// テクスチャ番号
@@ -80,7 +80,7 @@ HRESULT InitGUI(void)
 
 
 	// プレイヤーの初期化
-	g_Use   = true;
+	g_Use   = TRUE;
 	g_w     = TEXTURE_WIDTH;
 	g_h     = TEXTURE_HEIGHT;
 	g_Pos   = { 500.0f, 20.0f, 0.0f };
@@ -327,7 +327,7 @@ BMPTEXT* GetUnusedText()
 
 		if (!g_Texts[i].use)
 		{
-			g_Texts[i].use = true;
+			g_Texts[i].use = TRUE;
 			return &g_Texts[i];
 		}
 
@@ -337,6 +337,8 @@ BMPTEXT* GetUnusedText()
 }
 
 void SetText(BMPTEXT* bmpText, wchar_t* text) { 
+
+	memset(bmpText->textChars, 0, TEXTCHAR_MAX);
 
 	int charLength = wcslen(text);
 	memcpy(bmpText->richText, text, charLength*sizeof(wchar_t));
@@ -355,6 +357,8 @@ void SetText(BMPTEXT* bmpText, wchar_t* text) {
 
 	}
 
+	
+
 	int ok = 1;
 
 }
@@ -364,7 +368,7 @@ void ClearGUI(void)
 	for (int i = 0; i < TEXTOBJECTS_MAX; i++) 
 	{
 		
-		g_Texts[i].use = false;
+		g_Texts[i].use = FALSE;
 	
 	}
 }

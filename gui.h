@@ -56,7 +56,7 @@ struct BMPFONT {
 
 struct BMPTEXT {
 
-	BOOL use = false;
+	BOOL use = FALSE;
 
 	float x, y;
 

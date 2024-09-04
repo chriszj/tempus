@@ -474,7 +474,7 @@ void ParseTiles(TILELAYER* mapLayer, const char* rawData)
 		TILE nTile;
 
 		nTile.id = tileId;
-		nTile.use = tileId > 0 ? true : false; // タイル ID が 0 の場合、タイルは表示されません。
+		nTile.use = tileId > 0 ? TRUE : FALSE; // タイル ID が 0 の場合、タイルは表示されません。
 
 		if (nTile.use) {
 

@@ -59,7 +59,7 @@ struct TILE
 	XMFLOAT3	pos;			// ポリゴンの座標
 	XMFLOAT3	rot;			// ポリゴンの回転量
 	XMFLOAT3	scl;			// ポリゴンの拡大縮小
-	BOOL		use = false;	// true:使っている  false:未使用
+	BOOL		use = FALSE;	// true:使っている  false:未使用
 	float		w, h;			// 幅と高さ
 	float		countAnim;		// アニメーションカウント
 	int			patternAnim;	// アニメーションパターンナンバー
