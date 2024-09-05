@@ -245,26 +245,26 @@ void UpdatePlayer(void)
 					}
 
 
-					if (GetKeyboardPress(DIK_DOWN) || IsButtonPressed(0, BUTTON_DOWN))
+					if (GetKeyboardPress(DIK_S) || IsButtonPressed(0, BUTTON_DOWN))
 					{
 						g_Player[i].move.y += speed;
 						g_Player[i].dir = CHAR_DIR_DOWN;
 						g_Player[i].moving = TRUE;
 					}
-					else if (GetKeyboardPress(DIK_UP) || IsButtonPressed(0, BUTTON_UP))
+					else if (GetKeyboardPress(DIK_W) || IsButtonPressed(0, BUTTON_UP))
 					{
 						g_Player[i].move.y -= speed;
 						g_Player[i].dir = CHAR_DIR_UP;
 						g_Player[i].moving = TRUE;
 					}
 
-					if (GetKeyboardPress(DIK_RIGHT) || IsButtonPressed(0, BUTTON_RIGHT))
+					if (GetKeyboardPress(DIK_D) || IsButtonPressed(0, BUTTON_RIGHT))
 					{
 						g_Player[i].move.x += speed;
 						g_Player[i].dir = CHAR_DIR_RIGHT;
 						g_Player[i].moving = TRUE;
 					}
-					else if (GetKeyboardPress(DIK_LEFT) || IsButtonPressed(0, BUTTON_LEFT))
+					else if (GetKeyboardPress(DIK_A) || IsButtonPressed(0, BUTTON_LEFT))
 					{
 						g_Player[i].move.x -= speed;
 						g_Player[i].dir = CHAR_DIR_LEFT;
@@ -474,7 +474,7 @@ void UpdatePlayer(void)
 		}
 	}
 
-	if (GetKeyboardTrigger(DIK_T) || IsButtonTriggered(0, BUTTON_X)) {
+	if (GetKeyboardTrigger(DIK_K) || IsButtonTriggered(0, BUTTON_X)) {
 		
 		DeactivateTimeMachine();
 		

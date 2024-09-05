@@ -233,9 +233,9 @@
         },
         "Sample Map.tmx": {
             "expandedObjectLayers": [
-                12,
                 16,
-                15
+                15,
+                12
             ],
             "scale": 1.5,
             "selectedLayer": 4,
@@ -263,8 +263,8 @@
         },
         "level0.tmx": {
             "expandedObjectLayers": [
-                3,
-                2
+                2,
+                3
             ],
             "scale": 3.61,
             "selectedLayer": 0,
