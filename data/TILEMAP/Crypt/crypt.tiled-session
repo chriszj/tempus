@@ -6,8 +6,8 @@
     "activeFile": "level1.tmx",
     "automapping.whileDrawing": false,
     "expandedProjectPaths": [
-        ".",
-        "Rules"
+        "Rules",
+        "."
     ],
     "fileStates": {
         ":/automap-tiles.tsx": {
@@ -282,8 +282,8 @@
             "scale": 2,
             "selectedLayer": 7,
             "viewCenter": {
-                "x": 1397.25,
-                "y": 1605.25
+                "x": 1084.25,
+                "y": 2077.25
             }
         },
         "level1s.tmx": {
