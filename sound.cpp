@@ -33,7 +33,7 @@ DWORD g_aSizeAudio[SOUND_LABEL_MAX] = {};					// オーディオデータサイズ
 SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 {
 	{ (char*)"data/BGM/sample000.wav", -1 },	// BGM0
-	{ (char*)"data/BGM/deep-ambient-version-60s-9889.wav", -1 },	// BGM1
+	{ (char*)"data/BGM/dripping-water-in-cave-114694.wav", -1 },	// BGM1
 	{ (char*)"data/BGM/sample001.wav", -1 },	// BGM2
 	{ (char*)"data/SE/bomb000.wav", 0 },		// 弾発射音
 	{ (char*)"data/SE/defend000.wav", 0 },		// 弾発射音
@@ -44,7 +44,7 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ (char*)"data/SE/shot000.wav", 0 },		// 弾発射音
 	{ (char*)"data/SE/shot001.wav", 0 },		// ヒット音
 
-	{ (char*)"data/BGM/Underwater-Ambient-Pad-isaiah658.wav", -1 },			// BGM Maou
+	{ (char*)"data/BGM/clock-ticking-in-the-void-228107.wav", -1 },			// BGM Maou
 
 };
 
@@ -229,7 +229,6 @@ void UninitSound(void)
 //=============================================================================
 void PlaySound(int label)
 {
-	return;
 
 	XAUDIO2_VOICE_STATE xa2state;
 	XAUDIO2_BUFFER buffer;

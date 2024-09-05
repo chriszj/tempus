@@ -22,10 +22,10 @@
 #define TEXTURE_HEIGHT				(200/2)	// 
 #define TEXTURE_MAX					(2)		// テクスチャの数
 
-#define TEXTURE_PATTERN_DIVIDE_X	(3)		// アニメパターンのテクスチャ内分割数（X)
+#define TEXTURE_PATTERN_DIVIDE_X	(12)		// アニメパターンのテクスチャ内分割数（X)
 #define TEXTURE_PATTERN_DIVIDE_Y	(4)		// アニメパターンのテクスチャ内分割数（Y)
 #define ANIM_PATTERN_NUM			(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
-#define ANIM_WAIT					(4)		// アニメーションの切り替わるWait値
+#define ANIM_WAIT					(2)		// アニメーションの切り替わるWait値
 
 // プレイヤーの画面内配置座標
 #define PLAYER_DISP_X				(SCREEN_WIDTH/2)
@@ -56,7 +56,7 @@ static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char *g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/char01n.png",
+	"data/TEXTURE/character_walk.png",
 	"data/TEXTURE/shadow000.jpg",
 };
 
@@ -546,7 +546,7 @@ void DrawPlayer(void)
 				float py = g_Player[i].pos.y - bg->pos.y;	// プレイヤーの表示位置Y
 				float pw = g_Player[i].w;		// プレイヤーの表示幅
 				float ph = g_Player[i].h/4;		// プレイヤーの表示高さ
-				py += 50.0f;		// 足元に表示
+				py += 35.0f;		// 足元に表示
 
 				float tw = 1.0f;	// テクスチャの幅
 				float th = 1.0f;	// テクスチャの高さ
