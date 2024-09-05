@@ -27,8 +27,8 @@
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-void ParseTiles(TILELAYER* mapLayer, const char* rawData);
-void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objectGroups[], char* file);
+void ParseTiles(MAPTILELAYER* mapTileLayer, const char* rawData);
+void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP objectGroups[], char* file);
 
 //*****************************************************************************
 // グローバル変数
@@ -44,7 +44,7 @@ static char* g_debugTextures[1] = {
 static int debugTextureIndex = -1;
 
 static TILESET g_Tilesets[TILESET_MAX];
-static TILELAYER g_TileLayers[MAP_LAYER_MAX];
+static MAPTILELAYER g_MapTileLayers[MAP_LAYER_MAX];
 static FIELDOBJECTGROUP g_ObjectGroups[MAP_OBJGROUPS_MAX];
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
@@ -59,7 +59,7 @@ HRESULT InitField(void)
 {
 	ID3D11Device* pDevice = GetDevice();
 
-	ParseMap(g_Tilesets,g_TileLayers, g_ObjectGroups, "data/TILEMAP/Crypt/level1.tmx");
+	ParseMap(g_Tilesets,g_MapTileLayers, g_ObjectGroups, "data/TILEMAP/Crypt/level1.tmx");
 
 	//テクスチャ生成
 	for (int i = 0; i < TILESET_MAX; i++)
@@ -136,9 +136,9 @@ void UninitField(void)
 	{
 		for (int t = 0; t < TILES_PER_LAYER_MAX; t++)
 		{
-			g_TileLayers[ml].tiles[t] = {};
+			g_MapTileLayers[ml].tiles[t] = {};
 		}
-		g_TileLayers[ml].Reset();
+		g_MapTileLayers[ml].Reset();
 	}
 
 	g_Load = FALSE;
@@ -191,17 +191,17 @@ void DrawField(int layer)
 
 	BG* bg = GetBG();
 
-	int tileLayersCount = sizeof(g_TileLayers) / sizeof(*g_TileLayers);
+	int mapTileLayersCount = sizeof(g_MapTileLayers) / sizeof(*g_MapTileLayers);
 
-	if (layer >= tileLayersCount || layer < 0)
+	if (layer >= mapTileLayersCount || layer < 0)
 	{
 		OutputDebugStringA("No layer MAP FOUND!");
 		return;
 	}
 
-	TILELAYER* mapLayerToDraw = &g_TileLayers[layer];
+	MAPTILELAYER* mapTileLayerToDraw = &g_MapTileLayers[layer];
 
-	if (mapLayerToDraw->id < 0)
+	if (mapTileLayerToDraw->id < 0)
 	{
 		OutputDebugStringA("Map Layer is empty!");
 		return;
@@ -209,23 +209,23 @@ void DrawField(int layer)
 
 	for (int i = 0; i < TILES_PER_LAYER_MAX; i++)
 	{
-		if (mapLayerToDraw->tiles[i].use == TRUE)			// このエネミーが使われている？
+		if (mapTileLayerToDraw->tiles[i].use == TRUE)			// このエネミーが使われている？
 		{									// Yes
 
 			
 			// テクスチャ設定
-			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[mapLayerToDraw->tiles[i].texNo]);
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[mapTileLayerToDraw->tiles[i].texNo]);
 
 			//エネミーの位置やテクスチャー座標を反映
-			float px = mapLayerToDraw->tiles[i].pos.x - bg->pos.x;	// エネミーの表示位置X
-			float py = mapLayerToDraw->tiles[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
-			float pw = mapLayerToDraw->tiles[i].w;		// エネミーの表示幅
-			float ph = mapLayerToDraw->tiles[i].h;		// エネミーの表示高さ
+			float px = mapTileLayerToDraw->tiles[i].pos.x - bg->pos.x;	// エネミーの表示位置X
+			float py = mapTileLayerToDraw->tiles[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
+			float pw = mapTileLayerToDraw->tiles[i].w;		// エネミーの表示幅
+			float ph = mapTileLayerToDraw->tiles[i].h;		// エネミーの表示高さ
 
-			float tw = mapLayerToDraw->tiles[i].textureWidth;	// テクスチャの幅
-			float th = mapLayerToDraw->tiles[i].textureHeigt;	// テクスチャの高さ
-			float tx = mapLayerToDraw->tiles[i].textureU;	// テクスチャの左上X座標
-			float ty = mapLayerToDraw->tiles[i].textureV;	// テクスチャの左上Y座標
+			float tw = mapTileLayerToDraw->tiles[i].textureWidth;	// テクスチャの幅
+			float th = mapTileLayerToDraw->tiles[i].textureHeigt;	// テクスチャの高さ
+			float tx = mapTileLayerToDraw->tiles[i].textureU;	// テクスチャの左上X座標
+			float ty = mapTileLayerToDraw->tiles[i].textureV;	// テクスチャの左上Y座標
 
 			if (px < -pw ||
 				px > SCREEN_WIDTH + pw ||
@@ -238,7 +238,7 @@ void DrawField(int layer)
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				mapLayerToDraw->tiles[i].rot.z);
+				mapTileLayerToDraw->tiles[i].rot.z);
 
 			// ポリゴン描画
 			GetDeviceContext()->Draw(4, 0);
@@ -249,7 +249,7 @@ void DrawField(int layer)
 	if (!MAP_DRAW_DEBUG_WALLS)
 		return;
 
-	FIELDOBJECT* walls = GetFieldObjectsFromGroup(FOBJGROUP_WALL);
+	MAPOBJECT* walls = GetMapObjectsFromLayer(MAPOBJLAYER_WALL);
 	for (int w = 0; w < MAP_OBJGRP_OBJ_MAX; w++) 
 	{
 
@@ -314,7 +314,7 @@ void DrawField(int layer)
 
 }
 
-void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objectGroups[], char* file)
+void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP objectGroups[], char* file)
 {
 
 	pugi::xml_document doc;
@@ -374,27 +374,27 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 			}
 		}
 
-		int tileLayerNodeCount = 0;
+		int mapTileLayerNodeCount = 0;
 
 		// マップチップのレイヤーの準備
-		for (pugi::xml_node tileLayerNode : doc.child("map").children("layer"))
+		for (pugi::xml_node mapTileLayerNode : doc.child("map").children("layer"))
 		{
 
 			/*std::string str = "Level is: ";
-			str.append(tileLayerNode.attribute("name").value());
+			str.append(mapTileLayerNode.attribute("name").value());
 
 			OutputDebugStringA(str.c_str());*/
 
-			tileLayers[tileLayerNodeCount].id = tileLayerNode.attribute("id").as_int();
+			mapTileLayers[mapTileLayerNodeCount].id = mapTileLayerNode.attribute("id").as_int();
 
-			const char* tLName = tileLayerNode.attribute("name").value();
-			memcpy(tileLayers[tileLayerNodeCount].name, tLName, strlen(tLName));
+			const char* tLName = mapTileLayerNode.attribute("name").value();
+			memcpy(mapTileLayers[mapTileLayerNodeCount].name, tLName, strlen(tLName));
 
-			const char* tLClass = tileLayerNode.attribute("class").value();
-			memcpy(tileLayers[tileLayerNodeCount].layerClass, tLClass, strlen(tLClass));
+			const char* tLClass = mapTileLayerNode.attribute("class").value();
+			memcpy(mapTileLayers[mapTileLayerNodeCount].layerClass, tLClass, strlen(tLClass));
 
-			tileLayers[tileLayerNodeCount].width = tileLayerNode.attribute("width").as_float();
-			tileLayers[tileLayerNodeCount].height = tileLayerNode.attribute("height").as_float();
+			mapTileLayers[mapTileLayerNodeCount].width = mapTileLayerNode.attribute("width").as_float();
+			mapTileLayers[mapTileLayerNodeCount].height = mapTileLayerNode.attribute("height").as_float();
 
 			char debug[128] = "";
 
@@ -404,13 +404,13 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 
 			if (result == 0 && !MAP_DRAW_DEBUG)
 			{
-				tileLayerNodeCount++;
+				mapTileLayerNodeCount++;
 				continue;
 			}
 
-			ParseTiles(&tileLayers[tileLayerNodeCount], tileLayerNode.child("data").child_value());
+			ParseTiles(&mapTileLayers[mapTileLayerNodeCount], mapTileLayerNode.child("data").child_value());
 
-			tileLayerNodeCount++;
+			mapTileLayerNodeCount++;
 		}
 
 		int objectGroupNodeCount = 0;
@@ -457,7 +457,7 @@ void ParseMap(TILESET tilesets[], TILELAYER tileLayers[], FIELDOBJECTGROUP objec
 
 }
 
-void ParseTiles(TILELAYER* mapLayer, const char* rawData)
+void ParseTiles(MAPTILELAYER* mapTileLayer, const char* rawData)
 {
 	// タイル準備
 	g_TileCount = 0;
@@ -524,12 +524,12 @@ void ParseTiles(TILELAYER* mapLayer, const char* rawData)
 
 		}
 
-		mapLayer->tiles[i] = nTile;
+		mapTileLayer->tiles[i] = nTile;
 		g_TileCount++;
 
 		tileIndex_X++;
 
-		if (tileIndex_X > mapLayer->width - 1)
+		if (tileIndex_X > mapTileLayer->width - 1)
 		{
 			tileIndex_X = 0;
 			tileIndex_Y++;
@@ -578,9 +578,9 @@ TILESET* GetTilesetFromTileID(int tileId)
 
 }
 
-FIELDOBJECT** GetFieldObjectsByClass(const char* objectType)
+MAPOBJECT** GetMapObjectsByClass(const char* objectType)
 {
-	FIELDOBJECT* fieldObjects[MAP_OBJGRP_OBJ_MAX];
+	MAPOBJECT* fieldObjects[MAP_OBJGRP_OBJ_MAX];
 
 	int foundObjects = 0;
 
@@ -605,9 +605,9 @@ FIELDOBJECT** GetFieldObjectsByClass(const char* objectType)
 
 }
 
-FIELDOBJECT* GetFieldObjectsFromGroup(const char* objectGroup)
+MAPOBJECT* GetMapObjectsFromLayer(const char* objectLayer)
 {
-	FIELDOBJECT *fieldObjects = NULL;
+	MAPOBJECT *fieldObjects = NULL;
 
 	int foundGroups = 0;
 
@@ -615,7 +615,7 @@ FIELDOBJECT* GetFieldObjectsFromGroup(const char* objectGroup)
 	{
 
 
-		if (strcmp(g_ObjectGroups[og].objectGroupClass, objectGroup) == 0)
+		if (strcmp(g_ObjectGroups[og].objectGroupClass, objectLayer) == 0)
 		{
 
 			fieldObjects = g_ObjectGroups[og].fObjects;
@@ -632,9 +632,9 @@ FIELDOBJECT* GetFieldObjectsFromGroup(const char* objectGroup)
 
 }
 
-FIELDOBJECT* GetFieldObjectByNameFromGroup(const char* objectGroup, const char* objectName)
+MAPOBJECT* GetMapObjectByNameFromLayer(const char* objectLayer, const char* objectName)
 {
-	FIELDOBJECT* fieldObject = NULL;
+	MAPOBJECT* fieldObject = NULL;
 
 	int foundGroups = 0;
 
@@ -642,13 +642,13 @@ FIELDOBJECT* GetFieldObjectByNameFromGroup(const char* objectGroup, const char* 
 	{
 
 
-		if (strcmp(g_ObjectGroups[og].objectGroupClass, objectGroup) == 0)
+		if (strcmp(g_ObjectGroups[og].objectGroupClass, objectLayer) == 0)
 		{
 
 			for (int o = 0; o < MAP_OBJGRP_OBJ_MAX; o++)
 			{
 
-				if (strcmp(g_ObjectGroups[og].objectGroupClass, objectGroup) == 0) 
+				if (strcmp(g_ObjectGroups[og].objectGroupClass, objectLayer) == 0) 
 				{
 					fieldObject = &g_ObjectGroups[og].fObjects[o];
 

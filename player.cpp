@@ -22,10 +22,10 @@
 #define TEXTURE_HEIGHT				(200/2)	// 
 #define TEXTURE_MAX					(2)		// テクスチャの数
 
-#define TEXTURE_PATTERN_DIVIDE_X	(12)		// アニメパターンのテクスチャ内分割数（X)
-#define TEXTURE_PATTERN_DIVIDE_Y	(4)		// アニメパターンのテクスチャ内分割数（Y)
+#define TEXTURE_PATTERN_DIVIDE_X	(4)		// アニメパターンのテクスチャ内分割数（X)
+#define TEXTURE_PATTERN_DIVIDE_Y	(8)		// アニメパターンのテクスチャ内分割数（Y)
 #define ANIM_PATTERN_NUM			(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
-#define ANIM_WAIT					(2)		// アニメーションの切り替わるWait値
+#define ANIM_WAIT					(6)		// アニメーションの切り替わるWait値
 
 // プレイヤーの画面内配置座標
 #define PLAYER_DISP_X				(SCREEN_WIDTH/2)
@@ -56,7 +56,7 @@ static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char *g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/character_walk.png",
+	"data/TEXTURE/character_walk2.png",
 	"data/TEXTURE/shadow000.jpg",
 };
 
@@ -104,7 +104,7 @@ HRESULT InitPlayer(void)
 
 	XMFLOAT3 startPosition = XMFLOAT3(400.0f, 400.0f, 0.0f);
 
-	FIELDOBJECT* fieldPositions = GetFieldObjectByNameFromGroup(FOBJGROUP_LOCATIONS, FOBJTYPE_PLAYERSTART);
+	MAPOBJECT* fieldPositions = GetMapObjectByNameFromLayer(MAPOBJLAYER_LOCATIONS, MAPOBJTYPE_PLAYERSTART);
 
 	if (fieldPositions != NULL)
 	{
@@ -238,22 +238,25 @@ void UpdatePlayer(void)
 					g_Player[i].move.x = 0;
 					g_Player[i].move.y = 0;
 
-					if (GetKeyboardPress(DIK_C) || IsButtonPressed(0, BUTTON_A))
+					/*if (GetKeyboardPress(DIK_C) || IsButtonPressed(0, BUTTON_A))
 					{
-						//speed *= 4;
-						//g_Player[i].dash = TRUE;
-					}
+						speed *= 4;
+						g_Player[i].dash = TRUE;
+					}*/
 
+					int directionMod = 0;
 
 					if (GetKeyboardPress(DIK_S) || IsButtonPressed(0, BUTTON_DOWN))
 					{
 						g_Player[i].move.y += speed;
+						directionMod++;
 						g_Player[i].dir = CHAR_DIR_DOWN;
 						g_Player[i].moving = TRUE;
 					}
 					else if (GetKeyboardPress(DIK_W) || IsButtonPressed(0, BUTTON_UP))
 					{
 						g_Player[i].move.y -= speed;
+						directionMod--;
 						g_Player[i].dir = CHAR_DIR_UP;
 						g_Player[i].moving = TRUE;
 					}
@@ -261,13 +264,13 @@ void UpdatePlayer(void)
 					if (GetKeyboardPress(DIK_D) || IsButtonPressed(0, BUTTON_RIGHT))
 					{
 						g_Player[i].move.x += speed;
-						g_Player[i].dir = CHAR_DIR_RIGHT;
+						g_Player[i].dir = CHAR_DIR_RIGHT + directionMod;
 						g_Player[i].moving = TRUE;
 					}
 					else if (GetKeyboardPress(DIK_A) || IsButtonPressed(0, BUTTON_LEFT))
 					{
 						g_Player[i].move.x -= speed;
-						g_Player[i].dir = CHAR_DIR_LEFT;
+						g_Player[i].dir = CHAR_DIR_LEFT - directionMod;
 						g_Player[i].moving = TRUE;
 					}
 
@@ -319,28 +322,28 @@ void UpdatePlayer(void)
 
 
 					// ジャンプ処理中？
-					if (g_Player[i].jump == TRUE)
-					{
-						float angle = (XM_PI / PLAYER_JUMP_CNT_MAX) * g_Player[i].jumpCnt;
-						float y = g_Player[i].jumpYMax * cosf(XM_PI / 2 + angle);
-						g_Player[i].jumpY = y;
+					//if (g_Player[i].jump == TRUE)
+					//{
+					//	float angle = (XM_PI / PLAYER_JUMP_CNT_MAX) * g_Player[i].jumpCnt;
+					//	float y = g_Player[i].jumpYMax * cosf(XM_PI / 2 + angle);
+					//	g_Player[i].jumpY = y;
 
-						g_Player[i].jumpCnt++;
-						if (g_Player[i].jumpCnt > PLAYER_JUMP_CNT_MAX)
-						{
-							g_Player[i].jump = FALSE;
-							g_Player[i].jumpCnt = 0;
-							g_Player[i].jumpY = 0.0f;
-						}
+					//	g_Player[i].jumpCnt++;
+					//	if (g_Player[i].jumpCnt > PLAYER_JUMP_CNT_MAX)
+					//	{
+					//		g_Player[i].jump = FALSE;
+					//		g_Player[i].jumpCnt = 0;
+					//		g_Player[i].jumpY = 0.0f;
+					//	}
 
-					}
-					// ジャンプボタン押した？
-					else if ((g_Player[i].jump == FALSE) && (GetKeyboardTrigger(DIK_J)))
-					{
-						g_Player[i].jump = TRUE;
-						g_Player[i].jumpCnt = 0;
-						g_Player[i].jumpY = 0.0f;
-					}
+					//}
+					//// ジャンプボタン押した？
+					//else if ((g_Player[i].jump == FALSE) && (GetKeyboardTrigger(DIK_J)))
+					//{
+					//	g_Player[i].jump = TRUE;
+					//	g_Player[i].jumpCnt = 0;
+					//	g_Player[i].jumpY = 0.0f;
+					//}
 
 
 					// MAP外チェック
@@ -367,7 +370,7 @@ void UpdatePlayer(void)
 					}
 
 					//　フィールドの当たり判定
-					FIELDOBJECT* walls = GetFieldObjectsFromGroup(FOBJGROUP_WALL);
+					MAPOBJECT* walls = GetMapObjectsFromLayer(MAPOBJLAYER_WALL);
 
 					XMFLOAT3 newXPos = XMFLOAT3(g_Player[i].pos);
 					XMFLOAT3 newYPos = XMFLOAT3(g_Player[i].pos);
@@ -402,6 +405,7 @@ void UpdatePlayer(void)
 
 					g_Player[i].pos.x = newXPos.x;
 					g_Player[i].pos.y = newYPos.y;
+
 
 					// 移動が終わったらエネミーとの当たり判定
 					{

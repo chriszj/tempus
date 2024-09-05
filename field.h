@@ -16,7 +16,7 @@
 // マクロ定義
 //*****************************************************************************
 #define TILES_PER_LAYER_MAX		(15000)		// エネミーのMax人数
-#define TILESET_MAX				(10)
+#define TILESET_MAX				(15)
 #define MAP_LAYER_MAX			(10)
 #define MAP_SCALE				(1.5)
 #define MAP_DRAW_DEBUG			true
@@ -25,14 +25,16 @@
 #define MAP_OBJGROUPS_MAX		(10)
 #define MAP_OBJGRP_OBJ_MAX		(200)
 
-#define FOBJTYPE_PLAYERSTART	"PlayerStartPoint"
-#define FOBJGROUP_WALL			"Wall"
-#define FOBJGROUP_LOCATIONS		"Locations"
-#define FOBJGROUP_ENEMY		    "Enemy"
+#define MAPOBJTYPE_PLAYERSTART	"PlayerStartPoint"
+#define MAPOBJLAYER_WALL			"Wall"
+#define MAPOBJLAYER_LOCATIONS		"Locations"
+#define MAPOBJLAYER_ENEMY		    "Enemy"
 
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
+
+
 
 struct TILESET
 {
@@ -73,17 +75,9 @@ struct TILE
 
 	XMFLOAT3	move;			// 移動速度
 
-
-	float		tileTime;			// 線形補間用
-	int			tblNo;			// 行動データのテーブル番号
-	int			tblMax;			// そのテーブルのデータ数
-
-	//INTERPOLATION_DATA* tbl_adr;			// アニメデータのテーブル先頭アドレス
-	//int					tbl_size;			// 登録したテーブルのレコード総数
-	//float				move_time;			// 実行時間
 };
 
-struct TILELAYER
+struct MAPTILELAYER
 {
 
 	int id = -1;
@@ -115,7 +109,7 @@ struct TILELAYER
 
 };
 
-struct FIELDOBJECT
+struct MAPOBJECT
 {
 	int id;
 	char name[128] = "";
@@ -131,7 +125,7 @@ struct FIELDOBJECTGROUP
 	char name[128] = "";
 	char objectGroupClass[128] = "";
 
-	FIELDOBJECT fObjects[MAP_OBJGRP_OBJ_MAX];
+	MAPOBJECT fObjects[MAP_OBJGRP_OBJ_MAX];
 
 	void Reset(void) {
 
@@ -162,7 +156,7 @@ int GetFieldCount(void);
 
 TILESET* GetTilesetFromTileID(int tileId);
 
-FIELDOBJECT** GetFieldObjectsByClass(const char* objectType);
-FIELDOBJECT* GetFieldObjectsFromGroup(const char* objectGroup);
-FIELDOBJECT* GetFieldObjectByNameFromGroup(const char* objectGroup, const char* objectName);
+MAPOBJECT** GetMapObjectsByClass(const char* objectType);
+MAPOBJECT* GetMapObjectsFromLayer(const char* objectLayer);
+MAPOBJECT* GetMapObjectByNameFromLayer(const char* objectLayer, const char* objectName);
 

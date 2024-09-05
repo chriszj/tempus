@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="102" height="82" tilewidth="32" tileheight="32" infinite="0" nextlayerid="10" nextobjectid="339">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="102" height="82" tilewidth="32" tileheight="32" infinite="0" nextlayerid="11" nextobjectid="352">
  <tileset firstgid="1" source="Tileset-Terrain.tsx"/>
  <tileset firstgid="2901" source="wall 1.tsx"/>
  <tileset firstgid="3141" source="Atlas-Props-sprites.tsx"/>
+ <tileset firstgid="3529" source="Items2.tsx"/>
  <layer id="1" name="Base" width="102" height="82">
   <data encoding="csv">
 517,519,569,518,519,518,569,518,519,569,519,569,518,569,518,569,518,518,569,569,519,469,469,569,518,518,519,519,519,519,519,519,569,518,519,518,569,569,569,569,518,519,569,569,520,569,519,519,519,569,569,569,518,519,518,519,569,518,518,518,519,569,519,518,569,569,569,470,419,419,419,419,468,519,519,519,569,569,518,519,519,569,518,569,518,569,569,519,519,519,521,517,569,569,569,570,568,569,569,519,569,519,
@@ -347,7 +348,7 @@
 2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967,2967
 </data>
  </layer>
- <objectgroup id="5" name="Props">
+ <objectgroup id="5" name="Props" visible="0">
   <object id="3" gid="3302" x="1632" y="1872" width="64" height="64"/>
   <object id="5" gid="3309" x="1712" y="1824" width="64" height="64"/>
   <object id="6" gid="3408" x="1960" y="1744" width="32" height="32"/>
@@ -365,10 +366,10 @@
   <object id="19" gid="3263" x="1891.09" y="2128.91" width="32" height="32"/>
   <object id="20" gid="3435" x="1827.09" y="2089.64" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="3" name="Locations" class="Locations">
+ <objectgroup id="3" name="Locations" class="Locations" visible="0">
   <object id="23" name="PlayerStartPoint" type="PlayerStartPoint" x="1535.17" y="2183.83"/>
  </objectgroup>
- <objectgroup id="4" name="Wall" class="Wall">
+ <objectgroup id="4" name="Wall" class="Wall" visible="0" locked="1">
   <object id="21" x="1453.83" y="1876" width="422.667" height="163.833"/>
   <object id="25" x="903.333" y="1728.17" width="249.333" height="27.0833"/>
   <object id="26" x="984" y="1808.17" width="196.667" height="12.5"/>
@@ -470,9 +471,9 @@
   <object id="149" x="50.6667" y="1488" width="1145.33" height="132"/>
   <object id="150" x="1104.5" y="1359" width="93" height="128"/>
  </objectgroup>
- <objectgroup id="9" name="Enemy" class="Enemy">
+ <objectgroup id="9" name="Enemy" class="Enemy" visible="0">
   <object id="159" x="1722" y="2105.5"/>
-  <object id="160" x="1661.5" y="2167.5"/>
+  <object id="160" x="1673.5" y="2151.5"/>
   <object id="161" x="1803" y="2210.5"/>
   <object id="162" x="2018" y="2233.5"/>
   <object id="163" x="2066" y="2235"/>
@@ -646,5 +647,8 @@
   <object id="334" x="3029" y="2235.5"/>
   <object id="335" x="3056.5" y="2225"/>
   <object id="338" x="3087" y="2219"/>
+ </objectgroup>
+ <objectgroup id="10" name="Item">
+  <object id="350" gid="3529" x="3072" y="2171" width="13" height="23"/>
  </objectgroup>
 </map>

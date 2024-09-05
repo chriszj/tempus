@@ -10,6 +10,9 @@
         "."
     ],
     "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
         ":/automap-tiles.tsx": {
             "dynamicWrapping": false,
             "scaleInDock": 1
@@ -70,6 +73,19 @@
                 "x": 960.7208683186567,
                 "y": 640.9174687691993
             }
+        },
+        "Items.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Items2.tsx": {
+            "dynamicWrapping": true
+        },
+        "Items3.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Rules/balluster1-wall2-rule0-resets all tiles to initial state.tmx": {
             "scale": 0.76296875,
@@ -233,9 +249,9 @@
         },
         "Sample Map.tmx": {
             "expandedObjectLayers": [
-                16,
+                12,
                 15,
-                12
+                16
             ],
             "scale": 1.5,
             "selectedLayer": 4,
@@ -261,10 +277,15 @@
         "Tilesets/Tileset-Terrain.tsx": {
             "scaleInDock": 1
         },
+        "items_sheet.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 2,
+            "scaleInEditor": 2
+        },
         "level0.tmx": {
             "expandedObjectLayers": [
-                2,
-                3
+                3,
+                2
             ],
             "scale": 3.61,
             "selectedLayer": 0,
@@ -286,10 +307,13 @@
                 "y": 2077.25
             }
         },
+        "level1.tmx#Items2": {
+            "dynamicWrapping": true
+        },
         "level1s.tmx": {
             "expandedObjectLayers": [
-                3,
-                4
+                4,
+                3
             ],
             "scale": 1,
             "selectedLayer": 4,
@@ -314,7 +338,7 @@
         }
     },
     "last.externalTilesetPath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/Crypt",
-    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Crypt/Props/animated/doors2",
+    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Common/50-Fantasy Items-FinalV1",
     "map.height": 10,
     "map.lastUsedFormat": "tmx",
     "map.width": 10,
@@ -331,6 +355,9 @@
     ],
     "project": "crypt.tiled-project",
     "recentFiles": [
+        "Items3.tsx",
+        "items_sheet.tsx",
+        "Items.tsx",
         "Rules/wall-3-rule1-places all tiles.tmx",
         "Crypt example map.tmx",
         "Sample Map.tmx",
@@ -339,9 +366,12 @@
         "level0.tmx",
         "Atlas-Props-sprites.tsx",
         "Atlas-Props.tsx",
-        "level1.tmx",
-        "wall 3.tsx",
-        "wall 2.tsx",
-        "wall 1.tsx"
-    ]
+        "level1.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    },
+    "tileset.type": 1
 }

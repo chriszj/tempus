@@ -115,7 +115,7 @@ HRESULT InitEnemy(void)
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
-	FIELDOBJECT* fieldPositions = GetFieldObjectsFromGroup(FOBJGROUP_ENEMY);
+	MAPOBJECT* fieldPositions = GetMapObjectsFromLayer(MAPOBJLAYER_ENEMY);
 
 	// エネミー構造体の初期化
 	g_EnemyCount = 0;
@@ -126,7 +126,7 @@ HRESULT InitEnemy(void)
 
 		if (fieldPositions != NULL)
 		{
-			startPosition = XMFLOAT3((fieldPositions[i].x) - (TEXTURE_WIDTH / 4), (fieldPositions[i].y) - (TEXTURE_HEIGHT / 2), 0.0f);
+			startPosition = XMFLOAT3((fieldPositions[i].x), (fieldPositions[i].y), 0.0f);
 		}
 
 		g_EnemyCount++;
