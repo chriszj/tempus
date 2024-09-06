@@ -16,6 +16,7 @@
 #include "field.h"
 #include "player.h"
 #include "enemy.h"
+#include "item.h"
 #include "bullet.h"
 #include "score.h"
 #include "result.h"
@@ -326,6 +327,7 @@ void Update(void)
 		UpdateField();
 		UpdatePlayer();
 		UpdateEnemy();
+		UpdateItem();
 		UpdateBullet();
 		UpdateEffect();
 		UpdateScore();
@@ -396,9 +398,9 @@ void Draw(void)
 		DrawField(1);
 		DrawField(3);
 		DrawPlayer();
-		
 		DrawField(2);
 		DrawEnemy();
+		DrawItem();
 		DrawEffect();
 		DrawTimeMachineGUI();
 		DrawScore();
@@ -475,6 +477,8 @@ void SetMode(int mode)
 	// エネミーの終了処理
 	UninitEnemy();
 
+	UninitItem();
+
 	// バレットの終了処理
 	UninitBullet();
 
@@ -510,6 +514,7 @@ void SetMode(int mode)
 		InitField();
 		InitPlayer();
 		InitEnemy();
+		InitItem();
 		InitBullet();
 		InitEffect();
 		InitScore();

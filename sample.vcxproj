@@ -145,6 +145,7 @@
     <ClInclude Include="field.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="input.h" />
+    <ClInclude Include="item.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="pugiconfig.hpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="field.cpp" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="input.cpp" />
+    <ClCompile Include="item.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="pugixml.cpp" />

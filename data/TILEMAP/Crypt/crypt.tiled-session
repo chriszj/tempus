@@ -6,8 +6,8 @@
     "activeFile": "level1.tmx",
     "automapping.whileDrawing": false,
     "expandedProjectPaths": [
-        "Rules",
-        "."
+        ".",
+        "Rules"
     ],
     "fileStates": {
         "": {
@@ -15,17 +15,17 @@
         },
         ":/automap-tiles.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 1
+            "scaleInDock": 2
         },
         "Atlas-Props-sprites.tsx": {
             "dynamicWrapping": true,
-            "scaleInDock": 1,
-            "scaleInEditor": 3
+            "scaleInDock": 2,
+            "scaleInEditor": 2
         },
         "Atlas-Props.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 1,
-            "scaleInEditor": 3
+            "scaleInDock": 2,
+            "scaleInEditor": 2
         },
         "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/level0.tmx": {
             "expandedObjectLayers": [
@@ -80,7 +80,9 @@
             "scaleInEditor": 1
         },
         "Items2.tsx": {
-            "dynamicWrapping": true
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 2
         },
         "Items3.tsx": {
             "dynamicWrapping": true,
@@ -262,8 +264,8 @@
         },
         "Tileset-Terrain.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 1,
-            "scaleInEditor": 3
+            "scaleInDock": 2,
+            "scaleInEditor": 2
         },
         "Tilesets/Tileset - wall 1.tsx": {
             "scaleInDock": 1
@@ -284,8 +286,8 @@
         },
         "level0.tmx": {
             "expandedObjectLayers": [
-                3,
-                2
+                2,
+                3
             ],
             "scale": 3.61,
             "selectedLayer": 0,
@@ -296,15 +298,15 @@
         },
         "level1.tmx": {
             "expandedObjectLayers": [
-                3,
+                4,
                 5,
-                4
+                3
             ],
             "scale": 2,
-            "selectedLayer": 7,
+            "selectedLayer": 8,
             "viewCenter": {
-                "x": 1084.25,
-                "y": 2077.25
+                "x": 2991.75,
+                "y": 2253.75
             }
         },
         "level1.tmx#Items2": {
@@ -312,8 +314,8 @@
         },
         "level1s.tmx": {
             "expandedObjectLayers": [
-                4,
-                3
+                3,
+                4
             ],
             "scale": 1,
             "selectedLayer": 4,
@@ -324,21 +326,21 @@
         },
         "wall 1.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 1,
+            "scaleInDock": 2,
             "scaleInEditor": 3
         },
         "wall 2.tsx": {
-            "scaleInDock": 1,
+            "scaleInDock": 2,
             "scaleInEditor": 3
         },
         "wall 3.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 1,
+            "scaleInDock": 2,
             "scaleInEditor": 3
         }
     },
     "last.externalTilesetPath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/Crypt",
-    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Common/50-Fantasy Items-FinalV1",
+    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Crypt/Props/animated",
     "map.height": 10,
     "map.lastUsedFormat": "tmx",
     "map.width": 10,
@@ -351,13 +353,11 @@
         "level0.tmx",
         "Atlas-Props-sprites.tsx",
         "Atlas-Props.tsx",
-        "level1.tmx"
+        "level1.tmx",
+        "Items2.tsx"
     ],
     "project": "crypt.tiled-project",
     "recentFiles": [
-        "Items3.tsx",
-        "items_sheet.tsx",
-        "Items.tsx",
         "Rules/wall-3-rule1-places all tiles.tmx",
         "Crypt example map.tmx",
         "Sample Map.tmx",
@@ -366,7 +366,10 @@
         "level0.tmx",
         "Atlas-Props-sprites.tsx",
         "Atlas-Props.tsx",
-        "level1.tmx"
+        "Items2.tsx",
+        "level1.tmx",
+        "Items3.tsx",
+        "items_sheet.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

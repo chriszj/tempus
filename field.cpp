@@ -45,7 +45,7 @@ static int debugTextureIndex = -1;
 
 static TILESET g_Tilesets[TILESET_MAX];
 static MAPTILELAYER g_MapTileLayers[MAP_LAYER_MAX];
-static FIELDOBJECTGROUP g_ObjectGroups[MAP_OBJGROUPS_MAX];
+static FIELDOBJECTGROUP g_ObjectGroups[MAP_OBJLAYERS_MAX];
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
 static TILE	 g_Tiles[TILES_PER_LAYER_MAX];		// タイル構造体
@@ -250,7 +250,7 @@ void DrawField(int layer)
 		return;
 
 	MAPOBJECT* walls = GetMapObjectsFromLayer(MAPOBJLAYER_WALL);
-	for (int w = 0; w < MAP_OBJGRP_OBJ_MAX; w++) 
+	for (int w = 0; w < MAP_OBJECTS_PER_LAYER_MAX; w++) 
 	{
 
 		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[TILESET_MAX-1]);
@@ -314,7 +314,7 @@ void DrawField(int layer)
 
 }
 
-void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP objectGroups[], char* file)
+void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP objectLayers[], char* file)
 {
 
 	pugi::xml_document doc;
@@ -368,6 +368,30 @@ void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP
 				tileset.textureW = tilesetTextureNode.attribute("width").as_int();
 				tileset.textureH = tilesetTextureNode.attribute("height").as_int();
 
+				
+				////　カスタムタイル
+				int customTileCount = 0;
+				for (pugi::xml_node xmlCustomTile : tilesetInnerNode.children("tile")) 
+				{
+
+					tileset.customTiles[customTileCount].id = xmlCustomTile.attribute("id").as_int();
+					tileset.customTiles[customTileCount].x = xmlCustomTile.attribute("x").as_int();
+					tileset.customTiles[customTileCount].y = xmlCustomTile.attribute("y").as_int();
+					tileset.customTiles[customTileCount].width = xmlCustomTile.attribute("width").as_int();
+					tileset.customTiles[customTileCount].height = xmlCustomTile.attribute("height").as_int();
+
+					const char* tileTextureSource = xmlCustomTile.child("image").attribute("source").value();
+
+					memcpy(tileset.customTiles[customTileCount].textureSource, g_dataFolder, strlen(g_dataFolder));
+
+					memcpy(tileset.customTiles[customTileCount].textureSource + strlen(tileset.customTiles[customTileCount].textureSource), tileTextureSource + 6, strlen(tileTextureSource));
+				
+					tileset.customTiles[customTileCount].textureW = xmlCustomTile.child("image").attribute("width").as_int();
+				    tileset.customTiles[customTileCount].textureH = xmlCustomTile.child("image").attribute("height").as_int();
+					
+					customTileCount++;
+				}
+
 				tilesets[tilesetNodeCount] = tileset;
 				tilesetNodeCount++;
 
@@ -418,31 +442,33 @@ void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP
 		for (pugi::xml_node objectGroupNode : doc.child("map").children("objectgroup"))
 		{
 
-			objectGroups[objectGroupNodeCount].id = objectGroupNode.attribute("id").as_int();
+			objectLayers[objectGroupNodeCount].id = objectGroupNode.attribute("id").as_int();
 
 			const char* oGName = objectGroupNode.attribute("name").value();
-			memcpy(objectGroups[objectGroupNodeCount].name, oGName, strlen(oGName));
+			memcpy(objectLayers[objectGroupNodeCount].name, oGName, strlen(oGName));
 
 			const char* oGClass = objectGroupNode.attribute("class").value();
-			memcpy(objectGroups[objectGroupNodeCount].objectGroupClass, oGClass, strlen(oGClass));
+			memcpy(objectLayers[objectGroupNodeCount].objectGroupClass, oGClass, strlen(oGClass));
 
 			int objectsNodeCount = 0;
 
 			for (pugi::xml_node fieldObjectNode : objectGroupNode.children("object")) {
 
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].id = fieldObjectNode.attribute("id").as_int();;
+				objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].id = fieldObjectNode.attribute("id").as_int();
+
+				objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].gid = fieldObjectNode.attribute("gid").as_int();
 
 				const char* oName = fieldObjectNode.attribute("name").value();
-				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].name, oName, strlen(oName));
+				memcpy(objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].name, oName, strlen(oName));
 
 				const char* oClass = fieldObjectNode.attribute("type").value();
-				memcpy(objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].objectType, oClass, strlen(oClass));
+				memcpy(objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].objectType, oClass, strlen(oClass));
 
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_float() * MAP_SCALE;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_float() * MAP_SCALE;
+				objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].width = fieldObjectNode.attribute("width").as_float() * MAP_SCALE;
+				objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].height = fieldObjectNode.attribute("height").as_float() * MAP_SCALE;
 
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].x = (fieldObjectNode.attribute("x").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].width / 2;
-				objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].y = (fieldObjectNode.attribute("y").as_float() * MAP_SCALE) + objectGroups[objectGroupNodeCount].fObjects[objectsNodeCount].height / 2;
+				objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].x = (fieldObjectNode.attribute("x").as_float() * MAP_SCALE) + objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].width / 2;
+				objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].y = (fieldObjectNode.attribute("y").as_float() * MAP_SCALE) + objectLayers[objectGroupNodeCount].fObjects[objectsNodeCount].height / 2;
 
 
 				objectsNodeCount++;
@@ -578,16 +604,35 @@ TILESET* GetTilesetFromTileID(int tileId)
 
 }
 
+TILESET* GetTilesetByName(const char* name) 
+{
+
+	for (int t = 0; t < TILESET_MAX; t++) {
+
+		int tileIDRangeMinValue = g_Tilesets[t].firstGID;
+		int tileIDrangeMaxValue = g_Tilesets[t].firstGID + g_Tilesets[t].tileCount - 1;
+
+		if (strcmp(name, g_Tilesets[t].name)== 0)
+		{
+			return &g_Tilesets[t];
+		}
+
+	}
+
+	return NULL;
+
+}
+
 MAPOBJECT** GetMapObjectsByClass(const char* objectType)
 {
-	MAPOBJECT* fieldObjects[MAP_OBJGRP_OBJ_MAX];
+	MAPOBJECT* fieldObjects[MAP_OBJECTS_PER_LAYER_MAX];
 
 	int foundObjects = 0;
 
-	for (int og = 0; og < MAP_OBJGROUPS_MAX; og++)
+	for (int og = 0; og < MAP_OBJLAYERS_MAX; og++)
 	{
 
-		for (int o = 0; o < MAP_OBJGRP_OBJ_MAX; o++)
+		for (int o = 0; o < MAP_OBJECTS_PER_LAYER_MAX; o++)
 		{
 			if (strcmp(g_ObjectGroups[og].fObjects[o].objectType, objectType) == 0)
 			{
@@ -611,7 +656,7 @@ MAPOBJECT* GetMapObjectsFromLayer(const char* objectLayer)
 
 	int foundGroups = 0;
 
-	for (int og = 0; og < MAP_OBJGROUPS_MAX; og++)
+	for (int og = 0; og < MAP_OBJLAYERS_MAX; og++)
 	{
 
 
@@ -638,14 +683,14 @@ MAPOBJECT* GetMapObjectByNameFromLayer(const char* objectLayer, const char* obje
 
 	int foundGroups = 0;
 
-	for (int og = 0; og < MAP_OBJGROUPS_MAX; og++)
+	for (int og = 0; og < MAP_OBJLAYERS_MAX; og++)
 	{
 
 
 		if (strcmp(g_ObjectGroups[og].objectGroupClass, objectLayer) == 0)
 		{
 
-			for (int o = 0; o < MAP_OBJGRP_OBJ_MAX; o++)
+			for (int o = 0; o < MAP_OBJECTS_PER_LAYER_MAX; o++)
 			{
 
 				if (strcmp(g_ObjectGroups[og].objectGroupClass, objectLayer) == 0) 

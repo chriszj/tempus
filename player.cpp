@@ -9,6 +9,7 @@
 #include "bg.h"
 #include "field.h"
 #include "bullet.h"
+#include "item.h"
 #include "enemy.h"
 #include "collision.h"
 #include "score.h"
@@ -70,6 +71,9 @@ static int		g_jump[PLAYER_JUMP_CNT_MAX] =
 	-15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5,-4,-3,-2,-1,
 	  1,   2,   3,   4,   5,   6,  7,  8,  9, 10, 11,12,13,14,15
 };
+
+static int      g_InventorySouls = 0;
+static int      g_InventoryKeys = 0;
 
 //=============================================================================
 // 初期化処理
@@ -274,77 +278,7 @@ void UpdatePlayer(void)
 						g_Player[i].moving = TRUE;
 					}
 
-					// ゲームパッドでで移動処理
-					/*if (IsButtonPressed(0, BUTTON_DOWN))
-					{
-						g_Player[i].pos.y += speed;
-						g_Player[i].dir = CHAR_DIR_DOWN;
-						g_Player[i].moving = TRUE;
-					}
-					else if (IsButtonPressed(0, BUTTON_UP))
-					{
-						g_Player[i].pos.y -= speed;
-						g_Player[i].dir = CHAR_DIR_UP;
-						g_Player[i].moving = TRUE;
-					}
-
-					if (IsButtonPressed(0, BUTTON_RIGHT))
-					{
-						g_Player[i].pos.x += speed;
-						g_Player[i].dir = CHAR_DIR_RIGHT;
-						g_Player[i].moving = TRUE;
-					}
-					else if (IsButtonPressed(0, BUTTON_LEFT))
-					{
-						g_Player[i].pos.x -= speed;
-						g_Player[i].dir = CHAR_DIR_LEFT;
-						g_Player[i].moving = TRUE;
-					}*/
-
-					// 力業ジャンプ処理
-					/*if (g_jumpCnt > 0)
-					{
-						g_Player[i].pos.y += g_jump[g_jumpCnt];
-						g_jumpCnt++;
-						if (g_jumpCnt >= PLAYER_JUMP_CNT_MAX)
-						{
-							g_jumpCnt = 0;
-						}
-					}
-
-					if ((g_jumpCnt == 0) && (GetKeyboardTrigger(DIK_J)))
-					{
-						g_Player[i].pos.y += g_jump[g_jumpCnt];
-						g_jumpCnt++;
-					}*/
-
-
-
-
-					// ジャンプ処理中？
-					//if (g_Player[i].jump == TRUE)
-					//{
-					//	float angle = (XM_PI / PLAYER_JUMP_CNT_MAX) * g_Player[i].jumpCnt;
-					//	float y = g_Player[i].jumpYMax * cosf(XM_PI / 2 + angle);
-					//	g_Player[i].jumpY = y;
-
-					//	g_Player[i].jumpCnt++;
-					//	if (g_Player[i].jumpCnt > PLAYER_JUMP_CNT_MAX)
-					//	{
-					//		g_Player[i].jump = FALSE;
-					//		g_Player[i].jumpCnt = 0;
-					//		g_Player[i].jumpY = 0.0f;
-					//	}
-
-					//}
-					//// ジャンプボタン押した？
-					//else if ((g_Player[i].jump == FALSE) && (GetKeyboardTrigger(DIK_J)))
-					//{
-					//	g_Player[i].jump = TRUE;
-					//	g_Player[i].jumpCnt = 0;
-					//	g_Player[i].jumpY = 0.0f;
-					//}
-
+					
 
 					// MAP外チェック
 					BG* bg = GetBG();
@@ -377,7 +311,7 @@ void UpdatePlayer(void)
 					newXPos.x += g_Player[i].move.x;
 					newYPos.y += g_Player[i].move.y;
 
-					for (int w = 0; w < MAP_OBJGRP_OBJ_MAX; w++)
+					for (int w = 0; w < MAP_OBJECTS_PER_LAYER_MAX; w++)
 					{
 						XMFLOAT3 wallPos = XMFLOAT3(walls[w].x, walls[w].y, 0.0f);
 						COLLIDER2DBOX wallCollider = COLLIDER2DBOX(0.0f, 0.0f, walls[w].width, walls[w].height);
@@ -428,6 +362,41 @@ void UpdatePlayer(void)
 								}
 							}
 						}
+					}
+
+					// アイテムの当たり判定
+					{
+						ITEM* item = GetItem();
+
+						// エネミーの数分当たり判定を行う
+						for (int itm = 0; itm < ITEM_MAX; itm++)
+						{
+							// 生きてるエネミーと当たり判定をする
+							if (item[itm].use == TRUE)
+							{
+								BOOL ans = CollisionBB(g_Player[i].pos, g_Player[i].w / 2, g_Player[i].h / 2,
+									item[itm].pos, item[itm].w / 2, item[itm].h / 2);
+								// 当たっている？
+								if (ans == TRUE)
+								{
+									// 当たった時の処理
+									switch (item[itm].id)
+									{
+									case KEY:
+										g_InventoryKeys++;
+										break;
+									case SOUL:
+										g_InventorySouls++;
+										break;
+									default:
+										break;
+									}
+
+									item[itm].use = FALSE;
+								}
+							}
+						}
+
 					}
 
 					// バレット処理

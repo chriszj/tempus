@@ -16,25 +16,38 @@
 // マクロ定義
 //*****************************************************************************
 #define TILES_PER_LAYER_MAX		(15000)		// エネミーのMax人数
+#define TILESET_CUSTOM_TILES_MAX (500)
 #define TILESET_MAX				(15)
 #define MAP_LAYER_MAX			(10)
 #define MAP_SCALE				(1.5)
 #define MAP_DRAW_DEBUG			true
 #define MAP_DRAW_DEBUG_WALLS    false
 #define MAP_DEBUG_KEY			"Debug"
-#define MAP_OBJGROUPS_MAX		(10)
-#define MAP_OBJGRP_OBJ_MAX		(200)
+#define MAP_OBJLAYERS_MAX		(10)
+#define MAP_OBJECTS_PER_LAYER_MAX (200)
 
 #define MAPOBJTYPE_PLAYERSTART	"PlayerStartPoint"
-#define MAPOBJLAYER_WALL			"Wall"
-#define MAPOBJLAYER_LOCATIONS		"Locations"
-#define MAPOBJLAYER_ENEMY		    "Enemy"
+#define MAPOBJLAYER_WALL	    "Wall"
+#define MAPOBJLAYER_LOCATIONS   "Locations"
+#define MAPOBJLAYER_ENEMY	    "Enemy"
+#define MAPOBJLAYER_ITEMS       "Items"
+
+#define TILESET_ITEMS_NAME      "Items2"
 
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
 
+struct TILESETCUSTOMTILE {
 
+	// id="1" x="0" y="0" width="13" height="40"
+	int id = -1;
+	int x, y, width, height;
+
+	char textureSource[128] = "";
+	int textureW, textureH;
+
+};
 
 struct TILESET
 {
@@ -52,6 +65,31 @@ struct TILESET
 
 	char textureSource[128] = "";
 	int textureW, textureH;
+
+	TILESETCUSTOMTILE customTiles[TILESET_CUSTOM_TILES_MAX];
+
+
+	void Reset(void) {
+
+		id = -1;
+		memset(source, 0, sizeof(source));
+		
+		firstGID = -1;
+		tileWidth = 0;
+		tileHeight = 0;
+		tileCount = 0;
+		columns = 0;
+
+		memset(textureSource, 0, sizeof(textureSource));
+		textureW = 0;
+		textureH = 0;
+
+		for (int t = 0; t < TILESET_CUSTOM_TILES_MAX; t++)
+		{
+			customTiles[t] = {};
+		}
+
+	}
 
 };
 
@@ -112,10 +150,14 @@ struct MAPTILELAYER
 struct MAPOBJECT
 {
 	int id;
+	int gid;
 	char name[128] = "";
 	char objectType[128] = "";
 
 	float x, y, width, height;
+
+	float textureWidth;
+	float textureHeight;
 
 };
 
@@ -125,7 +167,7 @@ struct FIELDOBJECTGROUP
 	char name[128] = "";
 	char objectGroupClass[128] = "";
 
-	MAPOBJECT fObjects[MAP_OBJGRP_OBJ_MAX];
+	MAPOBJECT fObjects[MAP_OBJECTS_PER_LAYER_MAX];
 
 	void Reset(void) {
 
@@ -133,7 +175,7 @@ struct FIELDOBJECTGROUP
 		memset(name, 0, sizeof(name));
 		memset(objectGroupClass, 0, sizeof(objectGroupClass));
 
-		for (int t = 0; t < MAP_OBJGRP_OBJ_MAX; t++)
+		for (int t = 0; t < MAP_OBJECTS_PER_LAYER_MAX; t++)
 		{
 			fObjects[t] = {};
 		}
@@ -155,6 +197,7 @@ TILE* GetField(void);
 int GetFieldCount(void);
 
 TILESET* GetTilesetFromTileID(int tileId);
+TILESET* GetTilesetByName(const char* name);
 
 MAPOBJECT** GetMapObjectsByClass(const char* objectType);
 MAPOBJECT* GetMapObjectsFromLayer(const char* objectLayer);
