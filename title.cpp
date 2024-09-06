@@ -156,7 +156,15 @@ void UpdateTitle(void)
 		SetFade(FADE_OUT, MODE_TUTORIAL);
 	}
 
+	if (GetKeyboardTrigger(DIK_N))
+	{// Enter押したら、ステージを切り替える
+		SetFade(FADE_OUT, MODE_RESULT);
+	}
 
+	if (GetKeyboardTrigger(DIK_M))
+	{// Enter押したら、ステージを切り替える
+		SetFade(FADE_OUT, MODE_GAMEOVER);
+	}
 
 	// セーブデータをロードする？
 	/*if (GetKeyboardTrigger(DIK_L))

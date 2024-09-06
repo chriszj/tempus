@@ -10,6 +10,7 @@
 #include "fade.h"
 #include "collision.h"
 #include "field.h"
+#include "gui.h"
 
 //*****************************************************************************
 // É}ÉNÉçíËã`
@@ -47,6 +48,7 @@ static float offsetx = 200.0f;
 static float offsety = 200.0f;
 
 static TILESET* g_ItemsTileset;
+
 
 
 //=============================================================================

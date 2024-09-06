@@ -15,6 +15,9 @@
 #include "score.h"
 #include "file.h"
 #include "timemachine.h"
+#include "gui.h"
+#include <string>
+#include <iostream>
 
 //*****************************************************************************
 // マクロ定義
@@ -72,8 +75,7 @@ static int		g_jump[PLAYER_JUMP_CNT_MAX] =
 	  1,   2,   3,   4,   5,   6,  7,  8,  9, 10, 11,12,13,14,15
 };
 
-static int      g_InventorySouls = 0;
-static int      g_InventoryKeys = 0;
+static BMPTEXT* g_Score;
 
 //=============================================================================
 // 初期化処理
@@ -157,6 +159,10 @@ HRESULT InitPlayer(void)
 		RegisterObjectTimeState(&g_Player[i].timeState);
 	}
 
+	g_Score = GetUnusedText();
+	g_Score->x = SCREEN_WIDTH / 2;
+	g_Score->y = 25;
+	g_Score->scale = 1;
 
 	g_Load = TRUE;
 	return S_OK;
@@ -192,6 +198,9 @@ void UninitPlayer(void)
 			g_Texture[i] = NULL;
 		}
 	}
+
+	g_Score->use = FALSE;
+	g_Score = NULL;
 
 	g_Load = FALSE;
 }
@@ -383,10 +392,10 @@ void UpdatePlayer(void)
 									switch (item[itm].id)
 									{
 									case KEY:
-										g_InventoryKeys++;
+										g_Player[i].inventoryKeys++;
 										break;
 									case SOUL:
-										g_InventorySouls++;
+										g_Player[i].inventorySouls++;
 										break;
 									default:
 										break;
@@ -471,6 +480,10 @@ void UpdatePlayer(void)
 	{
 		SaveData();
 	}
+
+	std::wstring wstr = std::to_wstring(GetScore());
+
+	SetText(g_Score, (wchar_t*)wstr.c_str());
 
 
 #ifdef _DEBUG	// デバッグ情報を表示する

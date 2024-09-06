@@ -18,7 +18,6 @@
 #include "enemy.h"
 #include "item.h"
 #include "bullet.h"
-#include "score.h"
 #include "result.h"
 #include "sound.h"
 #include "gui.h"
@@ -330,7 +329,6 @@ void Update(void)
 		UpdateItem();
 		UpdateBullet();
 		UpdateEffect();
-		UpdateScore();
 
 		if(GetFade() == FADE_NONE)
 		{	// 全滅チェック
@@ -403,7 +401,6 @@ void Draw(void)
 		DrawItem();
 		DrawEffect();
 		DrawTimeMachineGUI();
-		DrawScore();
 		break;
 
 	case MODE_RESULT:		// リザルト画面の描画
@@ -482,9 +479,6 @@ void SetMode(int mode)
 	// バレットの終了処理
 	UninitBullet();
 
-	// スコアの終了処理
-	UninitScore();
-
 	// リザルトの終了処理
 	UninitResult();
 
@@ -499,7 +493,7 @@ void SetMode(int mode)
 	case MODE_TITLE:
 		// タイトル画面の初期化
 		InitTitle();
-		PlaySound(SOUND_LABEL_BGM_maou);
+		PlaySound(SOUND_LABEL_BGM_MAIN_MENU);
 		break;
 
 	case MODE_TUTORIAL:
@@ -517,7 +511,6 @@ void SetMode(int mode)
 		InitItem();
 		InitBullet();
 		InitEffect();
-		InitScore();
 
 		// ロードゲームだったらすべての初期化が終わった後にセーブデータを読み込む
 		if (g_LoadGame == TRUE)
@@ -531,12 +524,12 @@ void SetMode(int mode)
 
 	case MODE_RESULT:
 		InitResult(RESULTTYPE_WIN);
-		PlaySound(SOUND_LABEL_BGM_sample002);
+		PlaySound(SOUND_LABEL_BGM_YOUWIN);
 		break;
 
 	case MODE_GAMEOVER:
 		InitResult(RESULTTYPE_LOOSE);
-		PlaySound(SOUND_LABEL_BGM_sample002);
+		PlaySound(SOUND_LABEL_BGM_YOULOOSE);
 		break;
 
 	case MODE_MAX:
