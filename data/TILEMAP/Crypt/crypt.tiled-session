@@ -251,8 +251,8 @@
         },
         "Sample Map.tmx": {
             "expandedObjectLayers": [
-                12,
                 15,
+                12,
                 16
             ],
             "scale": 1.5,
@@ -286,27 +286,27 @@
         },
         "level0.tmx": {
             "expandedObjectLayers": [
-                2,
-                3
+                3,
+                2
             ],
             "scale": 3.61,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 159.9722991689751,
+                "x": 159.97229916897507,
                 "y": 159.97229916897507
             }
         },
         "level1.tmx": {
             "expandedObjectLayers": [
-                4,
                 5,
+                4,
                 3
             ],
             "scale": 2,
             "selectedLayer": 8,
             "viewCenter": {
-                "x": 2991.75,
-                "y": 2253.75
+                "x": 1632.25,
+                "y": 1312.25
             }
         },
         "level1.tmx#Items2": {
@@ -314,14 +314,14 @@
         },
         "level1s.tmx": {
             "expandedObjectLayers": [
-                3,
-                4
+                4,
+                3
             ],
             "scale": 1,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 480.5,
-                "y": 480.5
+                "x": 884.5,
+                "y": 468.5
             }
         },
         "wall 1.tsx": {
@@ -358,12 +358,12 @@
     ],
     "project": "crypt.tiled-project",
     "recentFiles": [
+        "level0.tmx",
+        "level1s.tmx",
         "Rules/wall-3-rule1-places all tiles.tmx",
         "Crypt example map.tmx",
         "Sample Map.tmx",
-        "level1s.tmx",
         "Tileset-Terrain.tsx",
-        "level0.tmx",
         "Atlas-Props-sprites.tsx",
         "Atlas-Props.tsx",
         "Items2.tsx",
