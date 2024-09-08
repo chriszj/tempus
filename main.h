@@ -60,6 +60,15 @@ using namespace DirectX;
 #define	MAP_RIGHT		(MAP_W/2)
 
 // 補間用のデータ構造体を定義
+struct ANIM_DATA
+{
+	int id;
+	int startFrame;
+	int frameCountX;
+	int cancellable;
+	int animWait;
+};
+
 struct INTERPOLATION_DATA
 {
 	XMFLOAT3	pos;		// 頂点座標

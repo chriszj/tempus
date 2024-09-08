@@ -36,9 +36,22 @@ enum
 	CHAR_DIR_MAX
 };
 
+enum
+{
+	CHAR_ANIM_IDLE,
+	CHAR_ANIM_WALK,
+	CHAR_ANIM_FALL,
+	CHAR_ANIM_DIE,
+	CHAR_ANIM_ATTACK,
+
+	CHAR_ANIM_MAX
+};
+
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
+
+struct PLAYERANIMSTATE {};
 
 struct PLAYER
 {
@@ -51,6 +64,7 @@ struct PLAYER
 	COLLIDER2DBOX collider;       // 当たり判定の改善のため
 	float		countAnim;		// アニメーションカウント
 	int			patternAnim;	// アニメーションパターンナンバー
+	int         currentAnimState;
 	int			texNo;			// テクスチャ番号
 	
 	int			dir;			// 向き（0:上 1:右 2:下 3:左）

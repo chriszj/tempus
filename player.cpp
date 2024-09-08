@@ -4,6 +4,7 @@
 // Author : 
 //
 //=============================================================================
+#include "main.h"
 #include "player.h"
 #include "input.h"
 #include "bg.h"
@@ -27,9 +28,11 @@
 #define TEXTURE_MAX					(2)		// テクスチャの数
 
 #define TEXTURE_PATTERN_DIVIDE_X	(4)		// アニメパターンのテクスチャ内分割数（X)
-#define TEXTURE_PATTERN_DIVIDE_Y	(8)		// アニメパターンのテクスチャ内分割数（Y)
+#define TEXTURE_PATTERN_DIVIDE_Y	(40)		// アニメパターンのテクスチャ内分割数（Y)
 #define ANIM_PATTERN_NUM			(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
 #define ANIM_WAIT					(6)		// アニメーションの切り替わるWait値
+
+#define PLAYER_ANIM_WALK_INDEX      (0)
 
 // プレイヤーの画面内配置座標
 #define PLAYER_DISP_X				(SCREEN_WIDTH/2)
@@ -51,6 +54,7 @@
 void DrawPlayerOffset(int no);
 void PushToTimeState(TIMESTATE* timeState, PLAYER* player);
 void PullFromTimeState(TIMESTATE* timeState, PLAYER* player);
+void SetCharacterState(int state, PLAYER* player, BOOL resetAnim);
 
 
 //*****************************************************************************
@@ -60,8 +64,17 @@ static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char *g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/character_walk2.png",
+	"data/TEXTURE/character_hero.png",
 	"data/TEXTURE/shadow000.jpg",
+};
+
+static ANIM_DATA g_anims[CHAR_ANIM_MAX] =
+{
+	{CHAR_ANIM_IDLE, 0, 4, 1, 6},
+	{CHAR_ANIM_WALK, 32, 4, 1, 6},
+	{CHAR_ANIM_FALL, 64, 4, 0, 20},
+	{CHAR_ANIM_DIE, 96, 4, 0, 10},
+	{CHAR_ANIM_ATTACK, 128, 4, 0, 6}
 };
 
 static BOOL		g_Load = FALSE;				// 初期化を行ったかのフラグ
@@ -138,6 +151,7 @@ HRESULT InitPlayer(void)
 		g_Player[i].dir = CHAR_DIR_DOWN;					// 下向きにしとくか
 		g_Player[i].moving = FALSE;							// 移動中フラグ
 		g_Player[i].patternAnim = g_Player[i].dir * TEXTURE_PATTERN_DIVIDE_X;
+		g_Player[i].currentAnimState = CHAR_ANIM_IDLE;
 
 		// ジャンプの初期化
 		g_Player[i].jump = FALSE;
@@ -228,19 +242,43 @@ void UpdatePlayer(void)
 				
 			}
 			else {
-				
 
-				// アニメーション  
-				if (g_Player[i].moving == TRUE)
+
+				g_Player[i].countAnim += 1.0f;
+				if (g_Player[i].countAnim > g_anims[g_Player[i].currentAnimState].animWait)
 				{
-					g_Player[i].countAnim += 1.0f;
-					if (g_Player[i].countAnim > ANIM_WAIT)
+					g_Player[i].countAnim = 0.0f;
+					// パターンの切り替え
+					int animStateIndex = g_anims[g_Player[i].currentAnimState].startFrame;
+					int frameCountX = g_anims[g_Player[i].currentAnimState].frameCountX;
+
+					if (g_Player[i].currentAnimState != CHAR_ANIM_FALL)
 					{
-						g_Player[i].countAnim = 0.0f;
-						// パターンの切り替え
-						g_Player[i].patternAnim = (g_Player[i].dir * TEXTURE_PATTERN_DIVIDE_X) + ((g_Player[i].patternAnim + 1) % TEXTURE_PATTERN_DIVIDE_X);
+						animStateIndex += g_Player[i].dir * frameCountX;
 					}
+
+					/*if (!g_anims[g_Player[i].currentAnimState].cancellable) 
+					{
+
+						int lastFrame = animStateIndex + frameCountX;
+
+						if(g_Player[i].patternAnim + 1 > lastFrame - 1)
+						SetCharacterState(CHAR_ANIM_IDLE, &g_Player[i], TRUE);
+					}*/
+
+					g_Player[i].patternAnim = (animStateIndex) + ((g_Player[i].patternAnim + 1) % frameCountX);
+
+					if (!g_anims[g_Player[i].currentAnimState].cancellable)
+					{
+						int lastFrame = animStateIndex + frameCountX;
+						if (g_Player[i].patternAnim + 1 >= lastFrame)
+							SetCharacterState(CHAR_ANIM_IDLE, &g_Player[i], TRUE);
+					}
+
 				}
+
+				if (g_anims[g_Player[i].currentAnimState].cancellable)
+					g_Player[i].currentAnimState = CHAR_ANIM_IDLE;
 
 				// キー入力で移動 
 				{
@@ -257,37 +295,57 @@ void UpdatePlayer(void)
 						g_Player[i].dash = TRUE;
 					}*/
 
-					int directionMod = 0;
+					if (g_anims[g_Player[i].currentAnimState].cancellable) {
 
-					if (GetKeyboardPress(DIK_S) || IsButtonPressed(0, BUTTON_DOWN))
-					{
-						g_Player[i].move.y += speed;
-						directionMod++;
-						g_Player[i].dir = CHAR_DIR_DOWN;
-						g_Player[i].moving = TRUE;
-					}
-					else if (GetKeyboardPress(DIK_W) || IsButtonPressed(0, BUTTON_UP))
-					{
-						g_Player[i].move.y -= speed;
-						directionMod--;
-						g_Player[i].dir = CHAR_DIR_UP;
-						g_Player[i].moving = TRUE;
+						int directionMod = 0;
+
+						if (GetKeyboardPress(DIK_S) || IsButtonPressed(0, BUTTON_DOWN))
+						{
+							g_Player[i].move.y += speed;
+							directionMod++;
+							g_Player[i].dir = CHAR_DIR_DOWN;
+							g_Player[i].moving = TRUE;
+						}
+						else if (GetKeyboardPress(DIK_W) || IsButtonPressed(0, BUTTON_UP))
+						{
+							g_Player[i].move.y -= speed;
+							directionMod--;
+							g_Player[i].dir = CHAR_DIR_UP;
+							g_Player[i].moving = TRUE;
+						}
+
+						if (GetKeyboardPress(DIK_D) || IsButtonPressed(0, BUTTON_RIGHT))
+						{
+							g_Player[i].move.x += speed;
+							g_Player[i].dir = CHAR_DIR_RIGHT + directionMod;
+							g_Player[i].moving = TRUE;
+						}
+						else if (GetKeyboardPress(DIK_A) || IsButtonPressed(0, BUTTON_LEFT))
+						{
+							g_Player[i].move.x -= speed;
+							g_Player[i].dir = CHAR_DIR_LEFT - directionMod;
+							g_Player[i].moving = TRUE;
+						}
+
+						// アニメーション  
+						if (g_Player[i].moving == TRUE)
+						{
+							SetCharacterState(CHAR_ANIM_WALK, &g_Player[i], FALSE);
+						}
+
+						if (GetKeyboardTrigger(DIK_J))
+						{
+							SetCharacterState(CHAR_ANIM_ATTACK, &g_Player[i], TRUE);
+							
+						}
+
+						if (GetKeyboardTrigger(DIK_U))
+						{
+							SetCharacterState(CHAR_ANIM_FALL, &g_Player[i], TRUE);
+
+						}
 					}
 
-					if (GetKeyboardPress(DIK_D) || IsButtonPressed(0, BUTTON_RIGHT))
-					{
-						g_Player[i].move.x += speed;
-						g_Player[i].dir = CHAR_DIR_RIGHT + directionMod;
-						g_Player[i].moving = TRUE;
-					}
-					else if (GetKeyboardPress(DIK_A) || IsButtonPressed(0, BUTTON_LEFT))
-					{
-						g_Player[i].move.x -= speed;
-						g_Player[i].dir = CHAR_DIR_LEFT - directionMod;
-						g_Player[i].moving = TRUE;
-					}
-
-					
 
 					// MAP外チェック
 					BG* bg = GetBG();
@@ -481,7 +539,7 @@ void UpdatePlayer(void)
 		SaveData();
 	}
 
-	std::wstring wstr = std::to_wstring(GetScore());
+	std::wstring wstr = std::to_wstring(g_Player[0].currentAnimState);
 
 	SetText(g_Score, (wchar_t*)wstr.c_str());
 
@@ -522,6 +580,7 @@ void DrawPlayer(void)
 		if (g_Player[i].use == TRUE)		// このプレイヤーが使われている？
 		{									// Yes
 
+			if(g_Player[i].currentAnimState != CHAR_ANIM_FALL)
 			{	// 影表示
 				SetBlendState(BLEND_MODE_SUBTRACT);	// 減算合成
 
@@ -662,6 +721,24 @@ void PullFromTimeState(TIMESTATE* timeState, PLAYER* player)
 	player->countAnim = timeState->countAnim;
 	player->patternAnim = timeState->patternAnim;
 	player->dash = TRUE;
+}
+
+void SetCharacterState(int state, PLAYER* player, BOOL resetAnim) {
+
+	player->currentAnimState = state;
+
+	if (resetAnim == TRUE) {
+
+		int animStateIndex = g_anims[player->currentAnimState].startFrame;
+		int frameCountX = g_anims[player->currentAnimState].frameCountX;
+
+		if (player->currentAnimState != CHAR_ANIM_FALL)
+		{
+			animStateIndex += player->dir * frameCountX;
+		}
+
+		player->patternAnim = animStateIndex;
+	}
 }
 
 
