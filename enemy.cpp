@@ -52,6 +52,8 @@ static float offsety = 200.0f;
 static float moveFactor = 200.0f;
 static float e_time = 25.0f;
 
+static TILESET* g_EnemiesTileset;
+
 static INTERPOLATION_DATA g_MoveTbl0[] = {
 	//座標									回転率							拡大率					時間
 	{ XMFLOAT3( offsetx,  offsety, 0.0f),	XMFLOAT3(0.0f, 0.0f, 5.0f),	XMFLOAT3(1.0f, 1.0f, 1.0f),	e_time },
@@ -91,14 +93,22 @@ static INTERPOLATION_DATA* g_MoveTblAdr[] =
 //=============================================================================
 HRESULT InitEnemy(void)
 {
+	MAPOBJECT* mapObjects = GetMapObjectsFromLayer(MAPOBJLAYER_ENEMIES);
+
 	ID3D11Device *pDevice = GetDevice();
+
+	g_EnemiesTileset = GetTilesetByName(TILESET_ENEMIES_NAME);
 
 	//テクスチャ生成
 	for (int i = 0; i < TEXTURE_MAX; i++)
 	{
+
+		if (g_EnemiesTileset->customTiles[i].id < 0)
+			continue;
+
 		g_Texture[i] = NULL;
 		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
-			g_TexturName[i],
+			g_EnemiesTileset->customTiles[i].textureSource,
 			NULL,
 			NULL,
 			&g_Texture[i],
@@ -122,24 +132,34 @@ HRESULT InitEnemy(void)
 	for (int i = 0; i < ENEMY_MAX; i++)
 	{
 
-		XMFLOAT3 startPosition = XMFLOAT3(400.0f, 400.0f, 0.0f);
-
-		if (fieldPositions != NULL)
-		{
-			startPosition = XMFLOAT3((fieldPositions[i].x), (fieldPositions[i].y), 0.0f);
-		}
-
 		g_EnemyCount++;
-		g_Enemy[i].use = TRUE;
-		g_Enemy[i].pos = startPosition;//XMFLOAT3(200.0f + i*200.0f, 100.0f, 0.0f);	// 中心点から表示
+		g_Enemy[i].use = mapObjects[i].id > 0 ? TRUE : FALSE;
+
+		if (!g_Enemy[i].use)
+			continue;
+
+		g_Enemy[i].pos = XMFLOAT3((mapObjects[i].x), (mapObjects[i].y - (mapObjects[i].height)), 0.0f);	// 中心点から表示
 		g_Enemy[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Enemy[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		g_Enemy[i].w = TEXTURE_WIDTH;
-		g_Enemy[i].h = TEXTURE_HEIGHT;
-		g_Enemy[i].texNo = 0;
+		g_Enemy[i].w = mapObjects[i].width;
+		g_Enemy[i].h = mapObjects[i].height;
+		g_Enemy[i].texNo = mapObjects[i].gid - g_EnemiesTileset->firstGID;
 
 		g_Enemy[i].countAnim = 0;
 		g_Enemy[i].patternAnim = 0;
+
+		int customTileWidth = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].width;
+		int customTileTextureW = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].textureW;
+
+		int divideX = customTileTextureW / customTileWidth;
+
+		int customTileHeight = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].height;
+		int customTileTextureH = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].textureH;
+		int divideY = customTileTextureH / customTileHeight;
+
+		g_Enemy[i].animDivideX = divideX;
+		g_Enemy[i].animDivideY = divideY;
+		g_Enemy[i].patternAnimNum = divideX * divideY;
 
 		g_Enemy[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
@@ -189,6 +209,11 @@ void UninitEnemy(void)
 		}
 	}
 
+	for (int e = 0; e < ENEMY_MAX; e++) 
+	{
+		g_Enemy[e].use = FALSE;
+	}
+
 	g_Load = FALSE;
 }
 
@@ -216,7 +241,7 @@ void UpdateEnemy(void)
 			{
 				g_Enemy[i].countAnim = 0.0f;
 				// パターンの切り替え
-				g_Enemy[i].patternAnim = (g_Enemy[i].patternAnim + 1) % ANIM_PATTERN_NUM;
+				g_Enemy[i].patternAnim = (g_Enemy[i].patternAnim + 1) % g_Enemy[i].patternAnimNum;
 			}
 
 			// 移動処理
@@ -337,10 +362,10 @@ void DrawEnemy(void)
 			float ph = g_Enemy[i].h;		// エネミーの表示高さ
 
 			// アニメーション用
-			float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
-			float th = 1.0f / TEXTURE_PATTERN_DIVIDE_Y;	// テクスチャの高さ
-			float tx = (float)(g_Enemy[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// テクスチャの左上X座標
-			float ty = (float)(g_Enemy[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// テクスチャの左上Y座標
+			float tw = 1.0f / g_Enemy[i].animDivideX;	// テクスチャの幅
+			float th = 1.0f / g_Enemy[i].animDivideY;	// テクスチャの高さ
+			float tx = (float)(g_Enemy[i].patternAnim % g_Enemy[i].animDivideX) * tw;	// テクスチャの左上X座標
+			float ty = (float)(g_Enemy[i].patternAnim / g_Enemy[i].animDivideX) * th;	// テクスチャの左上Y座標
 
 			//float tw = 1.0f;	// テクスチャの幅
 			//float th = 1.0f;	// テクスチャの高さ

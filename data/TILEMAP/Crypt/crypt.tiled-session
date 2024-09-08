@@ -74,6 +74,9 @@
                 "y": 640.9174687691993
             }
         },
+        "Enemies.tsx": {
+            "dynamicWrapping": true
+        },
         "Items.tsx": {
             "dynamicWrapping": false,
             "scaleInDock": 1,
@@ -251,14 +254,14 @@
         },
         "Sample Map.tmx": {
             "expandedObjectLayers": [
-                15,
                 12,
+                15,
                 16
             ],
             "scale": 1.5,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 560.3333333333333,
+                "x": 560.3333333333334,
                 "y": 400.33333333333326
             }
         },
@@ -340,7 +343,7 @@
         }
     },
     "last.externalTilesetPath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/Crypt",
-    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Crypt/Props/animated",
+    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Common",
     "map.height": 10,
     "map.lastUsedFormat": "tmx",
     "map.width": 10,

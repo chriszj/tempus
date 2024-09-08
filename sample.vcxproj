@@ -135,7 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="bg.h" />
-    <ClInclude Include="bullet.h" />
+    <ClInclude Include="weapon.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="debugproc.h" />
@@ -162,7 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bg.cpp" />
-    <ClCompile Include="bullet.cpp" />
+    <ClCompile Include="weapon.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="debugproc.cpp" />

@@ -9,7 +9,7 @@
 #include "input.h"
 #include "bg.h"
 #include "field.h"
-#include "bullet.h"
+#include "weapon.h"
 #include "item.h"
 #include "enemy.h"
 #include "collision.h"
@@ -257,15 +257,6 @@ void UpdatePlayer(void)
 						animStateIndex += g_Player[i].dir * frameCountX;
 					}
 
-					/*if (!g_anims[g_Player[i].currentAnimState].cancellable) 
-					{
-
-						int lastFrame = animStateIndex + frameCountX;
-
-						if(g_Player[i].patternAnim + 1 > lastFrame - 1)
-						SetCharacterState(CHAR_ANIM_IDLE, &g_Player[i], TRUE);
-					}*/
-
 					g_Player[i].patternAnim = (animStateIndex) + ((g_Player[i].patternAnim + 1) % frameCountX);
 
 					if (!g_anims[g_Player[i].currentAnimState].cancellable)
@@ -299,11 +290,14 @@ void UpdatePlayer(void)
 
 						int directionMod = 0;
 
+						int weaponDir = 0;
+
 						if (GetKeyboardPress(DIK_S) || IsButtonPressed(0, BUTTON_DOWN))
 						{
 							g_Player[i].move.y += speed;
 							directionMod++;
 							g_Player[i].dir = CHAR_DIR_DOWN;
+							
 							g_Player[i].moving = TRUE;
 						}
 						else if (GetKeyboardPress(DIK_W) || IsButtonPressed(0, BUTTON_UP))
@@ -311,6 +305,7 @@ void UpdatePlayer(void)
 							g_Player[i].move.y -= speed;
 							directionMod--;
 							g_Player[i].dir = CHAR_DIR_UP;
+							
 							g_Player[i].moving = TRUE;
 						}
 
@@ -318,13 +313,34 @@ void UpdatePlayer(void)
 						{
 							g_Player[i].move.x += speed;
 							g_Player[i].dir = CHAR_DIR_RIGHT + directionMod;
+							
 							g_Player[i].moving = TRUE;
 						}
 						else if (GetKeyboardPress(DIK_A) || IsButtonPressed(0, BUTTON_LEFT))
 						{
 							g_Player[i].move.x -= speed;
 							g_Player[i].dir = CHAR_DIR_LEFT - directionMod;
+							
 							g_Player[i].moving = TRUE;
+						}
+
+						switch (g_Player[i].dir)
+						{
+							case CHAR_DIR_UP:
+							case CHAR_DIR_UP_RIGHT:
+								weaponDir = WEAPON_DIR_UP;
+								break;
+							case CHAR_DIR_RIGHT:
+							case CHAR_DIR_RIGHT_DOWN:
+								weaponDir = WEAPON_DIR_RIGHT;
+								break;
+							case CHAR_DIR_DOWN:
+							case CHAR_DIR_DOWN_LEFT:
+								weaponDir = WEAPON_DIR_DOWN;
+								break;
+							default:
+								weaponDir = WEAPON_DIR_LEFT;
+								break;
 						}
 
 						// アニメーション  
@@ -336,13 +352,17 @@ void UpdatePlayer(void)
 						if (GetKeyboardTrigger(DIK_J))
 						{
 							SetCharacterState(CHAR_ANIM_ATTACK, &g_Player[i], TRUE);
+
+
+
+							SetWeapon(g_Player[i].pos, { 0.0f, 0.0f,0.0f }, WEAPON_TYPE_SWORD, weaponDir);
 							
 						}
 
 						if (GetKeyboardTrigger(DIK_U))
 						{
 							SetCharacterState(CHAR_ANIM_FALL, &g_Player[i], TRUE);
-
+							
 						}
 					}
 
@@ -471,14 +491,14 @@ void UpdatePlayer(void)
 					{
 						XMFLOAT3 pos = g_Player[i].pos;
 						pos.y += g_Player[i].jumpY;
-						SetBullet(pos);
+						SetWeapon(pos);
 					}
 
 					if (IsButtonTriggered(0, BUTTON_B))
 					{
 						XMFLOAT3 pos = g_Player[i].pos;
 						pos.y += g_Player[i].jumpY;
-						SetBullet(pos);
+						SetWeapon(pos);
 					}*/
 
 					/// タイムステートの登録

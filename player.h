@@ -51,8 +51,6 @@ enum
 // ç\ë¢ëÃíËã`
 //*****************************************************************************
 
-struct PLAYERANIMSTATE {};
-
 struct PLAYER
 {
 	TIMESTATE timeState;

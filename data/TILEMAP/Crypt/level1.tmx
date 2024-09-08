@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="102" height="82" tilewidth="32" tileheight="32" infinite="0" nextlayerid="11" nextobjectid="408">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="102" height="82" tilewidth="32" tileheight="32" infinite="0" nextlayerid="13" nextobjectid="444">
  <tileset firstgid="1" source="Tileset-Terrain.tsx"/>
  <tileset firstgid="2901" source="wall 1.tsx"/>
  <tileset firstgid="3141" source="Atlas-Props-sprites.tsx"/>
  <tileset firstgid="3529" source="Items2.tsx"/>
+ <tileset firstgid="3532" source="Enemies.tsx"/>
  <layer id="1" name="Base" width="102" height="82">
   <data encoding="csv">
 517,519,569,518,519,518,569,518,519,569,519,569,518,569,518,569,518,518,569,569,519,469,469,569,518,518,519,519,519,519,519,519,569,518,519,518,569,569,569,569,518,519,569,569,520,569,519,519,519,569,569,569,518,519,518,519,569,518,518,518,519,569,519,518,569,569,569,470,419,419,419,419,468,519,519,519,569,569,518,519,519,569,518,569,518,569,569,519,519,519,521,517,569,569,569,570,568,569,569,519,569,519,
@@ -471,8 +472,12 @@
   <object id="149" x="50.6667" y="1488" width="1145.33" height="132"/>
   <object id="150" x="1104.5" y="1359" width="93" height="128"/>
  </objectgroup>
- <objectgroup id="9" name="Enemy" class="Enemy"/>
- <objectgroup id="10" name="Items" class="Items">
+ <objectgroup id="9" name="Enemies" class="Enemies">
+  <object id="441" gid="3532" x="1767.5" y="2168" width="64" height="64"/>
+  <object id="442" gid="3532" x="1574" y="2111" width="64" height="64"/>
+  <object id="443" gid="3532" x="1692.5" y="2347.5" width="64" height="64"/>
+ </objectgroup>
+ <objectgroup id="10" name="Items" class="Items" visible="0">
   <object id="388" gid="3529" x="1970" y="2056.5" width="13" height="23"/>
   <object id="389" gid="3531" x="1985.5" y="2264" width="64" height="64"/>
   <object id="390" gid="3531" x="2146" y="2266" width="64" height="64"/>
@@ -493,5 +498,31 @@
   <object id="405" gid="3531" x="1245" y="1839" width="64" height="64"/>
   <object id="406" gid="3529" x="1258.5" y="1992" width="13" height="23"/>
   <object id="407" gid="3529" x="139" y="1909.5" width="13" height="23"/>
+ </objectgroup>
+ <objectgroup id="12" name="Notes" visible="0">
+  <object id="412" x="2736" y="896" width="489.333" height="604"/>
+  <object id="413" x="2214.67" y="892" width="520" height="616"/>
+  <object id="414" name="BossArea" x="2409" y="223" width="600" height="395"/>
+  <object id="415" name="Exit" x="1295" y="205" width="722" height="486"/>
+  <object id="417" name="First Room" x="1395" y="1884" width="1192" height="601"/>
+  <object id="418" name="Secret Room" x="2593" y="1996" width="635" height="496"/>
+  <object id="419" name="Mimics" x="1230" y="1947" width="69" height="64"/>
+  <object id="420" name="Mimic" x="1105" y="2404" width="60" height="60"/>
+  <object id="421" name="Mimic C" x="565" y="2329" width="118" height="104"/>
+  <object id="422" name="Rich Room" x="41" y="104" width="538" height="653"/>
+  <object id="423" name="Sword Room" x="584" y="103" width="535" height="656"/>
+  <object id="424" name="Puerta Master Key" x="1535" y="749" width="206" height="180"/>
+  <object id="425" name="Graveyard" x="48" y="1073" width="824" height="432"/>
+  <object id="427" name="Save Point" x="1287" y="918" width="107" height="152"/>
+  <object id="428" name="Key Locked Door" x="782" y="740" width="153" height="125"/>
+  <object id="429" name="Key Locked Door" x="2719" y="1115" width="86" height="128"/>
+  <object id="430" name="Life Up" x="3096" y="968" width="108" height="139"/>
+  <object id="431" name="Mana Up" x="3099" y="1338" width="96" height="135"/>
+  <object id="432" name="Key Locked Door" x="2578" y="742" width="210" height="163"/>
+  <object id="433" name="Key Locked Door" x="2101" y="1065" width="124" height="315"/>
+  <object id="434" name="Alastor Sword" x="2805" y="2161" width="212" height="171"/>
+  <object id="437" name="Door Requires Alastor" x="551" y="283" width="67" height="125"/>
+  <object id="438" name="Key Locked Door" x="1072" y="1035" width="144" height="378"/>
+  <object id="439" name="Torch" x="2575" y="971" width="66" height="72"/>
  </objectgroup>
 </map>

@@ -156,6 +156,11 @@ void UninitItem(void)
 		}
 	}
 
+	for (int e = 0; e < ITEM_MAX; e++)
+	{
+		g_Item[e].use = FALSE;
+	}
+
 	g_Load = FALSE;
 }
 

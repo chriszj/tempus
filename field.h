@@ -31,8 +31,10 @@
 #define MAPOBJLAYER_LOCATIONS   "Locations"
 #define MAPOBJLAYER_ENEMY	    "Enemy"
 #define MAPOBJLAYER_ITEMS       "Items"
+#define MAPOBJLAYER_ENEMIES     "Enemies"
 
 #define TILESET_ITEMS_NAME      "Items2"
+#define TILESET_ENEMIES_NAME    "Enemies"
 
 //*****************************************************************************
 // ç\ë¢ëÃíËã`

@@ -4,7 +4,7 @@
 // Author : 
 //
 //=============================================================================
-#include "bullet.h"
+#include "weapon.h"
 #include "enemy.h"
 #include "collision.h"
 #include "score.h"
@@ -16,10 +16,10 @@
 //*****************************************************************************
 #define TEXTURE_WIDTH				(100/2)	// キャラサイズ
 #define TEXTURE_HEIGHT				(100/2)	// 
-#define TEXTURE_MAX					(1)		// テクスチャの数
+#define TEXTURE_MAX					(2)		// テクスチャの数
 
-#define TEXTURE_PATTERN_DIVIDE_X	(1)		// アニメパターンのテクスチャ内分割数（X)
-#define TEXTURE_PATTERN_DIVIDE_Y	(1)		// アニメパターンのテクスチャ内分割数（Y)
+#define TEXTURE_PATTERN_DIVIDE_X	(5)		// アニメパターンのテクスチャ内分割数（X)
+#define TEXTURE_PATTERN_DIVIDE_Y	(4)		// アニメパターンのテクスチャ内分割数（Y)
 #define ANIM_PATTERN_NUM			(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
 #define ANIM_WAIT					(4)		// アニメーションの切り替わるWait値
 
@@ -36,17 +36,23 @@ static ID3D11Buffer				*g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char *g_TexturName[] = {
-	"data/TEXTURE/bullet00.png",
+	"data/TEXTURE/weapon.png",
+	"data/TEXTURE/weapon2.png"
 };
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
-static BULLET	g_Bullet[BULLET_MAX];	// バレット構造体
+static WEAPON	g_Weapon[BULLET_MAX];	// バレット構造体
 
+static WEAPON_TYPE g_WeaponTypes[WEAPON_TYPE_MAX] =
+{
+	{WEAPON_TYPE_SWORD, TRUE, TRUE, 200, 200, 5, 4, 4},
+	{WEAPON_TYPE_MAGIC_SWORD, TRUE, TRUE, 200, 200, 5, 4, 4}
+};
 
 //=============================================================================
 // 初期化処理
 //=============================================================================
-HRESULT InitBullet(void)
+HRESULT InitWeapon(void)
 {
 	ID3D11Device *pDevice = GetDevice();
 
@@ -76,17 +82,19 @@ HRESULT InitBullet(void)
 	// バレット構造体の初期化
 	for (int i = 0; i < BULLET_MAX; i++)
 	{
-		g_Bullet[i].use   = FALSE;			// 未使用（発射されていない弾）
-		g_Bullet[i].w     = TEXTURE_WIDTH;
-		g_Bullet[i].h     = TEXTURE_HEIGHT;
-		g_Bullet[i].pos   = XMFLOAT3(300, 300.0f, 0.0f);
-		g_Bullet[i].rot   = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Bullet[i].texNo = 0;
+		g_Weapon[i].use   = FALSE;			// 未使用（発射されていない弾）
+		g_Weapon[i].w     = TEXTURE_WIDTH;
+		g_Weapon[i].h     = TEXTURE_HEIGHT;
+		g_Weapon[i].duration = -1;
+		g_Weapon[i].elapsedTime = 0;
+		g_Weapon[i].pos   = XMFLOAT3(300, 300.0f, 0.0f);
+		g_Weapon[i].rot   = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		g_Weapon[i].texNo = 0;
 
-		g_Bullet[i].countAnim = 0;
-		g_Bullet[i].patternAnim = 0;
+		g_Weapon[i].countAnim = 0;
+		g_Weapon[i].patternAnim = 0;
 
-		g_Bullet[i].move = XMFLOAT3(0.0f, -BULLET_SPEED, 0.0f);	// 移動量を初期化
+		g_Weapon[i].move = XMFLOAT3(0.0f, -BULLET_SPEED, 0.0f);	// 移動量を初期化
 	}
 	
 	g_Load = TRUE;
@@ -96,7 +104,7 @@ HRESULT InitBullet(void)
 //=============================================================================
 // 終了処理
 //=============================================================================
-void UninitBullet(void)
+void UninitWeapon(void)
 {
 	if (g_Load == FALSE) return;
 
@@ -120,38 +128,56 @@ void UninitBullet(void)
 //=============================================================================
 // 更新処理
 //=============================================================================
-void UpdateBullet(void)
+void UpdateWeapon(void)
 {
 	if (g_Load == FALSE) return;
 	int bulletCount = 0;				// 処理したバレットの数
 
 	for (int i = 0; i < BULLET_MAX; i++)
 	{
-		if (g_Bullet[i].use == TRUE)	// このバレットが使われている？
+		if (g_Weapon[i].use == TRUE)	// このバレットが使われている？
 		{								// Yes
 			// アニメーション  
-			g_Bullet[i].countAnim++;
-			if ((g_Bullet[i].countAnim % ANIM_WAIT) == 0)
+			g_Weapon[i].countAnim++;
+			if ((g_Weapon[i].countAnim % g_WeaponTypes[g_Weapon[i].type].animWait) == 0)
 			{
+
 				// パターンの切り替え
-				g_Bullet[i].patternAnim = (g_Bullet[i].patternAnim + 1) % ANIM_PATTERN_NUM;
+				int animStateIndex = 0;
+				int frameCountX = g_WeaponTypes[g_Weapon[i].type].textureDivideX;
+
+				if (g_WeaponTypes[g_Weapon[i].type].hasDirectionSprites)
+				{
+					animStateIndex += g_Weapon[i].dir * frameCountX;
+				}
+
+				// パターンの切り替え
+				g_Weapon[i].patternAnim = animStateIndex + (g_Weapon[i].patternAnim + 1) % frameCountX;
+
+				if (g_WeaponTypes[g_Weapon[i].type].destroyOnAnimationEnd)
+				{
+					int lastFrame = animStateIndex + frameCountX;
+					if (g_Weapon[i].patternAnim + 1 >= lastFrame)
+						g_Weapon[i].use = FALSE;
+				}
+
 			}
 
 			// バレットの移動処理
-			XMVECTOR pos  = XMLoadFloat3(&g_Bullet[i].pos);
-			XMVECTOR move = XMLoadFloat3(&g_Bullet[i].move);
+			XMVECTOR pos  = XMLoadFloat3(&g_Weapon[i].pos);
+			XMVECTOR move = XMLoadFloat3(&g_Weapon[i].move);
 			pos += move;
-			XMStoreFloat3(&g_Bullet[i].pos, pos);
+			XMStoreFloat3(&g_Weapon[i].pos, pos);
 
 			// 画面外まで進んだ？
 			BG* bg = GetBG();
-			if (g_Bullet[i].pos.y < (-g_Bullet[i].h/2))		// 自分の大きさを考慮して画面外か判定している
+			if (g_Weapon[i].pos.y < (-g_Weapon[i].h/2))		// 自分の大きさを考慮して画面外か判定している
 			{
-				g_Bullet[i].use = false;
+				g_Weapon[i].use = false;
 			}
-			if (g_Bullet[i].pos.y > (bg->h + g_Bullet[i].h/2))	// 自分の大きさを考慮して画面外か判定している
+			if (g_Weapon[i].pos.y > (bg->h + g_Weapon[i].h/2))	// 自分の大きさを考慮して画面外か判定している
 			{
-				g_Bullet[i].use = false;
+				g_Weapon[i].use = false;
 			}
 
 			// 当たり判定処理
@@ -164,7 +190,7 @@ void UpdateBullet(void)
 					// 生きてるエネミーと当たり判定をする
 					if (enemy[j].use == TRUE)
 					{
-						BOOL ans = CollisionBB(g_Bullet[i].pos, g_Bullet[i].w, g_Bullet[i].h,
+						BOOL ans = CollisionBB(g_Weapon[i].pos, g_Weapon[i].w, g_Weapon[i].h,
 							enemy[j].pos, enemy[j].w, enemy[j].h);
 						// 当たっている？
 						if (ans == TRUE)
@@ -191,7 +217,7 @@ void UpdateBullet(void)
 //=============================================================================
 // 描画処理
 //=============================================================================
-void DrawBullet(void)
+void DrawWeapon(void)
 {
 	// 頂点バッファ設定
 	UINT stride = sizeof(VERTEX_3D);
@@ -214,28 +240,31 @@ void DrawBullet(void)
 
 	for (int i = 0; i < BULLET_MAX; i++)
 	{
-		if (g_Bullet[i].use == TRUE)		// このバレットが使われている？
+		if (g_Weapon[i].use == TRUE)		// このバレットが使われている？
 		{									// Yes
 			// テクスチャ設定
-			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Bullet[i].texNo]);
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Weapon[i].texNo]);
 
 			//バレットの位置やテクスチャー座標を反映
-			float px = g_Bullet[i].pos.x - bg->pos.x;	// バレットの表示位置X
-			float py = g_Bullet[i].pos.y - bg->pos.y;	// バレットの表示位置Y
-			float pw = g_Bullet[i].w;		// バレットの表示幅
-			float ph = g_Bullet[i].h;		// バレットの表示高さ
+			float px = g_Weapon[i].pos.x - bg->pos.x;	// バレットの表示位置X
+			float py = g_Weapon[i].pos.y - bg->pos.y;	// バレットの表示位置Y
+			float pw = g_Weapon[i].w;		// バレットの表示幅
+			float ph = g_Weapon[i].h;		// バレットの表示高さ
 
-			float tw = 1.0f / TEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
-			float th = 1.0f / TEXTURE_PATTERN_DIVIDE_Y;	// テクスチャの高さ
-			float tx = (float)(g_Bullet[i].patternAnim % TEXTURE_PATTERN_DIVIDE_X) * tw;	// テクスチャの左上X座標
-			float ty = (float)(g_Bullet[i].patternAnim / TEXTURE_PATTERN_DIVIDE_X) * th;	// テクスチャの左上Y座標
+			int textureDivideX = g_WeaponTypes[g_Weapon[i].type].textureDivideX;
+			int textureDivideY = g_WeaponTypes[g_Weapon[i].type].textureDivideY;
+
+			float tw = 1.0f / textureDivideX;	// テクスチャの幅
+			float th = 1.0f / textureDivideY;	// テクスチャの高さ
+			float tx = (float)(g_Weapon[i].patternAnim % textureDivideX) * tw;	// テクスチャの左上X座標
+			float ty = (float)(g_Weapon[i].patternAnim / textureDivideX) * th;	// テクスチャの左上Y座標
 
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, 
 				px, py, pw, ph, 
 				tx, ty, tw, th,
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				g_Bullet[i].rot.z);
+				g_Weapon[i].rot.z);
 
 			// ポリゴン描画
 			GetDeviceContext()->Draw(4, 0);
@@ -248,24 +277,34 @@ void DrawBullet(void)
 //=============================================================================
 // バレット構造体の先頭アドレスを取得
 //=============================================================================
-BULLET *GetBullet(void)
+WEAPON *GetWeapon(void)
 {
-	return &g_Bullet[0];
+	return &g_Weapon[0];
 }
 
 
 //=============================================================================
 // バレットの発射設定
 //=============================================================================
-void SetBullet(XMFLOAT3 pos)
+void SetWeapon(XMFLOAT3 pos, XMFLOAT3 move, int weaponType, int weaponDirection)
 {
 	// もし未使用の弾が無かったら発射しない( =これ以上撃てないって事 )
 	for (int i = 0; i < BULLET_MAX; i++)
 	{
-		if (g_Bullet[i].use == FALSE)		// 未使用状態のバレットを見つける
+		if (g_Weapon[i].use == FALSE)		// 未使用状態のバレットを見つける
 		{
-			g_Bullet[i].use = TRUE;			// 使用状態へ変更する
-			g_Bullet[i].pos = pos;			// 座標をセット
+			g_Weapon[i].use = TRUE;			// 使用状態へ変更する
+			g_Weapon[i].pos = pos;			// 座標をセット
+			g_Weapon[i].move = move;
+			g_Weapon[i].w = g_WeaponTypes[weaponType].width;
+			g_Weapon[i].h = g_WeaponTypes[weaponType].height;
+			g_Weapon[i].duration = -1;
+			g_Weapon[i].elapsedTime = 0;
+			g_Weapon[i].move.z = 0;         // 2D ゲームだから。Z軸を使わない。
+			g_Weapon[i].dir = weaponDirection;
+			g_Weapon[i].patternAnim = 0;
+
+			g_Weapon[i].texNo = weaponType;
 			return;							// 1発セットしたので終了する
 		}
 	}

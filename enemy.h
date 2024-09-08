@@ -30,6 +30,9 @@ struct ENEMY
 	float		w, h;			// 幅と高さ
 	float		countAnim;		// アニメーションカウント
 	int			patternAnim;	// アニメーションパターンナンバー
+	int         animDivideX;
+	int         animDivideY;
+	int         patternAnimNum;
 	int			texNo;			// テクスチャ番号
 	XMFLOAT3	move;			// 移動速度
 

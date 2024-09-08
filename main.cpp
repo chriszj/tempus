@@ -17,7 +17,7 @@
 #include "player.h"
 #include "enemy.h"
 #include "item.h"
-#include "bullet.h"
+#include "weapon.h"
 #include "result.h"
 #include "sound.h"
 #include "gui.h"
@@ -327,7 +327,7 @@ void Update(void)
 		UpdatePlayer();
 		UpdateEnemy();
 		UpdateItem();
-		UpdateBullet();
+		UpdateWeapon();
 		UpdateEffect();
 
 		if(GetFade() == FADE_NONE)
@@ -391,11 +391,11 @@ void Draw(void)
 
 	case MODE_GAME:			// ゲーム画面の描画
 		DrawBG();
-		DrawBullet();		// 重なる順番を意識してね
 		DrawField(0);
 		DrawField(1);
 		DrawField(3);
 		DrawPlayer();
+		DrawWeapon();		// 重なる順番を意識してね
 		DrawField(2);
 		DrawEnemy();
 		DrawItem();
@@ -477,7 +477,7 @@ void SetMode(int mode)
 	UninitItem();
 
 	// バレットの終了処理
-	UninitBullet();
+	UninitWeapon();
 
 	// リザルトの終了処理
 	UninitResult();
@@ -509,7 +509,7 @@ void SetMode(int mode)
 		InitPlayer();
 		InitEnemy();
 		InitItem();
-		InitBullet();
+		InitWeapon();
 		InitEffect();
 
 		// ロードゲームだったらすべての初期化が終わった後にセーブデータを読み込む
