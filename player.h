@@ -36,17 +36,6 @@ enum
 	CHAR_DIR_MAX
 };
 
-enum
-{
-	CHAR_ANIM_IDLE,
-	CHAR_ANIM_WALK,
-	CHAR_ANIM_FALL,
-	CHAR_ANIM_DIE,
-	CHAR_ANIM_ATTACK,
-
-	CHAR_ANIM_MAX
-};
-
 //*****************************************************************************
 // ç\ë¢ëÃíËã`
 //*****************************************************************************
@@ -79,6 +68,11 @@ struct PLAYER
 
 	int         inventoryKeys;
 	int         inventorySouls;
+
+	float       invincibilityTime;
+	int         maxInvincibilityTime;
+
+	int         hp;
 };
 
 
@@ -93,5 +87,7 @@ void DrawPlayer(void);
 PLAYER* GetPlayer(void);
 
 int GetPlayerCount(void);
+
+void AdjustHP(PLAYER* player, int ammount);
 
 

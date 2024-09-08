@@ -10,6 +10,8 @@
 #include "renderer.h"
 #include "debugproc.h"
 #include "sprite.h"
+#include "collision.h"
+#include "player.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -21,21 +23,55 @@
 // 構造体定義
 //*****************************************************************************
 
+enum {
+	ENEMY_DIR_UP,
+	ENEMY_DIR_RIGHT,
+	ENEMY_DIR_DOWN,
+	ENEMY_DIR_LEFT
+};
+
+enum {
+	ENEMY_TYPE_SKELETON,
+	ENEMY_TYPE_SKELETON_WARRIOR,
+
+	ENEMY_TYPE_MAX
+};
+
+struct ENEMYTYPE {
+
+	int id;
+
+	ANIM_DATA animStates[CHAR_ANIM_MAX];
+
+
+};
+
 struct ENEMY
 {
+	int         type;
 	XMFLOAT3	pos;			// ポリゴンの座標
 	XMFLOAT3	rot;			// ポリゴンの回転量
 	XMFLOAT3	scl;			// ポリゴンの拡大縮小
 	BOOL		use;			// true:使っている  false:未使用
 	float		w, h;			// 幅と高さ
+	COLLIDER2DBOX collider;
 	float		countAnim;		// アニメーションカウント
 	int			patternAnim;	// アニメーションパターンナンバー
 	int         animDivideX;
 	int         animDivideY;
 	int         patternAnimNum;
+	int         currentAnimState;
+	int			dir;
+	BOOL		moving;
 	int			texNo;			// テクスチャ番号
 	XMFLOAT3	move;			// 移動速度
 
+	PLAYER* target;
+
+	int         roamingCmdX;
+	int         roamingCmdY;
+	float       countForNextCmd;
+	int         nextCmdWait;
 
 	float		time;			// 線形補間用
 	int			tblNo;			// 行動データのテーブル番号

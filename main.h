@@ -60,6 +60,17 @@ using namespace DirectX;
 #define	MAP_RIGHT		(MAP_W/2)
 
 // 補間用のデータ構造体を定義
+enum
+{
+	CHAR_ANIM_IDLE,
+	CHAR_ANIM_WALK,
+	CHAR_ANIM_FALL,
+	CHAR_ANIM_DIE,
+	CHAR_ANIM_ATTACK,
+
+	CHAR_ANIM_MAX
+};
+
 struct ANIM_DATA
 {
 	int id;
@@ -67,6 +78,7 @@ struct ANIM_DATA
 	int frameCountX;
 	int cancellable;
 	int animWait;
+	int numDirectionalFrames;
 };
 
 struct INTERPOLATION_DATA

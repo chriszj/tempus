@@ -22,12 +22,12 @@
 #define TEXTURE_PATTERN_DIVIDE_Y	(1)		// アニメパターンのテクスチャ内分割数（Y)
 #define ANIM_PATTERN_NUM			(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
 #define ANIM_WAIT					(4)		// アニメーションの切り替わるWait値
-
+#define CMD_WAIT                    (8)
 
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-
+void SetCharacterState(int state, ENEMY* player, BOOL resetAnim);
 
 //*****************************************************************************
 // グローバル変数
@@ -51,6 +51,29 @@ static float offsety = 200.0f;
 
 static float moveFactor = 200.0f;
 static float e_time = 25.0f;
+
+static ENEMYTYPE g_EnemyTypes[ENEMY_TYPE_MAX] = {
+	{
+		ENEMY_TYPE_SKELETON,
+		{ 
+			{CHAR_ANIM_IDLE, 16, 4, 1, 6, 4},
+			{CHAR_ANIM_WALK, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_DIE, 48, 4, 0, 10, 4},
+			{CHAR_ANIM_ATTACK, 0, 4, 1, 6, 4}
+		}
+	},
+	{
+		ENEMY_TYPE_SKELETON_WARRIOR,
+		{
+			{CHAR_ANIM_IDLE, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_WALK, 16, 4, 1, 6, 4},
+			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_DIE, 48, 4, 0, 10, 4},
+			{CHAR_ANIM_ATTACK, 64, 4, 0, 6, 4}
+		} 
+	}
+};
 
 static TILESET* g_EnemiesTileset;
 
@@ -143,10 +166,15 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		g_Enemy[i].w = mapObjects[i].width;
 		g_Enemy[i].h = mapObjects[i].height;
+		g_Enemy[i].collider = COLLIDER2DBOX(0.0f, 0.0f, (float)mapObjects[i].width, (float)mapObjects[i].height);
 		g_Enemy[i].texNo = mapObjects[i].gid - g_EnemiesTileset->firstGID;
+		g_Enemy[i].type = g_Enemy[i].texNo;
 
 		g_Enemy[i].countAnim = 0;
 		g_Enemy[i].patternAnim = 0;
+
+		g_Enemy[i].dir = ENEMY_DIR_DOWN;
+		g_Enemy[i].currentAnimState = CHAR_ANIM_IDLE;
 
 		int customTileWidth = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].width;
 		int customTileTextureW = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].textureW;
@@ -162,6 +190,10 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].patternAnimNum = divideX * divideY;
 
 		g_Enemy[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
+
+		g_Enemy[i].target = NULL;
+		g_Enemy[i].countForNextCmd = 0;
+		g_Enemy[i].nextCmdWait = 50;
 
 		g_Enemy[i].time = 0.0f;			// 線形補間用のタイマーをクリア
 		g_Enemy[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
@@ -237,54 +269,305 @@ void UpdateEnemy(void)
 
 			// アニメーション  
 			g_Enemy[i].countAnim += 1.0f;
-			if (g_Enemy[i].countAnim > ANIM_WAIT)
+			if (g_Enemy[i].countAnim > g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState].animWait)
 			{
 				g_Enemy[i].countAnim = 0.0f;
 				// パターンの切り替え
-				g_Enemy[i].patternAnim = (g_Enemy[i].patternAnim + 1) % g_Enemy[i].patternAnimNum;
+
+				ANIM_DATA currentAnimState = g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState];
+
+				int animStateIndex = currentAnimState.startFrame;
+				int frameCountX = currentAnimState.frameCountX;
+
+				if (currentAnimState.numDirectionalFrames > 1)
+				{
+					animStateIndex += g_Enemy[i].dir * frameCountX;
+				}
+
+				int je;
+
+				if (currentAnimState.id == CHAR_ANIM_ATTACK)
+					je = 0;
+
+				g_Enemy[i].patternAnim = (animStateIndex)+((g_Enemy[i].patternAnim + 1) % frameCountX);
+
+				if (!currentAnimState.cancellable)
+				{
+					int lastFrame = animStateIndex + frameCountX;
+					if (g_Enemy[i].patternAnim + 1 >= lastFrame)
+						SetCharacterState(CHAR_ANIM_IDLE, &g_Enemy[i], TRUE);
+				}
 			}
 
-			// 移動処理
-			if (g_Enemy[i].tblMax > 0)	// 線形補間を実行する？
-			{	// 線形補間の処理
-				int nowNo = (int)g_Enemy[i].time;			// 整数分であるテーブル番号を取り出している
-				int maxNo = g_Enemy[i].tblMax;				// 登録テーブル数を数えている
-				int nextNo = (nowNo + 1) % maxNo;			// 移動先テーブルの番号を求めている
-				INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Enemy[i].tblNo];	// 行動テーブルのアドレスを取得
-				
-				XMVECTOR nowPos = XMLoadFloat3(&tbl[nowNo].pos);	// XMVECTORへ変換
-				XMVECTOR nowRot = XMLoadFloat3(&tbl[nowNo].rot);	// XMVECTORへ変換
-				XMVECTOR nowScl = XMLoadFloat3(&tbl[nowNo].scl);	// XMVECTORへ変換
-				
-				XMVECTOR Pos = XMLoadFloat3(&tbl[nextNo].pos) - nowPos;	// XYZ移動量を計算している
-				XMVECTOR Rot = XMLoadFloat3(&tbl[nextNo].rot) - nowRot;	// XYZ回転量を計算している
-				XMVECTOR Scl = XMLoadFloat3(&tbl[nextNo].scl) - nowScl;	// XYZ拡大率を計算している
-				
-				float nowTime = g_Enemy[i].time - nowNo;	// 時間部分である少数を取り出している
-				
-				Pos *= nowTime;								// 現在の移動量を計算している
-				Rot *= nowTime;								// 現在の回転量を計算している
-				Scl *= nowTime;								// 現在の拡大率を計算している
+			if (g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState].cancellable)
+				SetCharacterState(CHAR_ANIM_IDLE, &g_Enemy[i], FALSE);
 
-				// 計算して求めた移動量を現在の移動テーブルXYZに足している＝表示座標を求めている
-				XMStoreFloat3(&g_Enemy[i].pos, nowPos + Pos);
+			float speed = 1;
 
-				// 計算して求めた回転量を現在の移動テーブルに足している
-				XMStoreFloat3(&g_Enemy[i].rot, nowRot + Rot);
+			g_Enemy[i].moving = FALSE;
+			g_Enemy[i].move.x = 0;
+			g_Enemy[i].move.y = 0;
 
-				// 計算して求めた拡大率を現在の移動テーブルに足している
-				XMStoreFloat3(&g_Enemy[i].scl, nowScl + Scl);
-				g_Enemy[i].w = TEXTURE_WIDTH * g_Enemy[i].scl.x;
-				g_Enemy[i].h = TEXTURE_HEIGHT * g_Enemy[i].scl.y;
+			g_Enemy[i].target = NULL;
 
-				// frameを使て時間経過処理をする
-				g_Enemy[i].time += 1.0f / tbl[nowNo].frame;	// 時間を進めている
-				if ((int)g_Enemy[i].time >= maxNo)			// 登録テーブル最後まで移動したか？
+			// 丸当たり安定、プレイヤーが近い？
+			PLAYER* player = GetPlayer();
+
+			for (int p = 0; p < PLAYER_MAX; p++) {
+
+				BOOL ans = CollisionBC(g_Enemy[i].pos, player[p].pos, 300, player[p].w);
+
+				if (ans) {
+				
+					BOOL found;
+
+					switch (g_Enemy[i].dir)
+					{
+						case ENEMY_DIR_UP:
+							found = player[p].pos.y <= g_Enemy[i].pos.y;
+							break;
+						case ENEMY_DIR_RIGHT:
+							found = player[p].pos.x >= g_Enemy[i].pos.x;
+							break;
+						case ENEMY_DIR_DOWN:
+							found = player[p].pos.y >= g_Enemy[i].pos.y;
+							break;
+						case ENEMY_DIR_LEFT:
+							found = player[p].pos.x <= g_Enemy[i].pos.x;
+							break;
+
+						default:
+							break;
+					}
+
+					if (found) {
+						g_Enemy[i].target = &player[p];
+						break;
+					}
+				
+				}
+
+				
+
+			}
+
+			if (g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState].cancellable) {
+
+				// If Wandering mode or enemy is skeleton
+				if (g_Enemy[i].target != NULL && g_Enemy[i].type != ENEMY_TYPE_SKELETON) {
+
+
+					PLAYER* player = GetPlayer();
+
+					float x = (g_Enemy[i].target->pos.x - g_Enemy[i].pos.x);
+					float y = (g_Enemy[i].target->pos.y - g_Enemy[i].pos.y);
+
+					float norm = sqrt(x * x + y * y);
+
+					x *= 3 / norm;
+					y *= 3 / norm;
+
+					g_Enemy[i].move.x = x;
+					g_Enemy[i].move.y = y;
+
+					g_Enemy[i].moving = TRUE;
+
+					if (abs(g_Enemy[i].move.x) > abs(g_Enemy[i].move.y))
+					{
+						g_Enemy[i].dir = g_Enemy[i].move.x > 0 ? ENEMY_DIR_RIGHT : ENEMY_DIR_LEFT;
+					}
+					else
+					{
+						g_Enemy[i].dir = g_Enemy[i].move.y > 0 ? ENEMY_DIR_DOWN : ENEMY_DIR_UP;
+					}
+
+					// アニメーション  
+					if (g_Enemy[i].moving == TRUE)
+					{
+						SetCharacterState(CHAR_ANIM_WALK, &g_Enemy[i], FALSE);
+					}
+
+
+					if (norm < 40 && g_Enemy[i].currentAnimState != CHAR_ANIM_ATTACK)
+					{
+						SetCharacterState(CHAR_ANIM_ATTACK, &g_Enemy[i], TRUE);
+
+						XMFLOAT3 hitBox = g_Enemy[i].pos;
+
+						hitBox.x += x;
+						hitBox.y += y;
+
+						BOOL damageDone = CollisionBC(g_Enemy[i].pos, g_Enemy[i].target->pos, 300, g_Enemy[i].target->w);
+
+						if (damageDone)
+						{
+							AdjustHP(g_Enemy[i].target, -5);
+						}
+
+					}
+
+				}
+				else
 				{
-					g_Enemy[i].time -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
+
+					g_Enemy[i].countForNextCmd += 1.0f;
+					if (g_Enemy[i].countForNextCmd > g_Enemy[i].nextCmdWait)
+					{
+						g_Enemy[i].countForNextCmd = 0;
+
+						g_Enemy[i].roamingCmdX = (rand() % 3) - 1;
+						g_Enemy[i].roamingCmdY = (rand() % 3) - 1;
+
+					}
+
+					if (g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState].cancellable) {
+
+
+
+						if (g_Enemy[i].roamingCmdX > 0)
+						{
+							g_Enemy[i].move.y += speed;
+							g_Enemy[i].dir = ENEMY_DIR_DOWN;
+
+							g_Enemy[i].moving = TRUE;
+						}
+						else if (g_Enemy[i].roamingCmdX < 0)
+						{
+							g_Enemy[i].move.y -= speed;
+							g_Enemy[i].dir = ENEMY_DIR_UP;
+
+							g_Enemy[i].moving = TRUE;
+						}
+
+						if (g_Enemy[i].roamingCmdY > 0)
+						{
+							g_Enemy[i].move.x += speed;
+							g_Enemy[i].dir = ENEMY_DIR_RIGHT;
+
+							g_Enemy[i].moving = TRUE;
+						}
+						else if (g_Enemy[i].roamingCmdY < 0)
+						{
+							g_Enemy[i].move.x -= speed;
+							g_Enemy[i].dir = ENEMY_DIR_LEFT;
+
+							g_Enemy[i].moving = TRUE;
+						}
+
+						if (abs(g_Enemy[i].move.x) > 0 && abs(g_Enemy[i].move.y > 0))
+						{
+							g_Enemy[i].move.x /= 2;
+							g_Enemy[i].move.y /= 2;
+						}
+
+
+
+						int attack = rand();
+
+						// アニメーション  
+						if (g_Enemy[i].moving == TRUE)
+						{
+							SetCharacterState(CHAR_ANIM_WALK, &g_Enemy[i], FALSE);
+						}
+
+						if (attack > 0)
+						{
+							//SetCharacterState(CHAR_ANIM_ATTACK, &g_Enemy[i], TRUE);
+
+
+
+							//SetWeapon(g_Player[i].pos, { 0.0f, 0.0f,0.0f }, WEAPON_TYPE_SWORD, weaponDir);
+
+						}
+
+
+					}
 				}
 
 			}
+			
+			//　フィールドの当たり判定
+			MAPOBJECT* walls = GetMapObjectsFromLayer(MAPOBJLAYER_WALL);
+
+			XMFLOAT3 newXPos = XMFLOAT3(g_Enemy[i].pos);
+			XMFLOAT3 newYPos = XMFLOAT3(g_Enemy[i].pos);
+			newXPos.x += g_Enemy[i].move.x;
+			newYPos.y += g_Enemy[i].move.y;
+
+			for (int w = 0; w < MAP_OBJECTS_PER_LAYER_MAX; w++)
+			{
+				XMFLOAT3 wallPos = XMFLOAT3(walls[w].x, walls[w].y, 0.0f);
+				COLLIDER2DBOX wallCollider = COLLIDER2DBOX(0.0f, 0.0f, walls[w].width, walls[w].height);
+
+				// X方の当たり判定
+				BOOL ansX = CollisionBB(newXPos, g_Enemy[i].collider, wallPos, wallCollider);
+
+				if (ansX)
+				{
+					g_Enemy[i].move.x = 0;
+					newXPos.x = g_Enemy[i].pos.x;
+				}
+
+				// Y方の当たり判定
+				BOOL ansY = CollisionBB(newYPos, g_Enemy[i].collider, wallPos, wallCollider);
+
+				if (ansY)
+				{
+					g_Enemy[i].move.y = 0;
+					newYPos.y = g_Enemy[i].pos.y;
+				}
+
+
+			}
+
+			g_Enemy[i].pos.x = newXPos.x;
+			g_Enemy[i].pos.y = newYPos.y;
+
+			// Humming enemies
+
+
+
+			//// 移動処理
+			//if (g_Enemy[i].tblMax > 0)	// 線形補間を実行する？
+			//{	// 線形補間の処理
+			//	int nowNo = (int)g_Enemy[i].time;			// 整数分であるテーブル番号を取り出している
+			//	int maxNo = g_Enemy[i].tblMax;				// 登録テーブル数を数えている
+			//	int nextNo = (nowNo + 1) % maxNo;			// 移動先テーブルの番号を求めている
+			//	INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Enemy[i].tblNo];	// 行動テーブルのアドレスを取得
+			//	
+			//	XMVECTOR nowPos = XMLoadFloat3(&tbl[nowNo].pos);	// XMVECTORへ変換
+			//	XMVECTOR nowRot = XMLoadFloat3(&tbl[nowNo].rot);	// XMVECTORへ変換
+			//	XMVECTOR nowScl = XMLoadFloat3(&tbl[nowNo].scl);	// XMVECTORへ変換
+			//	
+			//	XMVECTOR Pos = XMLoadFloat3(&tbl[nextNo].pos) - nowPos;	// XYZ移動量を計算している
+			//	XMVECTOR Rot = XMLoadFloat3(&tbl[nextNo].rot) - nowRot;	// XYZ回転量を計算している
+			//	XMVECTOR Scl = XMLoadFloat3(&tbl[nextNo].scl) - nowScl;	// XYZ拡大率を計算している
+			//	
+			//	float nowTime = g_Enemy[i].time - nowNo;	// 時間部分である少数を取り出している
+			//	
+			//	Pos *= nowTime;								// 現在の移動量を計算している
+			//	Rot *= nowTime;								// 現在の回転量を計算している
+			//	Scl *= nowTime;								// 現在の拡大率を計算している
+
+			//	// 計算して求めた移動量を現在の移動テーブルXYZに足している＝表示座標を求めている
+			//	XMStoreFloat3(&g_Enemy[i].pos, nowPos + Pos);
+
+			//	// 計算して求めた回転量を現在の移動テーブルに足している
+			//	XMStoreFloat3(&g_Enemy[i].rot, nowRot + Rot);
+
+			//	// 計算して求めた拡大率を現在の移動テーブルに足している
+			//	XMStoreFloat3(&g_Enemy[i].scl, nowScl + Scl);
+			//	g_Enemy[i].w = TEXTURE_WIDTH * g_Enemy[i].scl.x;
+			//	g_Enemy[i].h = TEXTURE_HEIGHT * g_Enemy[i].scl.y;
+
+			//	// frameを使て時間経過処理をする
+			//	g_Enemy[i].time += 1.0f / tbl[nowNo].frame;	// 時間を進めている
+			//	if ((int)g_Enemy[i].time >= maxNo)			// 登録テーブル最後まで移動したか？
+			//	{
+			//		g_Enemy[i].time -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
+			//	}
+
+			//}
 
 			// 移動が終わったらエネミーとの当たり判定
 			{
@@ -432,6 +715,24 @@ void DrawEnemy(void)
 
 
 
+}
+
+void SetCharacterState(int state, ENEMY* enemy, BOOL resetAnim) {
+
+	enemy->currentAnimState = state;
+
+	if (resetAnim == TRUE) {
+
+		int animStateIndex = g_EnemyTypes[enemy->type].animStates[enemy->currentAnimState].startFrame;
+		int frameCountX = g_EnemyTypes[enemy->type].animStates[enemy->currentAnimState].frameCountX;
+
+		if (enemy->currentAnimState != CHAR_ANIM_FALL)
+		{
+			animStateIndex += enemy->dir * frameCountX;
+		}
+
+		enemy->patternAnim = animStateIndex;
+	}
 }
 
 

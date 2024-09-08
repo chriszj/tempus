@@ -47,6 +47,8 @@
 #define PLAYER_COLLIDER_OFFSETX     (-4.0f)
 #define PLAYER_COLLIDER_OFFSETY     (12.0f)
 
+#define PLAYER_INVINCIBILITY_MAX    (30)
+#define PLAYER_MAX_HP               (100)
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -70,11 +72,11 @@ static char *g_TexturName[TEXTURE_MAX] = {
 
 static ANIM_DATA g_anims[CHAR_ANIM_MAX] =
 {
-	{CHAR_ANIM_IDLE, 0, 4, 1, 6},
-	{CHAR_ANIM_WALK, 32, 4, 1, 6},
-	{CHAR_ANIM_FALL, 64, 4, 0, 20},
-	{CHAR_ANIM_DIE, 96, 4, 0, 10},
-	{CHAR_ANIM_ATTACK, 128, 4, 0, 6}
+	{CHAR_ANIM_IDLE, 0, 4, 1, 6, 8},
+	{CHAR_ANIM_WALK, 32, 4, 1, 6, 8},
+	{CHAR_ANIM_FALL, 64, 4, 0, 20, 1},
+	{CHAR_ANIM_DIE, 96, 4, 0, 10, 8},
+	{CHAR_ANIM_ATTACK, 128, 4, 0, 6, 8}
 };
 
 static BOOL		g_Load = FALSE;				// 初期化を行ったかのフラグ
@@ -142,6 +144,9 @@ HRESULT InitPlayer(void)
 		g_Player[i].h = TEXTURE_HEIGHT;
 		g_Player[i].collider = COLLIDER2DBOX(PLAYER_COLLIDER_OFFSETX, PLAYER_COLLIDER_OFFSETY, PLAYER_COLLIDER_WIDTH, PLAYER_COLLIDER_HEIGHT);
 		g_Player[i].texNo = 0;
+
+		g_Player[i].maxInvincibilityTime = PLAYER_INVINCIBILITY_MAX;
+		g_Player[i].hp = PLAYER_MAX_HP;
 
 		g_Player[i].countAnim = 0;
 		g_Player[i].patternAnim = 0;
@@ -252,7 +257,7 @@ void UpdatePlayer(void)
 					int animStateIndex = g_anims[g_Player[i].currentAnimState].startFrame;
 					int frameCountX = g_anims[g_Player[i].currentAnimState].frameCountX;
 
-					if (g_Player[i].currentAnimState != CHAR_ANIM_FALL)
+					if (g_anims[g_Player[i].currentAnimState].numDirectionalFrames > 1)
 					{
 						animStateIndex += g_Player[i].dir * frameCountX;
 					}
@@ -268,8 +273,8 @@ void UpdatePlayer(void)
 
 				}
 
-				if (g_anims[g_Player[i].currentAnimState].cancellable)
-					g_Player[i].currentAnimState = CHAR_ANIM_IDLE;
+				if (g_anims[g_Player[i].currentAnimState].cancellable) 
+					SetCharacterState(CHAR_ANIM_IDLE, &g_Player[i], FALSE);
 
 				// キー入力で移動 
 				{
@@ -444,8 +449,8 @@ void UpdatePlayer(void)
 								if (ans == TRUE)
 								{
 									// 当たった時の処理
-									enemy[j].use = FALSE;
-									AddScore(10);
+									//enemy[j].use = FALSE;
+									//AddScore(10);
 								}
 							}
 						}
@@ -485,6 +490,9 @@ void UpdatePlayer(void)
 						}
 
 					}
+
+					if (g_Player[i].invincibilityTime >= 0)
+						g_Player[i].invincibilityTime--;
 
 					// バレット処理
 					/*if (GetKeyboardTrigger(DIK_SPACE))
@@ -559,7 +567,7 @@ void UpdatePlayer(void)
 		SaveData();
 	}
 
-	std::wstring wstr = std::to_wstring(g_Player[0].currentAnimState);
+	std::wstring wstr = std::to_wstring(g_Player[0].hp);
 
 	SetText(g_Score, (wchar_t*)wstr.c_str());
 
@@ -635,6 +643,14 @@ void DrawPlayer(void)
 				DrawPlayerOffset(i);
 			}
 
+			BOOL skipFrame = FALSE;
+
+			if ((g_Player[i].invincibilityTime >= 0) && ((int)g_Player[i].invincibilityTime % 2 == 0))
+				skipFrame = TRUE;
+
+			if (skipFrame)
+				return;
+
 			// テクスチャ設定
 			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Player[i].texNo]);
 
@@ -685,6 +701,15 @@ PLAYER* GetPlayer(void)
 int GetPlayerCount(void)
 {
 	return g_PlayerCount;
+}
+
+void AdjustHP(PLAYER* player, int ammount) {
+
+
+	if (player->invincibilityTime < 0) {
+		player->hp += ammount;
+		player->invincibilityTime = player->maxInvincibilityTime;
+	}
 }
 
 
