@@ -319,7 +319,10 @@ void UpdateEnemy(void)
 				{
 					int lastFrame = animStateIndex + frameCountX;
 					if (g_Enemy[i].patternAnim + 1 >= lastFrame) {
+						
+						
 						SetCharacterState(CHAR_ANIM_IDLE, &g_Enemy[i], TRUE);
+						
 					}
 				}
 			}
