@@ -10,6 +10,7 @@
 #include "fade.h"
 #include "collision.h"
 #include "field.h"
+#include "timemachine.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -28,6 +29,8 @@
 // プロトタイプ宣言
 //*****************************************************************************
 void SetCharacterState(int state, ENEMY* player, BOOL resetAnim);
+void PushToTimeState(TIMESTATE* timeState, ENEMY* player);
+void PullFromTimeState(TIMESTATE* timeState, ENEMY* player);
 
 //*****************************************************************************
 // グローバル変数
@@ -61,7 +64,8 @@ static ENEMYTYPE g_EnemyTypes[ENEMY_TYPE_MAX] = {
 			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
 			{CHAR_ANIM_DIE, 48, 4, 0, 10, 4},
 			{CHAR_ANIM_ATTACK, 0, 4, 1, 6, 4}
-		}
+		},
+		20
 	},
 	{
 		ENEMY_TYPE_SKELETON_WARRIOR,
@@ -71,7 +75,8 @@ static ENEMYTYPE g_EnemyTypes[ENEMY_TYPE_MAX] = {
 			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
 			{CHAR_ANIM_DIE, 48, 4, 0, 10, 4},
 			{CHAR_ANIM_ATTACK, 64, 4, 0, 6, 4}
-		} 
+		},
+		100
 	}
 };
 
@@ -161,6 +166,8 @@ HRESULT InitEnemy(void)
 		if (!g_Enemy[i].use)
 			continue;
 
+		g_Enemy[i].alive = TRUE;
+
 		g_Enemy[i].pos = XMFLOAT3((mapObjects[i].x), (mapObjects[i].y - (mapObjects[i].height)), 0.0f);	// 中心点から表示
 		g_Enemy[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Enemy[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
@@ -169,6 +176,8 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].collider = COLLIDER2DBOX(0.0f, 0.0f, (float)mapObjects[i].width, (float)mapObjects[i].height);
 		g_Enemy[i].texNo = mapObjects[i].gid - g_EnemiesTileset->firstGID;
 		g_Enemy[i].type = g_Enemy[i].texNo;
+
+		g_Enemy[i].hp = g_EnemyTypes[g_Enemy[i].type].maxHP;
 
 		g_Enemy[i].countAnim = 0;
 		g_Enemy[i].patternAnim = 0;
@@ -198,6 +207,10 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].time = 0.0f;			// 線形補間用のタイマーをクリア
 		g_Enemy[i].tblNo = 0;			// 再生する行動データテーブルNoをセット
 		g_Enemy[i].tblMax = 0;			// 再生する行動データテーブルのレコード数をセット
+
+		PushToTimeState(&g_Enemy[i].timeState, &g_Enemy[i]);
+
+		RegisterObjectTimeState(&g_Enemy[i].timeState);
 	}
 
 	//// 0番だけ線形補間で動かしてみる
@@ -262,7 +275,18 @@ void UpdateEnemy(void)
 		// 生きてるエネミーだけ処理をする
 		if (g_Enemy[i].use == TRUE)
 		{
+
 			g_EnemyCount++;		// 生きてた敵の数
+
+			if (g_Enemy[i].timeState.status == READ_ONLY)
+			{
+
+				PullFromTimeState(&g_Enemy[i].timeState, &g_Enemy[i]);
+				continue;
+			}
+
+			if (g_Enemy[i].hp <= 0)
+				return;
 			
 			// 地形との当たり判定用に座標のバックアップを取っておく
 			XMFLOAT3 pos_old = g_Enemy[i].pos;
@@ -294,8 +318,9 @@ void UpdateEnemy(void)
 				if (!currentAnimState.cancellable)
 				{
 					int lastFrame = animStateIndex + frameCountX;
-					if (g_Enemy[i].patternAnim + 1 >= lastFrame)
+					if (g_Enemy[i].patternAnim + 1 >= lastFrame) {
 						SetCharacterState(CHAR_ANIM_IDLE, &g_Enemy[i], TRUE);
+					}
 				}
 			}
 
@@ -401,7 +426,7 @@ void UpdateEnemy(void)
 
 						if (damageDone)
 						{
-							AdjustHP(g_Enemy[i].target, -5);
+							AdjustPlayerHP(g_Enemy[i].target, -5);
 						}
 
 					}
@@ -522,6 +547,8 @@ void UpdateEnemy(void)
 
 			g_Enemy[i].pos.x = newXPos.x;
 			g_Enemy[i].pos.y = newYPos.y;
+
+			PushToTimeState(&g_Enemy[i].timeState, &g_Enemy[i]);
 
 			// Humming enemies
 
@@ -735,6 +762,23 @@ void SetCharacterState(int state, ENEMY* enemy, BOOL resetAnim) {
 	}
 }
 
+void PushToTimeState(TIMESTATE* timeState, ENEMY* enemy)
+{
+	timeState->x = enemy->pos.x;
+	timeState->y = enemy->pos.y;
+	timeState->countAnim = enemy->countAnim;
+	timeState->patternAnim = enemy->patternAnim;
+}
+
+void PullFromTimeState(TIMESTATE* timeState, ENEMY* enemy)
+{
+	enemy->pos.x = timeState->x;
+	enemy->pos.y = timeState->y;
+	enemy->countAnim = timeState->countAnim;
+	enemy->patternAnim = timeState->patternAnim;
+	
+}
+
 
 //=============================================================================
 // Enemy構造体の先頭アドレスを取得
@@ -749,6 +793,18 @@ ENEMY* GetEnemy(void)
 int GetEnemyCount(void)
 {
 	return g_EnemyCount;
+}
+
+void AdjustEnemyHP(ENEMY* enemy, int ammount) 
+{
+	
+	enemy->hp += ammount;
+
+	if (enemy->hp < 0) {
+		enemy->hp = 0;
+		SetCharacterState(CHAR_ANIM_DIE, enemy, TRUE);
+	}
+
 }
 
 

@@ -12,6 +12,7 @@
 #include "sprite.h"
 #include "collision.h"
 #include "player.h"
+#include "timemachine.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -43,12 +44,16 @@ struct ENEMYTYPE {
 
 	ANIM_DATA animStates[CHAR_ANIM_MAX];
 
-
+	int maxHP;
 };
 
 struct ENEMY
 {
+	TIMESTATE   timeState;
+
 	int         type;
+	int         hp;
+	BOOL        alive;
 	XMFLOAT3	pos;			// ポリゴンの座標
 	XMFLOAT3	rot;			// ポリゴンの回転量
 	XMFLOAT3	scl;			// ポリゴンの拡大縮小
@@ -77,6 +82,8 @@ struct ENEMY
 	int			tblNo;			// 行動データのテーブル番号
 	int			tblMax;			// そのテーブルのデータ数
 
+	
+
 	//INTERPOLATION_DATA* tbl_adr;			// アニメデータのテーブル先頭アドレス
 	//int					tbl_size;			// 登録したテーブルのレコード総数
 	//float				move_time;			// 実行時間
@@ -94,6 +101,8 @@ void DrawEnemy(void);
 ENEMY* GetEnemy(void);
 
 int GetEnemyCount(void);
+
+void AdjustEnemyHP(ENEMY* enemy, int ammount);
 
 
 

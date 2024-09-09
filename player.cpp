@@ -19,6 +19,7 @@
 #include "gui.h"
 #include <string>
 #include <iostream>
+#include "effect.h"
 
 //*****************************************************************************
 // ƒ}ƒNƒ’è‹`
@@ -703,12 +704,14 @@ int GetPlayerCount(void)
 	return g_PlayerCount;
 }
 
-void AdjustHP(PLAYER* player, int ammount) {
+void AdjustPlayerHP(PLAYER* player, int ammount) {
 
 
 	if (player->invincibilityTime < 0) {
 		player->hp += ammount;
 		player->invincibilityTime = player->maxInvincibilityTime;
+
+		SetEffect(player->pos.x, player->pos.y, 3, 4);
 	}
 }
 

@@ -49,6 +49,8 @@ typedef struct	// エフェクト構造体
 	int				effectCount;
 	int				emitCounter;
 
+	int             texNo;
+
 	PARTICLE		pParticle[EFFECT_NUM_PARTS];
 
 }EFFECT;
@@ -61,4 +63,4 @@ HRESULT InitEffect(void);
 void UninitEffect(void);
 void UpdateEffect(void);
 void DrawEffect(void);
-void SetEffect(float x, float y, int duration);
+void SetEffect(float x, float y, int duration, int effectId);

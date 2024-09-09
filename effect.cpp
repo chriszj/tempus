@@ -14,19 +14,19 @@
 #define EFFECT_TEXTURE_SIZE_X	(100)		// テクスチャサイズ
 #define EFFECT_TEXTURE_SIZE_Y	(100)		// 同上
 
-#define EFFECT_TEXTURE_PATTERN_DIVIDE_X	(4)	// アニメパターンのテクスチャ内分割数（X)
-#define EFFECT_TEXTURE_PATTERN_DIVIDE_Y	(4)	// アニメパターンのテクスチャ内分割数（Y)
+#define EFFECT_TEXTURE_PATTERN_DIVIDE_X	(9)	// アニメパターンのテクスチャ内分割数（X)
+#define EFFECT_TEXTURE_PATTERN_DIVIDE_Y	(1)	// アニメパターンのテクスチャ内分割数（Y)
 #define EFFECT_ANIM_PATTERN_NUM			(EFFECT_TEXTURE_PATTERN_DIVIDE_X*EFFECT_TEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
 #define EFFECT_TIME_ANIMATION			(1)	// アニメーションの切り替わるカウント
 
 #define EMISSION_FULL 0		//パーティクル全生成フラグ
 #define EMISSION_RATE 5		//パーティクルの生成間隔(duration/EMISSION_RATEの数分エフェクトが出る)
 
-#define EMISSION_WIDTH  50	//パーティクル生成範囲（横幅）
-#define EMISSION_HEIGHT 50	//パーティクル生成範囲（高さ）
+#define EMISSION_WIDTH  0	//パーティクル生成範囲（横幅）
+#define EMISSION_HEIGHT 0	//パーティクル生成範囲（高さ）
 
 
-#define TEXTURE_MAX					(1)		// テクスチャの数
+#define TEXTURE_MAX					(5)		// テクスチャの数
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -40,7 +40,11 @@ static ID3D11Buffer* g_VertexBuffer = NULL;				// 頂点情報
 static ID3D11ShaderResourceView* g_Texture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char* g_TexturName[] = {
-	"data/TEXTURE/bomb.png",
+	"data/TEXTURE/Common/vfx_hit_effects-Sheet_1.png",
+	"data/TEXTURE/Common/vfx_hit_effects-Sheet_2.png",
+	"data/TEXTURE/Common/vfx_hit_effects-Sheet_3.png",
+	"data/TEXTURE/Common/vfx_hit_effects-Sheet_4.png",
+	"data/TEXTURE/Common/vfx_hit_effects-Sheet_5.png"
 };
 
 
@@ -98,7 +102,7 @@ HRESULT InitEffect(void)
 //=============================================================================
 void ResetParticle(int i, int n) 
 {
-	effectWk[i].pParticle[n].pos = XMFLOAT3(effectWk[i].pos.x + rand() % EMISSION_WIDTH - (EMISSION_WIDTH/2), effectWk[i].pos.y + rand() % EMISSION_HEIGHT - (EMISSION_HEIGHT/2), 0.0f);	// 座標データを初期化
+	effectWk[i].pParticle[n].pos = XMFLOAT3(effectWk[i].pos.x /* + rand() % EMISSION_WIDTH - (EMISSION_WIDTH / 2)*/, effectWk[i].pos.y /* + rand() % EMISSION_HEIGHT - (EMISSION_HEIGHT / 2)*/, 0.0f);	// 座標データを初期化
 	effectWk[i].pParticle[n].move = XMFLOAT3(0.0f, 0.0f, 0.0f);					// 移動量
 
 	effectWk[i].pParticle[n].PatternAnim = 0;									// アニメパターン番号をランダムで初期化
@@ -259,7 +263,7 @@ void DrawEffect(void)
 		if (effectWk[i].use == TRUE)		// このエフェクトが使われている？
 		{									// Yes
 			// テクスチャ設定
-			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[0]);
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[effectWk[i].texNo]);
 
 			for (int n = 0; n < effectWk[i].effectCount; n++)
 			{
@@ -300,7 +304,7 @@ void DrawEffect(void)
 // 
 // int duration		エフェクト発生源の生存時間
 //=============================================================================
-void SetEffect(float x, float y, int duration)
+void SetEffect(float x, float y, int duration, int effectId)
 {
 	// もし未使用のエフェクトが無かったら実行しない( =これ以上表示できないって事 )
 	for (int i = 0; i < EFFECT_NUM_EFFECTS; i++)
@@ -319,6 +323,8 @@ void SetEffect(float x, float y, int duration)
 			effectWk[i].elapsed = 0;
 			effectWk[i].emitCounter = EMISSION_RATE;
 			effectWk[i].numFinish = 0;
+
+			effectWk[i].texNo = effectId;
 
 			//パーティクルの初期化
 			for (int n = 0; n < EFFECT_NUM_PARTS; n++)

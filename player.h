@@ -88,6 +88,6 @@ PLAYER* GetPlayer(void);
 
 int GetPlayerCount(void);
 
-void AdjustHP(PLAYER* player, int ammount);
+void AdjustPlayerHP(PLAYER* player, int ammount);
 
 

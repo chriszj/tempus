@@ -187,7 +187,7 @@ void UpdateTimeMachine(void)
 
 		if (g_CurrentTimeStateIndex != g_LastTimeStateRecorded) {
 
-			// RECORD!!!
+			// “o˜^
 			for (int i = 0; i < TIMEOBJECTS_MAX; i++) {
 			
 				if (g_RegisteredObjTS[i] != NULL) {
@@ -337,6 +337,7 @@ void RegisterObjectTimeState(TIMESTATE* state)
 		}
 		else if (g_RegisteredObjTS[i] == NULL) {
 			g_RegisteredObjTS[i] = state;
+			break;
 		}
 	}
 }

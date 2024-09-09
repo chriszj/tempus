@@ -190,17 +190,52 @@ void UpdateWeapon(void)
 					// 生きてるエネミーと当たり判定をする
 					if (enemy[j].use == TRUE)
 					{
-						BOOL ans = CollisionBB(g_Weapon[i].pos, g_Weapon[i].w, g_Weapon[i].h,
+						XMFLOAT3 hitBoxPos = g_Weapon[i].pos;
+						float hitboxW = g_Weapon[i].w * 0.2f;
+						float hitboxH = g_Weapon[i].h * 0.2f;
+
+						hitboxH /= 2;
+						hitboxW /= 2;
+						
+						switch (g_Weapon[i].dir)
+						{
+							case WEAPON_DIR_UP:
+								//hitboxH /= 2;
+								hitboxW *= 0.7f;
+								hitBoxPos.y -= hitboxH;
+								break;
+							case WEAPON_DIR_RIGHT:
+								//hitboxW /= 2;
+								hitboxH *= 0.7f;
+								hitBoxPos.x += hitboxW;
+								break;
+							case WEAPON_DIR_DOWN:
+								//hitboxH /= 2;
+								hitboxW *= 0.7f;
+								hitBoxPos.y += hitboxH;
+								break;
+							case WEAPON_DIR_LEFT:
+								//hitboxW /= 2;
+								hitboxH *= 0.7f;
+								hitBoxPos.x -= hitboxW;
+								break;
+						
+						}
+
+
+						BOOL ans = CollisionBB(hitBoxPos, hitboxW, hitboxH,
 							enemy[j].pos, enemy[j].w, enemy[j].h);
 						// 当たっている？
 						if (ans == TRUE)
 						{
 							// 当たった時の処理
-							enemy[j].use = FALSE;
+							
+							AdjustEnemyHP(&enemy[j], -10);
+
 							AddScore(100);
 
 							// エフェクト発生
-							SetEffect(enemy[j].pos.x, enemy[j].pos.y, 30);
+							SetEffect(enemy[j].pos.x, enemy[j].pos.y, 3, 3);
 						}
 					}
 				}
