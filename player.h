@@ -68,6 +68,8 @@ struct PLAYER
 
 	int         inventoryKeys;
 	int         inventorySouls;
+	int			inventorySwords;
+	int			inventoryMasterKeys;
 
 	float       invincibilityTime;
 	int         maxInvincibilityTime;
@@ -89,5 +91,7 @@ PLAYER* GetPlayer(void);
 int GetPlayerCount(void);
 
 void AdjustPlayerHP(PLAYER* player, int ammount);
+
+BOOL HasReachedGoal(void);
 
 

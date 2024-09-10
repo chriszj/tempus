@@ -11,19 +11,23 @@
 #include "collision.h"
 #include "field.h"
 #include "timemachine.h"
+#include "effect.h"
+#include "item.h"
 
 //*****************************************************************************
 // É}ÉNÉçíËã`
 //*****************************************************************************
 #define TEXTURE_WIDTH				(200/2)	// ÉLÉÉÉâÉTÉCÉY
 #define TEXTURE_HEIGHT				(200/2)	// 
-#define TEXTURE_MAX					(2)		// ÉeÉNÉXÉ`ÉÉÇÃêî
+#define TEXTURE_MAX					(4)		// ÉeÉNÉXÉ`ÉÉÇÃêî
 
 #define TEXTURE_PATTERN_DIVIDE_X	(12)		// ÉAÉjÉÅÉpÉ^Å[ÉìÇÃÉeÉNÉXÉ`ÉÉì‡ï™äÑêîÅiX)
 #define TEXTURE_PATTERN_DIVIDE_Y	(1)		// ÉAÉjÉÅÉpÉ^Å[ÉìÇÃÉeÉNÉXÉ`ÉÉì‡ï™äÑêîÅiY)
 #define ANIM_PATTERN_NUM			(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)	// ÉAÉjÉÅÅ[ÉVÉáÉìÉpÉ^Å[Éìêî
 #define ANIM_WAIT					(4)		// ÉAÉjÉÅÅ[ÉVÉáÉìÇÃêÿÇËë÷ÇÌÇÈWaitíl
 #define CMD_WAIT                    (8)
+
+#define ENEMY_INVINCIBILITY_MAX    (30)
 
 //*****************************************************************************
 // ÉvÉçÉgÉ^ÉCÉvêÈåæ
@@ -41,6 +45,8 @@ static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// ÉeÉNÉXÉ`É
 static char *g_TexturName[TEXTURE_MAX] = {
 	"data/TEXTURE/candle-burning-only fire.png",
 	"data/TEXTURE/bar_white.png",
+	"data/TEXTURE/bar_white.png",
+	"data/TEXTURE/bar_white.png"
 };
 
 
@@ -55,10 +61,13 @@ static float offsety = 200.0f;
 static float moveFactor = 200.0f;
 static float e_time = 25.0f;
 
+static BOOL g_swordGiven = FALSE;
+static BOOL g_masterKeyGiven = FALSE;
+
 static ENEMYTYPE g_EnemyTypes[ENEMY_TYPE_MAX] = {
 	{
 		ENEMY_TYPE_SKELETON,
-		{ 
+		{
 			{CHAR_ANIM_IDLE, 16, 4, 1, 6, 4},
 			{CHAR_ANIM_WALK, 0, 4, 1, 6, 4},
 			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
@@ -77,6 +86,28 @@ static ENEMYTYPE g_EnemyTypes[ENEMY_TYPE_MAX] = {
 			{CHAR_ANIM_ATTACK, 64, 4, 0, 6, 4}
 		},
 		100
+	},
+	{
+		ENEMY_TYPE_MIMIC,
+		{
+			{CHAR_ANIM_IDLE, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_WALK, 16, 4, 1, 6, 4},
+			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_DIE, 48, 4, 0, 10, 4},
+			{CHAR_ANIM_ATTACK, 64, 4, 0, 6, 4}
+		},
+		200
+	},
+	{
+		ENEMY_TYPE_ROGUE_SKELETON,
+		{
+			{CHAR_ANIM_IDLE, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_WALK, 16, 4, 1, 6, 4},
+			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_DIE, 48, 4, 0, 10, 4},
+			{CHAR_ANIM_ATTACK, 64, 4, 0, 6, 4}
+		},
+		200
 	}
 };
 
@@ -121,6 +152,10 @@ static INTERPOLATION_DATA* g_MoveTblAdr[] =
 //=============================================================================
 HRESULT InitEnemy(void)
 {
+
+	g_swordGiven = FALSE;
+	g_masterKeyGiven = FALSE;
+
 	MAPOBJECT* mapObjects = GetMapObjectsFromLayer(MAPOBJLAYER_ENEMIES);
 
 	ID3D11Device *pDevice = GetDevice();
@@ -167,6 +202,8 @@ HRESULT InitEnemy(void)
 			continue;
 
 		g_Enemy[i].alive = TRUE;
+
+		g_Enemy[i].maxInvincibilityTime = ENEMY_INVINCIBILITY_MAX;
 
 		g_Enemy[i].pos = XMFLOAT3((mapObjects[i].x), (mapObjects[i].y - (mapObjects[i].height)), 0.0f);	// íÜêSì_Ç©ÇÁï\é¶
 		g_Enemy[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -285,8 +322,10 @@ void UpdateEnemy(void)
 				continue;
 			}
 
-			if (g_Enemy[i].hp <= 0)
-				return;
+			if (!g_Enemy[i].alive)
+			{
+				continue;
+			}
 			
 			// ínå`Ç∆ÇÃìñÇΩÇËîªíËópÇ…ç¿ïWÇÃÉoÉbÉNÉAÉbÉvÇéÊÇ¡ÇƒÇ®Ç≠
 			XMFLOAT3 pos_old = g_Enemy[i].pos;
@@ -320,8 +359,10 @@ void UpdateEnemy(void)
 					int lastFrame = animStateIndex + frameCountX;
 					if (g_Enemy[i].patternAnim + 1 >= lastFrame) {
 						
+						if (currentAnimState.id == CHAR_ANIM_DIE)
+							g_Enemy[i].alive = FALSE;
 						
-						SetCharacterState(CHAR_ANIM_IDLE, &g_Enemy[i], TRUE);
+						SetCharacterState(CHAR_ANIM_IDLE, &g_Enemy[i], FALSE);
 						
 					}
 				}
@@ -343,7 +384,12 @@ void UpdateEnemy(void)
 
 			for (int p = 0; p < PLAYER_MAX; p++) {
 
-				BOOL ans = CollisionBC(g_Enemy[i].pos, player[p].pos, 300, player[p].w);
+				int distance = 300;
+
+				if (g_Enemy[i].type == ENEMY_TYPE_MIMIC)
+					distance = 80;
+
+				BOOL ans = CollisionBC(g_Enemy[i].pos, player[p].pos, distance, player[p].w);
 
 				if (ans) {
 				
@@ -367,6 +413,9 @@ void UpdateEnemy(void)
 						default:
 							break;
 					}
+
+					if (g_Enemy[i].type == ENEMY_TYPE_MIMIC)
+						found = true;
 
 					if (found) {
 						g_Enemy[i].target = &player[p];
@@ -392,8 +441,13 @@ void UpdateEnemy(void)
 
 					float norm = sqrt(x * x + y * y);
 
-					x *= 3 / norm;
-					y *= 3 / norm;
+					float speed = 3;
+
+					if (g_Enemy[i].type == ENEMY_TYPE_MIMIC || g_Enemy[i].type == ENEMY_TYPE_ROGUE_SKELETON)
+						speed = 4;
+
+					x *= speed / norm;
+					y *= speed / norm;
 
 					g_Enemy[i].move.x = x;
 					g_Enemy[i].move.y = y;
@@ -429,7 +483,16 @@ void UpdateEnemy(void)
 
 						if (damageDone)
 						{
-							AdjustPlayerHP(g_Enemy[i].target, -5);
+
+							int dmg = -5;
+
+							if (g_Enemy[i].type == ENEMY_TYPE_MIMIC)
+								dmg = -10;
+
+							if (g_Enemy[i].type == ENEMY_TYPE_ROGUE_SKELETON)
+								dmg = -7;
+
+							AdjustPlayerHP(g_Enemy[i].target, dmg);
 						}
 
 					}
@@ -438,77 +501,80 @@ void UpdateEnemy(void)
 				else
 				{
 
-					g_Enemy[i].countForNextCmd += 1.0f;
-					if (g_Enemy[i].countForNextCmd > g_Enemy[i].nextCmdWait)
-					{
-						g_Enemy[i].countForNextCmd = 0;
+					if (g_Enemy[i].type != ENEMY_TYPE_MIMIC) {
 
-						g_Enemy[i].roamingCmdX = (rand() % 3) - 1;
-						g_Enemy[i].roamingCmdY = (rand() % 3) - 1;
-
-					}
-
-					if (g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState].cancellable) {
-
-
-
-						if (g_Enemy[i].roamingCmdX > 0)
+						g_Enemy[i].countForNextCmd += 1.0f;
+						if (g_Enemy[i].countForNextCmd > g_Enemy[i].nextCmdWait)
 						{
-							g_Enemy[i].move.y += speed;
-							g_Enemy[i].dir = ENEMY_DIR_DOWN;
+							g_Enemy[i].countForNextCmd = 0;
 
-							g_Enemy[i].moving = TRUE;
-						}
-						else if (g_Enemy[i].roamingCmdX < 0)
-						{
-							g_Enemy[i].move.y -= speed;
-							g_Enemy[i].dir = ENEMY_DIR_UP;
-
-							g_Enemy[i].moving = TRUE;
-						}
-
-						if (g_Enemy[i].roamingCmdY > 0)
-						{
-							g_Enemy[i].move.x += speed;
-							g_Enemy[i].dir = ENEMY_DIR_RIGHT;
-
-							g_Enemy[i].moving = TRUE;
-						}
-						else if (g_Enemy[i].roamingCmdY < 0)
-						{
-							g_Enemy[i].move.x -= speed;
-							g_Enemy[i].dir = ENEMY_DIR_LEFT;
-
-							g_Enemy[i].moving = TRUE;
-						}
-
-						if (abs(g_Enemy[i].move.x) > 0 && abs(g_Enemy[i].move.y > 0))
-						{
-							g_Enemy[i].move.x /= 2;
-							g_Enemy[i].move.y /= 2;
-						}
-
-
-
-						int attack = rand();
-
-						// ÉAÉjÉÅÅ[ÉVÉáÉì  
-						if (g_Enemy[i].moving == TRUE)
-						{
-							SetCharacterState(CHAR_ANIM_WALK, &g_Enemy[i], FALSE);
-						}
-
-						if (attack > 0)
-						{
-							//SetCharacterState(CHAR_ANIM_ATTACK, &g_Enemy[i], TRUE);
-
-
-
-							//SetWeapon(g_Player[i].pos, { 0.0f, 0.0f,0.0f }, WEAPON_TYPE_SWORD, weaponDir);
+							g_Enemy[i].roamingCmdX = (rand() % 3) - 1;
+							g_Enemy[i].roamingCmdY = (rand() % 3) - 1;
 
 						}
 
+						if (g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState].cancellable) {
 
+
+
+							if (g_Enemy[i].roamingCmdX > 0)
+							{
+								g_Enemy[i].move.y += speed;
+								g_Enemy[i].dir = ENEMY_DIR_DOWN;
+
+								g_Enemy[i].moving = TRUE;
+							}
+							else if (g_Enemy[i].roamingCmdX < 0)
+							{
+								g_Enemy[i].move.y -= speed;
+								g_Enemy[i].dir = ENEMY_DIR_UP;
+
+								g_Enemy[i].moving = TRUE;
+							}
+
+							if (g_Enemy[i].roamingCmdY > 0)
+							{
+								g_Enemy[i].move.x += speed;
+								g_Enemy[i].dir = ENEMY_DIR_RIGHT;
+
+								g_Enemy[i].moving = TRUE;
+							}
+							else if (g_Enemy[i].roamingCmdY < 0)
+							{
+								g_Enemy[i].move.x -= speed;
+								g_Enemy[i].dir = ENEMY_DIR_LEFT;
+
+								g_Enemy[i].moving = TRUE;
+							}
+
+							if (abs(g_Enemy[i].move.x) > 0 && abs(g_Enemy[i].move.y > 0))
+							{
+								g_Enemy[i].move.x /= 2;
+								g_Enemy[i].move.y /= 2;
+							}
+
+
+
+							int attack = rand();
+
+							// ÉAÉjÉÅÅ[ÉVÉáÉì  
+							if (g_Enemy[i].moving == TRUE)
+							{
+								SetCharacterState(CHAR_ANIM_WALK, &g_Enemy[i], FALSE);
+							}
+
+							if (attack > 0)
+							{
+								//SetCharacterState(CHAR_ANIM_ATTACK, &g_Enemy[i], TRUE);
+
+
+
+								//SetWeapon(g_Player[i].pos, { 0.0f, 0.0f,0.0f }, WEAPON_TYPE_SWORD, weaponDir);
+
+							}
+
+
+						}
 					}
 				}
 
@@ -550,6 +616,9 @@ void UpdateEnemy(void)
 
 			g_Enemy[i].pos.x = newXPos.x;
 			g_Enemy[i].pos.y = newYPos.y;
+
+			if (g_Enemy[i].invincibilityTime >= 0)
+				g_Enemy[i].invincibilityTime--;
 
 			PushToTimeState(&g_Enemy[i].timeState, &g_Enemy[i]);
 
@@ -771,6 +840,9 @@ void PushToTimeState(TIMESTATE* timeState, ENEMY* enemy)
 	timeState->y = enemy->pos.y;
 	timeState->countAnim = enemy->countAnim;
 	timeState->patternAnim = enemy->patternAnim;
+	timeState->alive = enemy->alive;
+	timeState->invincibilityTime = enemy->invincibilityTime;
+	timeState->health = enemy->hp;
 }
 
 void PullFromTimeState(TIMESTATE* timeState, ENEMY* enemy)
@@ -779,7 +851,9 @@ void PullFromTimeState(TIMESTATE* timeState, ENEMY* enemy)
 	enemy->pos.y = timeState->y;
 	enemy->countAnim = timeState->countAnim;
 	enemy->patternAnim = timeState->patternAnim;
-	
+	enemy->alive = timeState->alive;
+	enemy->invincibilityTime = timeState->invincibilityTime;
+	enemy->hp = timeState->health;
 }
 
 
@@ -800,13 +874,40 @@ int GetEnemyCount(void)
 
 void AdjustEnemyHP(ENEMY* enemy, int ammount) 
 {
-	
-	enemy->hp += ammount;
 
-	if (enemy->hp < 0) {
-		enemy->hp = 0;
-		SetCharacterState(CHAR_ANIM_DIE, enemy, TRUE);
+
+	if (enemy->invincibilityTime < 0) {
+
+		enemy->hp += ammount;
+		enemy->invincibilityTime = enemy->maxInvincibilityTime;
+
+		SetEffect(enemy->pos.x, enemy->pos.y, 3, 3);
+
+		if (enemy->hp < 0) {
+			enemy->hp = 0;
+			SetCharacterState(CHAR_ANIM_DIE, enemy, TRUE);
+
+
+			if (enemy->type == ENEMY_TYPE_MIMIC && !g_swordGiven) {
+				SetItem(enemy->pos, ITEM_TYPE_MASTER_SWORD);
+				g_swordGiven = TRUE;
+			}
+			else if (enemy->type == ENEMY_TYPE_ROGUE_SKELETON && !g_masterKeyGiven)
+			{
+				SetItem(enemy->pos, ITEM_TYPE_MASTER_KEY);
+				g_masterKeyGiven = TRUE;
+			}
+			else {
+
+				int ran = rand() % 10;
+
+				if(ran > 5)
+					SetItem(enemy->pos, ITEM_TYPE_HEALTH_POTION);
+			}
+		}
+
 	}
+
 
 }
 

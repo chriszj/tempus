@@ -106,14 +106,15 @@ HRESULT InitTimeMachine(void)
 
 	//g_StartTime = 
 	g_ElapsedTimeText = GetUnusedText();
-	g_ElapsedTimeText->x = SCREEN_WIDTH - 70;
+	g_ElapsedTimeText->x = SCREEN_WIDTH - 150;
 	g_ElapsedTimeText->y = 25;
-	SetText(g_ElapsedTimeText, L"              Elapsed Time; ");
+	g_ElapsedTimeText->scale = 0.7f;
+	/*SetText(g_ElapsedTimeText, L"              Elapsed Time; ");*/
 
 	g_snapshotIndex = GetUnusedText();
 	g_snapshotIndex->x = 70;
 	g_snapshotIndex->y = 25;
-	SetText(g_snapshotIndex, L"Enemies; ");
+	/*SetText(g_snapshotIndex, L"Enemies; ");*/
 
 	return S_OK;
 }
@@ -176,7 +177,9 @@ void UpdateTimeMachine(void)
 				g_RegisteredObjTS[i]->y = g_Timeline[i][g_CurrentTimeStateIndex].y;
 				g_RegisteredObjTS[i]->countAnim = g_Timeline[i][g_CurrentTimeStateIndex].countAnim;
 				g_RegisteredObjTS[i]->patternAnim = g_Timeline[i][g_CurrentTimeStateIndex].patternAnim;
-
+				g_RegisteredObjTS[i]->invincibilityTime = g_Timeline[i][g_CurrentTimeStateIndex].invincibilityTime;
+				g_RegisteredObjTS[i]->alive = g_Timeline[i][g_CurrentTimeStateIndex].alive;
+				g_RegisteredObjTS[i]->health = g_Timeline[i][g_CurrentTimeStateIndex].health;
 			}
 
 		}
@@ -199,6 +202,9 @@ void UpdateTimeMachine(void)
 					newState.y = g_RegisteredObjTS[i]->y;
 					newState.countAnim = g_RegisteredObjTS[i]->countAnim;
 					newState.patternAnim = g_RegisteredObjTS[i]->patternAnim;
+					newState.invincibilityTime = g_RegisteredObjTS[i]->patternAnim;
+					newState.alive = g_RegisteredObjTS[i]->alive;
+					newState.health = g_RegisteredObjTS[i]->health;
 
 					g_Timeline[i][g_CurrentTimeStateIndex] = newState;
 
@@ -238,19 +244,22 @@ void UpdateTimeMachine(void)
 
 	g_ElapsedTime += timeSpan;
 
+	std::wstring tString = L"Time: ";
 
-	std::wstring wstr = std::to_wstring(TIMELIMIT_SECONDS - (g_ElapsedTime / 1000));
+	tString.append(std::to_wstring(TIMELIMIT_SECONDS - (g_ElapsedTime / 1000)));
 
-	SetText(g_ElapsedTimeText, (wchar_t*)wstr.c_str());
+	//std::wstring wstr = std::to_wstring(TIMELIMIT_SECONDS - (g_ElapsedTime / 1000));
+
+	SetText(g_ElapsedTimeText, (wchar_t*)tString.c_str());
 
 
 
-	std::wstring wstr2 = std::to_wstring(ENEMY_MAX - GetEnemyCount());
+	/*std::wstring wstr2 = std::to_wstring(ENEMY_MAX - GetEnemyCount());
 
 	wstr2.append(L" / ");
 	wstr2.append( std::to_wstring(ENEMY_MAX));
 
-	SetText(g_snapshotIndex, (wchar_t*)wstr2.c_str());
+	SetText(g_snapshotIndex, (wchar_t*)wstr2.c_str());*/
 
 
 #ifdef _DEBUG	// デバッグ情報を表示する

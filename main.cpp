@@ -14,6 +14,7 @@
 #include "tutorial.h"
 #include "bg.h"
 #include "field.h"
+#include "interactables.h"
 #include "player.h"
 #include "enemy.h"
 #include "item.h"
@@ -324,6 +325,7 @@ void Update(void)
 		UpdateTimeMachine();
 		UpdateBG();
 		UpdateField();
+		UpdateInteractables();
 		UpdatePlayer();
 		UpdateEnemy();
 		UpdateItem();
@@ -394,6 +396,7 @@ void Draw(void)
 		DrawField(0);
 		DrawField(1);
 		DrawField(3);
+		DrawInteractables();
 		DrawPlayer();
 		DrawWeapon();		// 重なる順番を意識してね
 		DrawField(2);
@@ -468,6 +471,8 @@ void SetMode(int mode)
 	// マップチップの終了処理
 	UninitField();
 
+	UninitInteractables();
+
 	// プレイヤーの終了処理
 	UninitPlayer();
 
@@ -506,6 +511,7 @@ void SetMode(int mode)
 		InitTimeMachine();
 		InitBG();
 		InitField();
+		InitInteractables();
 		InitPlayer();
 		InitEnemy();
 		InitItem();
@@ -553,8 +559,8 @@ int CheckGameClear(void)
 {
 
 	// エネミーの数が０ならプレイヤーの勝ちとする
-	int cnt = GetEnemyCount();
-	if(cnt <= 0)
+	BOOL cnt = HasReachedGoal();
+	if(cnt)
 	{
 		return 1;	// プレイヤーの勝ち
 	}

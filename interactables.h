@@ -14,23 +14,28 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define ITEM_MAX		(150)		// エネミーのMax人数
+#define INTERACTABLES_MAX		(150)		// エネミーのMax人数
 
 enum {
-	ITEM_TYPE_KEY,
-	ITEM_TYPE_SWORD,
-	ITEM_TYPE_SOUL,
-	ITEM_TYPE_MASTER_KEY,
-	ITEM_TYPE_MASTER_SWORD,
-	ITEM_TYPE_HEALTH_POTION,
-	ITEM_TYPE_MAX
+	INTERACTABLES_DOOR,
+	INTERACTABLES_MASTER_DOOR,
+	INTERACTABLES_DUMMY,
+	INTERACTABLES_TYPES_MAX
 };
 
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
+struct INTERACTABLETYPES {
 
-struct ITEM
+	int id;
+	BOOL isAnimReverse;
+	BOOL isDummy;
+
+};
+
+
+struct INTERACTABLE
 {
 	int id = -1;
 
@@ -46,6 +51,9 @@ struct ITEM
 	int         patternAnimNum;
 	int			texNo;			// テクスチャ番号
 	XMFLOAT3	move;			// 移動速度
+	BOOL        active;
+	BOOL        dummy;
+
 
 	//INTERPOLATION_DATA* tbl_adr;			// アニメデータのテーブル先頭アドレス
 	//int					tbl_size;			// 登録したテーブルのレコード総数
@@ -56,14 +64,15 @@ struct ITEM
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-HRESULT InitItem(void);
-void UninitItem(void);
-void UpdateItem(void);
-void DrawItem(void);
+HRESULT InitInteractables(void);
+void UninitInteractables(void);
+void UpdateInteractables(void);
+void DrawInteractables(void);
 
-ITEM* GetItem(void);
+INTERACTABLE* GetInteractables(void);
 
-int GetItemCount(void);
-void SetItem(XMFLOAT3 pos, int itemType);
+int GetInteractablesCount(void);
+void SetInteractable(INTERACTABLE* interactable, BOOL active);
+
 
 

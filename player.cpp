@@ -20,13 +20,14 @@
 #include <string>
 #include <iostream>
 #include "effect.h"
+#include "interactables.h"
 
 //*****************************************************************************
 // É}ÉNÉçíËã`
 //*****************************************************************************
 #define TEXTURE_WIDTH				(200/2)	// ÉLÉÉÉâÉTÉCÉY
 #define TEXTURE_HEIGHT				(200/2)	// 
-#define TEXTURE_MAX					(2)		// ÉeÉNÉXÉ`ÉÉÇÃêî
+#define TEXTURE_MAX					(4)		// ÉeÉNÉXÉ`ÉÉÇÃêî
 
 #define TEXTURE_PATTERN_DIVIDE_X	(4)		// ÉAÉjÉÅÉpÉ^Å[ÉìÇÃÉeÉNÉXÉ`ÉÉì‡ï™äÑêîÅiX)
 #define TEXTURE_PATTERN_DIVIDE_Y	(40)		// ÉAÉjÉÅÉpÉ^Å[ÉìÇÃÉeÉNÉXÉ`ÉÉì‡ï™äÑêîÅiY)
@@ -69,6 +70,8 @@ static ID3D11ShaderResourceView	*g_Texture[TEXTURE_MAX] = { NULL };	// ÉeÉNÉXÉ`É
 static char *g_TexturName[TEXTURE_MAX] = {
 	"data/TEXTURE/character_hero.png",
 	"data/TEXTURE/shadow000.jpg",
+	"data/TEXTURE/items_sheet.png",
+	"data/TEXTURE/bar_white.png"
 };
 
 static ANIM_DATA g_anims[CHAR_ANIM_MAX] =
@@ -91,13 +94,19 @@ static int		g_jump[PLAYER_JUMP_CNT_MAX] =
 	  1,   2,   3,   4,   5,   6,  7,  8,  9, 10, 11,12,13,14,15
 };
 
-static BMPTEXT* g_Score;
+static BMPTEXT* g_HPText;
+static BMPTEXT* g_KeysText;
+static BMPTEXT* g_MKeyText;
+
+static BOOL g_reachedGoal;
 
 //=============================================================================
 // èâä˙âªèàóù
 //=============================================================================
 HRESULT InitPlayer(void)
 {
+	g_reachedGoal = FALSE;
+
 	ID3D11Device* pDevice = GetDevice();
 
 	//ÉeÉNÉXÉ`ÉÉê∂ê¨
@@ -172,6 +181,11 @@ HRESULT InitPlayer(void)
 			g_Player[i].offset[j] = g_Player[i].pos;
 		}
 
+		g_Player[i].inventoryKeys = 0;
+		g_Player[i].inventorySouls = 0;
+		g_Player[i].inventorySwords = 0;
+		g_Player[i].inventoryMasterKeys = 0;
+
 		// ç≈èâÇÃÉ^ÉCÉÄÉXÉeÅ[ÉgÇìoò^Ç∑ÇÈ
 		g_Player[i].timeState.status = WRITABLE;
 		PushToTimeState(&g_Player[i].timeState,&g_Player[i]);
@@ -179,10 +193,20 @@ HRESULT InitPlayer(void)
 		RegisterObjectTimeState(&g_Player[i].timeState);
 	}
 
-	g_Score = GetUnusedText();
-	g_Score->x = SCREEN_WIDTH / 2;
-	g_Score->y = 25;
-	g_Score->scale = 1;
+	g_HPText = GetUnusedText();
+	g_HPText->x = 25;
+	g_HPText->y = 25;
+	g_HPText->scale = 0.7f;
+
+	g_KeysText = GetUnusedText();
+	g_KeysText->x = 25;
+	g_KeysText->y = 60;
+	g_KeysText->scale = 0.7f;
+
+	g_MKeyText = GetUnusedText();
+	g_MKeyText->x = 25;
+	g_MKeyText->y = 90;
+	g_MKeyText->scale = 0.7f;
 
 	g_Load = TRUE;
 	return S_OK;
@@ -219,8 +243,14 @@ void UninitPlayer(void)
 		}
 	}
 
-	g_Score->use = FALSE;
-	g_Score = NULL;
+	g_HPText->use = FALSE;
+	g_HPText = NULL;
+
+	g_KeysText->use = FALSE;
+	g_KeysText = NULL;
+	
+	g_MKeyText->use = FALSE;
+	g_MKeyText = NULL;
 
 	g_Load = FALSE;
 }
@@ -355,21 +385,26 @@ void UpdatePlayer(void)
 							SetCharacterState(CHAR_ANIM_WALK, &g_Player[i], FALSE);
 						}
 
-						if (GetKeyboardTrigger(DIK_J))
+						if (GetKeyboardTrigger(DIK_J) || IsButtonTriggered(0, BUTTON_B))
 						{
-							SetCharacterState(CHAR_ANIM_ATTACK, &g_Player[i], TRUE);
+							if (g_Player[i].inventorySwords > 0) {
+								SetCharacterState(CHAR_ANIM_ATTACK, &g_Player[i], TRUE);
 
+								int weapon = WEAPON_TYPE_SWORD;
 
+								if (g_Player[i].inventorySwords > 1)
+									weapon = WEAPON_TYPE_ENEMY_SWORD;
 
-							SetWeapon(g_Player[i].pos, { 0.0f, 0.0f,0.0f }, WEAPON_TYPE_SWORD, weaponDir);
+								SetWeapon(g_Player[i].pos, { 0.0f, 0.0f,0.0f }, weapon, weaponDir);
+							}
 							
 						}
 
-						if (GetKeyboardTrigger(DIK_U))
+						/*if (GetKeyboardTrigger(DIK_U))
 						{
 							SetCharacterState(CHAR_ANIM_FALL, &g_Player[i], TRUE);
 							
-						}
+						}*/
 					}
 
 
@@ -430,6 +465,104 @@ void UpdatePlayer(void)
 
 					}
 
+					// INTERACTABLES
+					{
+						INTERACTABLE* interactables = GetInteractables();
+
+						// ÉGÉlÉ~Å[ÇÃêîï™ìñÇΩÇËîªíËÇçsÇ§
+						for (int in = 0; in < INTERACTABLES_MAX; in++)
+						{
+							// ê∂Ç´ÇƒÇÈÉGÉlÉ~Å[Ç∆ìñÇΩÇËîªíËÇÇ∑ÇÈ
+							if (interactables[in].use == TRUE && interactables[in].active && !interactables[in].dummy)
+							{
+
+								XMFLOAT3 intPos = XMFLOAT3(interactables[in].pos.x, interactables[in].pos.y, 0.0f);
+								COLLIDER2DBOX intCollider = COLLIDER2DBOX(0.0f, 0.0f, interactables[in].w, interactables[in].h/2);
+
+								// Xï˚ÇÃìñÇΩÇËîªíË
+								BOOL ansX = CollisionBB(newXPos, g_Player[i].collider, intPos, intCollider);
+
+								if (ansX)
+								{
+									g_Player[i].move.x = 0;
+									newXPos.x = g_Player[i].pos.x;
+								}
+
+								// Yï˚ÇÃìñÇΩÇËîªíË
+								BOOL ansY = CollisionBB(newYPos, g_Player[i].collider, intPos, intCollider);
+
+								if (ansY)
+								{
+									g_Player[i].move.y = 0;
+									newYPos.y = g_Player[i].pos.y;
+								}
+
+								XMFLOAT3 interactionPos = g_Player[i].pos;
+
+								switch (g_Player[i].dir) {
+								
+								case CHAR_DIR_UP:
+								case CHAR_DIR_LEFT_UP:
+								case CHAR_DIR_UP_RIGHT:
+									interactionPos.y -= 20;
+									break;
+								case CHAR_DIR_DOWN:
+								case CHAR_DIR_DOWN_LEFT:
+								case CHAR_DIR_RIGHT_DOWN:
+									interactionPos.y += 20;
+									break;
+								}
+
+
+								BOOL ans = CollisionBB(interactionPos, g_Player[i].w / 2, g_Player[i].h / 2,
+									interactables[in].pos, interactables[in].w / 2, interactables[in].h / 2);
+								//// ìñÇΩÇ¡ÇƒÇ¢ÇÈÅH
+								if (ans == TRUE)
+								{
+									// ìñÇΩÇ¡ÇΩéûÇÃèàóù
+									/*switch (item[itm].id)
+									{
+									case KEY:
+										g_Player[i].inventoryKeys++;
+										break;
+									case SOUL:
+										g_Player[i].inventorySouls++;
+										break;
+									default:
+										break;
+									}
+
+									item[itm].use = FALSE;*/
+
+									if (GetKeyboardTrigger(DIK_K) || IsButtonTriggered(0, BUTTON_X)) {
+
+										if (interactables[in].id == 0) {
+
+											if (g_Player[i].inventoryKeys > 0) {
+												SetInteractable(&interactables[in], FALSE);
+												g_Player[i].inventoryKeys--;
+											}
+										}
+										else {
+											
+											if (g_Player[i].inventoryMasterKeys > 0) {
+												SetInteractable(&interactables[in], FALSE);
+												g_reachedGoal = TRUE;
+												g_Player[i].inventoryMasterKeys--;
+											}
+
+										}
+
+									}
+
+									
+
+								}
+							}
+						}
+
+					}
+
 					g_Player[i].pos.x = newXPos.x;
 					g_Player[i].pos.y = newYPos.y;
 
@@ -475,14 +608,23 @@ void UpdatePlayer(void)
 									// ìñÇΩÇ¡ÇΩéûÇÃèàóù
 									switch (item[itm].id)
 									{
-									case KEY:
-										g_Player[i].inventoryKeys++;
-										break;
-									case SOUL:
-										g_Player[i].inventorySouls++;
-										break;
-									default:
-										break;
+										case ITEM_TYPE_KEY:
+											g_Player[i].inventoryKeys++;
+											break;
+										case ITEM_TYPE_HEALTH_POTION:
+											g_Player[i].hp += 40;
+											break;
+										case ITEM_TYPE_SWORD:
+											g_Player[i].inventorySwords ++;
+											break;
+										case ITEM_TYPE_MASTER_SWORD:
+											g_Player[i].inventorySwords++;
+											break;
+										case ITEM_TYPE_MASTER_KEY:
+											g_Player[i].inventoryMasterKeys++;
+											break;
+										default:
+											break;
 									}
 
 									item[itm].use = FALSE;
@@ -491,6 +633,8 @@ void UpdatePlayer(void)
 						}
 
 					}
+
+					
 
 					if (g_Player[i].invincibilityTime >= 0)
 						g_Player[i].invincibilityTime--;
@@ -568,9 +712,36 @@ void UpdatePlayer(void)
 		SaveData();
 	}
 
-	std::wstring wstr = std::to_wstring(g_Player[0].hp);
+	/*
+	std::wstring wstr2 = std::to_wstring(ENEMY_MAX - GetEnemyCount());
 
-	SetText(g_Score, (wchar_t*)wstr.c_str());
+	wstr2.append(L" / ");
+	wstr2.append( std::to_wstring(ENEMY_MAX));
+
+	SetText(g_snapshotIndex, (wchar_t*)wstr2.c_str());
+	*/
+
+	std::wstring hString = L"HP:  ";
+
+	hString.append(std::to_wstring(g_Player[0].hp));
+
+	SetText(g_HPText, (wchar_t*)hString.c_str());
+
+
+
+	std::wstring kString = L"Keys:  ";
+
+	kString.append(std::to_wstring(g_Player[0].inventoryKeys));
+
+	SetText(g_KeysText, (wchar_t*)kString.c_str());
+
+
+
+	std::wstring mKString = L"Master Keys:  ";
+
+	mKString.append(std::to_wstring(g_Player[0].inventoryMasterKeys));
+
+	SetText(g_MKeyText, (wchar_t*)mKString.c_str());
 
 
 #ifdef _DEBUG	// ÉfÉoÉbÉOèÓïÒÇï\é¶Ç∑ÇÈ
@@ -704,6 +875,10 @@ int GetPlayerCount(void)
 	return g_PlayerCount;
 }
 
+BOOL HasReachedGoal(void) {
+	return g_reachedGoal;
+}
+
 void AdjustPlayerHP(PLAYER* player, int ammount) {
 
 
@@ -712,6 +887,9 @@ void AdjustPlayerHP(PLAYER* player, int ammount) {
 		player->invincibilityTime = player->maxInvincibilityTime;
 
 		SetEffect(player->pos.x, player->pos.y, 3, 4);
+
+		if (player->hp < 0)
+			player->use = FALSE;
 	}
 }
 
@@ -760,6 +938,7 @@ void PushToTimeState(TIMESTATE* timeState, PLAYER* player)
 	timeState->y = player->pos.y;
 	timeState->countAnim = player->countAnim;
 	timeState->patternAnim = player->patternAnim;
+	timeState->invincibilityTime = player->invincibilityTime;
 }
 
 void PullFromTimeState(TIMESTATE* timeState, PLAYER* player) 
@@ -769,6 +948,8 @@ void PullFromTimeState(TIMESTATE* timeState, PLAYER* player)
 	player->countAnim = timeState->countAnim;
 	player->patternAnim = timeState->patternAnim;
 	player->dash = TRUE;
+	player->invincibilityTime = timeState->invincibilityTime;
+
 }
 
 void SetCharacterState(int state, PLAYER* player, BOOL resetAnim) {

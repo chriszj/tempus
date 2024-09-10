@@ -32,9 +32,11 @@
 #define MAPOBJLAYER_ENEMY	    "Enemy"
 #define MAPOBJLAYER_ITEMS       "Items"
 #define MAPOBJLAYER_ENEMIES     "Enemies"
+#define MAPOBJLAYER_INTERACTABLES "Interactables"
 
 #define TILESET_ITEMS_NAME      "Items2"
 #define TILESET_ENEMIES_NAME    "Enemies"
+#define TILESET_INTERACTABLES_NAME "Interactables"
 
 //*****************************************************************************
 // ç\ë¢ëÃíËã`

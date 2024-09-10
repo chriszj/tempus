@@ -34,7 +34,8 @@ enum {
 enum {
 	ENEMY_TYPE_SKELETON,
 	ENEMY_TYPE_SKELETON_WARRIOR,
-
+	ENEMY_TYPE_MIMIC,
+	ENEMY_TYPE_ROGUE_SKELETON,
 	ENEMY_TYPE_MAX
 };
 
@@ -82,7 +83,8 @@ struct ENEMY
 	int			tblNo;			// 行動データのテーブル番号
 	int			tblMax;			// そのテーブルのデータ数
 
-	
+	float       invincibilityTime;
+	int         maxInvincibilityTime;
 
 	//INTERPOLATION_DATA* tbl_adr;			// アニメデータのテーブル先頭アドレス
 	//int					tbl_size;			// 登録したテーブルのレコード総数

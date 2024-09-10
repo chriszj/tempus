@@ -4,7 +4,7 @@
 // Author : 
 //
 //=============================================================================
-#include "item.h"
+#include "interactables.h"
 #include "bg.h"
 #include "player.h"
 #include "fade.h"
@@ -40,38 +40,43 @@ static char *g_TexturName[TEXTURE_MAX] = {
 
 
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
-static ITEM	g_Item[ITEM_MAX];		// エネミー構造体
+static INTERACTABLE	g_Interactables[INTERACTABLES_MAX];		// エネミー構造体
 
-static int		g_ItemCount = ITEM_MAX;
+static int		g_ItemCount = INTERACTABLES_MAX;
 
 static float offsetx = 200.0f;
 static float offsety = 200.0f;
 
-static TILESET* g_ItemsTileset;
+static TILESET* g_InteractablesTileset;
 
-
+static INTERACTABLETYPES g_InteractableTypes[INTERACTABLES_TYPES_MAX] =
+{
+	{INTERACTABLES_DOOR, TRUE, FALSE },
+	{INTERACTABLES_MASTER_DOOR, FALSE, FALSE },
+	{INTERACTABLES_DUMMY, FALSE, TRUE}
+};
 
 //=============================================================================
 // 初期化処理
 //=============================================================================
-HRESULT InitItem(void)
+HRESULT InitInteractables(void)
 {
-	MAPOBJECT* mapObjects = GetMapObjectsFromLayer(MAPOBJLAYER_ITEMS);
+	MAPOBJECT* mapObjects = GetMapObjectsFromLayer(MAPOBJLAYER_INTERACTABLES);
 
 	ID3D11Device *pDevice = GetDevice();
 
-	g_ItemsTileset = GetTilesetByName(TILESET_ITEMS_NAME);
+	g_InteractablesTileset = GetTilesetByName(TILESET_INTERACTABLES_NAME);
 
 	//テクスチャ生成
 	for (int i = 0; i < TILESET_CUSTOM_TILES_MAX; i++)
 	{
 
-		if (g_ItemsTileset->customTiles[i].id < 0)
+		if (g_InteractablesTileset->customTiles[i].id < 0)
 			continue;
 
 		g_Texture[i] = NULL;
 		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
-			g_ItemsTileset->customTiles[i].textureSource,
+			g_InteractablesTileset->customTiles[i].textureSource,
 			NULL,
 			NULL,
 			&g_Texture[i],
@@ -90,42 +95,44 @@ HRESULT InitItem(void)
 	
 	// エネミー構造体の初期化
 	g_ItemCount = 0;
-	for (int i = 0; i < ITEM_MAX; i++)
+	for (int i = 0; i < INTERACTABLES_MAX; i++)
 	{
 
 		g_ItemCount++;
-		g_Item[i].use = mapObjects[i].id > 0? TRUE: FALSE;
+		g_Interactables[i].use = mapObjects[i].id > 0? TRUE: FALSE;
 
-		if (!g_Item[i].use)
+		if (!g_Interactables[i].use)
 			continue;
 
+		g_Interactables[i].active = TRUE;
 		
-		g_Item[i].pos = XMFLOAT3((mapObjects[i].x ), (mapObjects[i].y - (mapObjects[i].height)), 0.0f);
-		g_Item[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Item[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		g_Item[i].w = mapObjects[i].width;
-		g_Item[i].h = mapObjects[i].height;
-		g_Item[i].texNo = mapObjects[i].gid - g_ItemsTileset->firstGID;
+		g_Interactables[i].pos = XMFLOAT3((mapObjects[i].x ), (mapObjects[i].y - (mapObjects[i].height)), 0.0f);
+		g_Interactables[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		g_Interactables[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		g_Interactables[i].w = mapObjects[i].width;
+		g_Interactables[i].h = mapObjects[i].height;
+		g_Interactables[i].texNo = mapObjects[i].gid - g_InteractablesTileset->firstGID -1;
 		//　使っているテキスチャーで種類がわかれる
-		g_Item[i].id = g_Item[i].texNo;
+		g_Interactables[i].id = g_Interactables[i].texNo;
+		g_Interactables[i].dummy = g_InteractableTypes[g_Interactables[i].id].isDummy ? TRUE : FALSE;
 
-		g_Item[i].countAnim = 0;
-		g_Item[i].patternAnim = 0;
+		g_Interactables[i].countAnim = 0;
+		g_Interactables[i].patternAnim = 0;
 
-		int customTileWidth = g_ItemsTileset->customTiles[g_Item[i].texNo].width;
-		int customTileTextureW = g_ItemsTileset->customTiles[g_Item[i].texNo].textureW;
+		int customTileWidth = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].width;
+		int customTileTextureW = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].textureW;
 
 		int divideX = customTileTextureW / customTileWidth;
 
-		int customTileHeight = g_ItemsTileset->customTiles[g_Item[i].texNo].height;
-		int customTileTextureH = g_ItemsTileset->customTiles[g_Item[i].texNo].textureH;
+		int customTileHeight = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].height;
+		int customTileTextureH = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].textureH;
 		int divideY = customTileTextureH / customTileHeight;
 
-		g_Item[i].animDivideX = divideX;
-		g_Item[i].animDivideY = divideY;
-		g_Item[i].patternAnimNum = divideX*divideY;
+		g_Interactables[i].animDivideX = divideX;
+		g_Interactables[i].animDivideY = divideY;
+		g_Interactables[i].patternAnimNum = divideX*divideY;
 
-		g_Item[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
+		g_Interactables[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
 		
 	}
@@ -137,7 +144,7 @@ HRESULT InitItem(void)
 //=============================================================================
 // 終了処理
 //=============================================================================
-void UninitItem(void)
+void UninitInteractables(void)
 {
 	if (g_Load == FALSE) return;
 
@@ -156,9 +163,9 @@ void UninitItem(void)
 		}
 	}
 
-	for (int e = 0; e < ITEM_MAX; e++)
+	for (int e = 0; e < INTERACTABLES_MAX; e++)
 	{
-		g_Item[e].use = FALSE;
+		g_Interactables[e].use = FALSE;
 	}
 
 	g_Load = FALSE;
@@ -167,28 +174,50 @@ void UninitItem(void)
 //=============================================================================
 // 更新処理
 //=============================================================================
-void UpdateItem(void)
+void UpdateInteractables(void)
 {
 	if (g_Load == FALSE) return;
 	g_ItemCount = 0;			// 生きてるエネミーの数
 
-	for (int i = 0; i < ITEM_MAX; i++)
+	for (int i = 0; i < INTERACTABLES_MAX; i++)
 	{
 		// 生きてるエネミーだけ処理をする
-		if (g_Item[i].use == TRUE)
+		if (g_Interactables[i].use == TRUE)
 		{
-			g_ItemCount++;		// 生きてた敵の数
+			if (g_Interactables[i].id == 1);
+				g_ItemCount++;		// 生きてた敵の数
 			
 			// 地形との当たり判定用に座標のバックアップを取っておく
-			XMFLOAT3 pos_old = g_Item[i].pos;
+			XMFLOAT3 pos_old = g_Interactables[i].pos;
 
 			// アニメーション  
-			g_Item[i].countAnim += 1.0f;
-			if (g_Item[i].countAnim > ANIM_WAIT)
+			g_Interactables[i].countAnim += 1.0f;
+			if (g_Interactables[i].countAnim > ANIM_WAIT)
 			{
-				g_Item[i].countAnim = 0.0f;
+				g_Interactables[i].countAnim = 0.0f;
+
+				int nextFrame = 0;
 				// パターンの切り替え
-				g_Item[i].patternAnim = (g_Item[i].patternAnim + 1) % g_Item[i].patternAnimNum;
+				if (g_Interactables[i].active)
+				{
+
+					if (g_Interactables[i].patternAnim > 0)
+					{
+						nextFrame--;
+					}
+					
+
+				}
+				else {
+				
+					if (g_Interactables[i].patternAnim < g_Interactables[i].patternAnimNum -1)
+					{
+						nextFrame++;
+					}
+
+				}
+
+				g_Interactables[i].patternAnim = (g_Interactables[i].patternAnim + nextFrame) % g_Interactables[i].patternAnimNum;
 			}
 
 			// 移動が終わったらエネミーとの当たり判定
@@ -196,12 +225,12 @@ void UpdateItem(void)
 				PLAYER* player = GetPlayer();
 
 				// エネミーの数分当たり判定を行う
-				for (int j = 0; j < ITEM_MAX; j++)
+				for (int j = 0; j < INTERACTABLES_MAX; j++)
 				{
 					// 生きてるエネミーと当たり判定をする
 					if (player[j].use == TRUE)
 					{
-						BOOL ans = CollisionBB(g_Item[i].pos, g_Item[i].w, g_Item[i].h,
+						BOOL ans = CollisionBB(g_Interactables[i].pos, g_Interactables[i].w, g_Interactables[i].h,
 							player[j].pos, player[j].w, player[j].h);
 						// 当たっている？
 						if (ans == TRUE)
@@ -225,7 +254,7 @@ void UpdateItem(void)
 //=============================================================================
 // 描画処理
 //=============================================================================
-void DrawItem(void)
+void DrawInteractables(void)
 {
 	// 頂点バッファ設定
 	UINT stride = sizeof(VERTEX_3D);
@@ -246,18 +275,18 @@ void DrawItem(void)
 
 	BG* bg = GetBG();
 
-	for (int i = 0; i < ITEM_MAX; i++)
+	for (int i = 0; i < INTERACTABLES_MAX; i++)
 	{
-		if (g_Item[i].use == TRUE)			// このエネミーが使われている？
+		if (g_Interactables[i].use == TRUE)			// このエネミーが使われている？
 		{									// Yes
 			// テクスチャ設定
-			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Item[i].texNo]);
+			GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Interactables[i].texNo]);
 
 			//エネミーの位置やテクスチャー座標を反映
-			float px = g_Item[i].pos.x - bg->pos.x;	// エネミーの表示位置X
-			float py = g_Item[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
-			float pw = g_Item[i].w;		// エネミーの表示幅
-			float ph = g_Item[i].h;		// エネミーの表示高さ
+			float px = g_Interactables[i].pos.x - bg->pos.x;	// エネミーの表示位置X
+			float py = g_Interactables[i].pos.y - bg->pos.y;	// エネミーの表示位置Y
+			float pw = g_Interactables[i].w;		// エネミーの表示幅
+			float ph = g_Interactables[i].h;		// エネミーの表示高さ
 
 			/*int customTileWidth = g_ItemsTileset->customTiles[g_Item[i].texNo].width;
 			int customTileTextureW = g_ItemsTileset->customTiles[g_Item[i].texNo].textureW;
@@ -268,10 +297,10 @@ void DrawItem(void)
 			int divideY = customTileTextureH / customTileHeight;*/
 
 			// アニメーション用
-			float tw = 1.0f / g_Item[i].animDivideX;	// テクスチャの幅
-			float th = 1.0f / g_Item[i].animDivideY;	// テクスチャの高さ
-			float tx = (float)(g_Item[i].patternAnim % g_Item[i].animDivideX) * tw;	// テクスチャの左上X座標
-			float ty = (float)(g_Item[i].patternAnim / g_Item[i].animDivideX) * th;	// テクスチャの左上Y座標
+			float tw = 1.0f / g_Interactables[i].animDivideX;	// テクスチャの幅
+			float th = 1.0f / g_Interactables[i].animDivideY;	// テクスチャの高さ
+			float tx = (float)(g_Interactables[i].patternAnim % g_Interactables[i].animDivideX) * tw;	// テクスチャの左上X座標
+			float ty = (float)(g_Interactables[i].patternAnim / g_Interactables[i].animDivideX) * th;	// テクスチャの左上Y座標
 
 			//float tw = 1.0f;	// テクスチャの幅
 			//float th = 1.0f;	// テクスチャの高さ
@@ -281,7 +310,7 @@ void DrawItem(void)
 			// １枚のポリゴンの頂点とテクスチャ座標を設定
 			SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				g_Item[i].rot.z);
+				g_Interactables[i].rot.z);
 
 			// ポリゴン描画
 			GetDeviceContext()->Draw(4, 0);
@@ -294,57 +323,22 @@ void DrawItem(void)
 //=============================================================================
 // Enemy構造体の先頭アドレスを取得
 //=============================================================================
-ITEM* GetItem(void)
+INTERACTABLE* GetInteractables(void)
 {
-	return &g_Item[0];
+	return &g_Interactables[0];
 }
 
 
 // 生きてるエネミーの数
-int GetItemCount(void)
+int GetInteractablesCount(void)
 {
 	return g_ItemCount;
 }
 
-void SetItem(XMFLOAT3 pos, int itemType)
+void SetInteractable(INTERACTABLE* interactable, BOOL active) 
 {
-	// もし未使用の弾が無かったら発射しない( =これ以上撃てないって事 )
-	for (int i = 0; i < ITEM_MAX; i++)
-	{
-		if (g_Item[i].use == FALSE)		// 未使用状態のバレットを見つける
-		{
-			g_Item[i].use = TRUE;
-			g_Item[i].pos = pos;
-			g_Item[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_Item[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-			
-			g_Item[i].texNo = itemType;
 
-			g_Item[i].w = g_ItemsTileset->customTiles[g_Item[i].texNo].width;
-			g_Item[i].h = g_ItemsTileset->customTiles[g_Item[i].texNo].height;
-			//　使っているテキスチャーで種類がわかれる
-			g_Item[i].id = g_Item[i].texNo;
-
-			g_Item[i].countAnim = 0;
-			g_Item[i].patternAnim = 0;
-
-			int customTileWidth = g_ItemsTileset->customTiles[g_Item[i].texNo].width;
-			int customTileTextureW = g_ItemsTileset->customTiles[g_Item[i].texNo].textureW;
-
-			int divideX = customTileTextureW / customTileWidth;
-
-			int customTileHeight = g_ItemsTileset->customTiles[g_Item[i].texNo].height;
-			int customTileTextureH = g_ItemsTileset->customTiles[g_Item[i].texNo].textureH;
-			int divideY = customTileTextureH / customTileHeight;
-
-			g_Item[i].animDivideX = divideX;
-			g_Item[i].animDivideY = divideY;
-			g_Item[i].patternAnimNum = divideX * divideY;
-
-			g_Item[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
-			return;							// 1発セットしたので終了する
-		}
-	}
+	interactable->active = active;
 }
 
 

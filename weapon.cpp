@@ -230,12 +230,17 @@ void UpdateWeapon(void)
 						{
 							// 当たった時の処理
 							
-							AdjustEnemyHP(&enemy[j], -10);
+							int dmg = -10;
+
+							if (g_Weapon[i].texNo == 1)
+								dmg *= 3;
+
+							AdjustEnemyHP(&enemy[j], dmg);
 
 							AddScore(100);
 
 							// エフェクト発生
-							SetEffect(enemy[j].pos.x, enemy[j].pos.y, 3, 3);
+							//SetEffect(enemy[j].pos.x, enemy[j].pos.y, 3, 3);
 						}
 					}
 				}
