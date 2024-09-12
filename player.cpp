@@ -21,6 +21,7 @@
 #include <iostream>
 #include "effect.h"
 #include "interactables.h"
+#include "sound.h"
 
 //*****************************************************************************
 // ƒ}ƒNƒ’è‹`
@@ -296,6 +297,9 @@ void UpdatePlayer(void)
 						animStateIndex += g_Player[i].dir * frameCountX;
 					}
 
+					if (g_anims[g_Player[i].currentAnimState].id == CHAR_ANIM_WALK)
+						PlaySound(SOUND_LABEL_SE_FOOTSTEP);
+
 					g_Player[i].patternAnim = (animStateIndex) + ((g_Player[i].patternAnim + 1) % frameCountX);
 
 					if (!g_anims[g_Player[i].currentAnimState].cancellable)
@@ -396,7 +400,7 @@ void UpdatePlayer(void)
 								int weapon = WEAPON_TYPE_SWORD;
 
 								if (g_Player[i].inventorySwords > 1)
-									weapon = WEAPON_TYPE_ENEMY_SWORD;
+									weapon = WEAPON_TYPE_MAGIC_SWORD;
 
 								SetWeapon(g_Player[i].pos, { 0.0f, 0.0f,0.0f }, weapon, weaponDir);
 							}
@@ -890,6 +894,15 @@ void AdjustPlayerHP(PLAYER* player, int ammount) {
 		player->invincibilityTime = player->maxInvincibilityTime;
 
 		SetEffect(player->pos.x, player->pos.y, 3, 4);
+
+		int randSnd = rand() % 10;
+
+		if (randSnd >= 5)
+			PlaySound(SOUND_LABEL_SE_PAIN_1);
+		else
+			PlaySound(SOUND_LABEL_SE_PAIN_2);
+
+		PlaySound(SOUND_LABEL_SE_SWORD_HIT_1);
 
 		if (player->hp < 0)
 			player->use = FALSE;

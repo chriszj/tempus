@@ -13,6 +13,7 @@
 #include "timemachine.h"
 #include "effect.h"
 #include "item.h"
+#include "sound.h"
 
 //*****************************************************************************
 // É}ÉNÉçíËã`
@@ -493,6 +494,7 @@ void UpdateEnemy(void)
 								dmg = -7;
 
 							AdjustPlayerHP(g_Enemy[i].target, dmg);
+							PlaySound(SOUND_LABEL_SE_SWORD_SWIPE_1);
 						}
 
 					}

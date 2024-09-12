@@ -36,14 +36,15 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ (char*)"data/BGM/dripping-water-in-cave-114694.wav", -1 },	// BGM1
 	{ (char*)"data/BGM/youwin.wav", 0 },	// BGM2
 	{ (char*)"data/BGM/youloose.wav", 0},
-	{ (char*)"data/SE/bomb000.wav", 0 },		// ’e”­ŽË‰¹
-	{ (char*)"data/SE/defend000.wav", 0 },		// ’e”­ŽË‰¹
-	{ (char*)"data/SE/defend001.wav", 0 },		// ’e”­ŽË‰¹
-	{ (char*)"data/SE/hit000.wav", 0 },			// ’e”­ŽË‰¹
-	{ (char*)"data/SE/laser000.wav", 0 },		// ’e”­ŽË‰¹
-	{ (char*)"data/SE/lockon000.wav", 0 },		// ’e”­ŽË‰¹
-	{ (char*)"data/SE/shot000.wav", 0 },		// ’e”­ŽË‰¹
-	{ (char*)"data/SE/shot001.wav", 0 },		// ƒqƒbƒg‰¹
+	{ (char*)"data/SE/foot-step.wav", 0 },		// •à‚­‰¹
+	{ (char*)"data/SE/hit-swing-sword.wav", 0 },// Œ•ƒqƒbƒg‰¹
+	{ (char*)"data/SE/hit-swing-sword2.wav", 0 },// Œ•ƒqƒbƒg‰¹
+	{ (char*)"data/SE/pain-1.wav", 0 },			// ’É‚Ý‰¹
+	{ (char*)"data/SE/pain-2.wav", 0 },		// ’É‚Ý‰¹
+	{ (char*)"data/SE/sword-swipes-1.wav", 0 },		// Œ•‰¹
+	{ (char*)"data/SE/sword-swipes-2.wav", 0 },		// Œ•‰¹
+	{ (char*)"data/SE/sword-swipes-3.wav", 0 },		// Œ•‰¹
+	{ (char*)"data/SE/sword-swipes-4.wav", 0 },		// Œ•‰¹
 
 };
 

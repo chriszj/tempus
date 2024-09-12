@@ -10,6 +10,7 @@
 #include "score.h"
 #include "bg.h"
 #include "effect.h"
+#include "sound.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -344,7 +345,32 @@ void SetWeapon(XMFLOAT3 pos, XMFLOAT3 move, int weaponType, int weaponDirection)
 			g_Weapon[i].dir = weaponDirection;
 			g_Weapon[i].patternAnim = 0;
 
-			g_Weapon[i].texNo = weaponType;
+			g_Weapon[i].texNo = g_WeaponTypes[weaponType].type;
+
+			int randSnd = rand() % 10;
+
+			switch (weaponType)
+			{
+
+			case WEAPON_TYPE_MAGIC_SWORD:
+
+				if (randSnd >= 5)
+					PlaySound(SOUND_LABEL_SE_SWORD_2_SWIPE_1);
+				else
+					PlaySound(SOUND_LABEL_SE_SWORD_2_SWIPE_2);
+					
+				break;
+
+			default:
+
+				if (randSnd >= 5)
+					PlaySound(SOUND_LABEL_SE_SWORD_SWIPE_1);
+				else
+					PlaySound(SOUND_LABEL_SE_SWORD_SWIPE_2);
+
+				break;
+			}
+
 			return;							// 1発セットしたので終了する
 		}
 	}
