@@ -25,7 +25,8 @@
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-
+void PushToTimeState(TIMESTATE* timeState, INTERACTABLE* interactable);
+void PullFromTimeState(TIMESTATE* timeState, INTERACTABLE* interactable);
 
 //*****************************************************************************
 // グローバル変数
@@ -42,7 +43,7 @@ static char *g_TexturName[TEXTURE_MAX] = {
 static BOOL		g_Load = FALSE;			// 初期化を行ったかのフラグ
 static INTERACTABLE	g_Interactables[INTERACTABLES_MAX];		// エネミー構造体
 
-static int		g_ItemCount = INTERACTABLES_MAX;
+static int		g_InteractablesCount = INTERACTABLES_MAX;
 
 static float offsetx = 200.0f;
 static float offsety = 200.0f;
@@ -94,11 +95,11 @@ HRESULT InitInteractables(void)
 
 	
 	// エネミー構造体の初期化
-	g_ItemCount = 0;
+	g_InteractablesCount = 0;
 	for (int i = 0; i < INTERACTABLES_MAX; i++)
 	{
 
-		g_ItemCount++;
+		g_InteractablesCount++;
 		g_Interactables[i].use = mapObjects[i].id > 0? TRUE: FALSE;
 
 		if (!g_Interactables[i].use)
@@ -134,7 +135,8 @@ HRESULT InitInteractables(void)
 
 		g_Interactables[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
-		
+		PushToTimeState(&g_Interactables[i].timeState, &g_Interactables[i]);
+		RegisterObjectTimeState(&g_Interactables[i].timeState);
 	}
 
 	g_Load = TRUE;
@@ -177,7 +179,7 @@ void UninitInteractables(void)
 void UpdateInteractables(void)
 {
 	if (g_Load == FALSE) return;
-	g_ItemCount = 0;			// 生きてるエネミーの数
+	g_InteractablesCount = 0;			// 生きてるエネミーの数
 
 	for (int i = 0; i < INTERACTABLES_MAX; i++)
 	{
@@ -185,7 +187,14 @@ void UpdateInteractables(void)
 		if (g_Interactables[i].use == TRUE)
 		{
 			if (g_Interactables[i].id == 1);
-				g_ItemCount++;		// 生きてた敵の数
+				g_InteractablesCount++;		// 生きてた敵の数
+
+			if (g_Interactables[i].timeState.status == READ_ONLY)
+			{
+
+				PullFromTimeState(&g_Interactables[i].timeState, &g_Interactables[i]);
+				continue;
+			}
 			
 			// 地形との当たり判定用に座標のバックアップを取っておく
 			XMFLOAT3 pos_old = g_Interactables[i].pos;
@@ -220,27 +229,7 @@ void UpdateInteractables(void)
 				g_Interactables[i].patternAnim = (g_Interactables[i].patternAnim + nextFrame) % g_Interactables[i].patternAnimNum;
 			}
 
-			// 移動が終わったらエネミーとの当たり判定
-			{
-				PLAYER* player = GetPlayer();
-
-				// エネミーの数分当たり判定を行う
-				for (int j = 0; j < INTERACTABLES_MAX; j++)
-				{
-					// 生きてるエネミーと当たり判定をする
-					if (player[j].use == TRUE)
-					{
-						BOOL ans = CollisionBB(g_Interactables[i].pos, g_Interactables[i].w, g_Interactables[i].h,
-							player[j].pos, player[j].w, player[j].h);
-						// 当たっている？
-						if (ans == TRUE)
-						{
-							// 当たった時の処理
-							//player[j].use = FALSE;	// デバッグで一時的に無敵にしておくか
-						}
-					}
-				}
-			}
+			PushToTimeState(&g_Interactables[i].timeState, &g_Interactables[i]);
 		}
 	}
 
@@ -319,6 +308,20 @@ void DrawInteractables(void)
 
 }
 
+void PushToTimeState(TIMESTATE* timeState, INTERACTABLE* interactable)
+{
+	timeState->active = interactable->active;
+	timeState->countAnim = interactable->countAnim;
+	timeState->patternAnim = interactable->patternAnim;
+}
+
+void PullFromTimeState(TIMESTATE* timeState, INTERACTABLE* interactable)
+{
+	interactable->active = timeState->active;
+	interactable->countAnim = timeState->countAnim;
+	interactable->patternAnim = timeState->patternAnim;
+}
+
 
 //=============================================================================
 // Enemy構造体の先頭アドレスを取得
@@ -332,7 +335,7 @@ INTERACTABLE* GetInteractables(void)
 // 生きてるエネミーの数
 int GetInteractablesCount(void)
 {
-	return g_ItemCount;
+	return g_InteractablesCount;
 }
 
 void SetInteractable(INTERACTABLE* interactable, BOOL active) 

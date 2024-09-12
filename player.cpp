@@ -186,6 +186,9 @@ HRESULT InitPlayer(void)
 		g_Player[i].inventorySwords = 0;
 		g_Player[i].inventoryMasterKeys = 0;
 
+		g_Player[i].usedInventoryKeys = 0;
+		g_Player[i].usedInventoryMasterKeys = 0;
+
 		// 最初のタイムステートを登録する
 		g_Player[i].timeState.status = WRITABLE;
 		PushToTimeState(&g_Player[i].timeState,&g_Player[i]);
@@ -538,17 +541,17 @@ void UpdatePlayer(void)
 
 										if (interactables[in].id == 0) {
 
-											if (g_Player[i].inventoryKeys > 0) {
+											if (g_Player[i].inventoryKeys - g_Player[i].usedInventoryKeys > 0) {
 												SetInteractable(&interactables[in], FALSE);
-												g_Player[i].inventoryKeys--;
+												g_Player[i].usedInventoryKeys++;
 											}
 										}
 										else {
 											
-											if (g_Player[i].inventoryMasterKeys > 0) {
+											if (g_Player[i].inventoryMasterKeys - g_Player[i].usedInventoryMasterKeys > 0) {
 												SetInteractable(&interactables[in], FALSE);
 												g_reachedGoal = TRUE;
-												g_Player[i].inventoryMasterKeys--;
+												g_Player[i].usedInventoryMasterKeys++;
 											}
 
 										}
@@ -939,6 +942,8 @@ void PushToTimeState(TIMESTATE* timeState, PLAYER* player)
 	timeState->countAnim = player->countAnim;
 	timeState->patternAnim = player->patternAnim;
 	timeState->invincibilityTime = player->invincibilityTime;
+	timeState->usedInventoryKeys = player->usedInventoryKeys;
+	timeState->usedInventoryMKeys = player->usedInventoryMasterKeys;
 }
 
 void PullFromTimeState(TIMESTATE* timeState, PLAYER* player) 
@@ -949,6 +954,8 @@ void PullFromTimeState(TIMESTATE* timeState, PLAYER* player)
 	player->patternAnim = timeState->patternAnim;
 	player->dash = TRUE;
 	player->invincibilityTime = timeState->invincibilityTime;
+	player->usedInventoryKeys = timeState->usedInventoryKeys;
+	player->usedInventoryMasterKeys = timeState->usedInventoryMKeys;
 
 }
 

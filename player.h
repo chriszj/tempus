@@ -66,10 +66,10 @@ struct PLAYER
 	int			jumpCnt;		// ジャンプ中のカウント
 	float		jumpYMax;		// 
 
-	int         inventoryKeys;
+	int         inventoryKeys, usedInventoryKeys;
 	int         inventorySouls;
 	int			inventorySwords;
-	int			inventoryMasterKeys;
+	int			inventoryMasterKeys, usedInventoryMasterKeys;
 
 	float       invincibilityTime;
 	int         maxInvincibilityTime;

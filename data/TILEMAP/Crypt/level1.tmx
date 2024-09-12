@@ -496,7 +496,6 @@
   <object id="407" gid="3529" x="139" y="1909.5" width="13" height="23"/>
   <object id="462" gid="3530" x="518" y="472" width="13" height="40"/>
   <object id="471" gid="3529" x="744" y="470.667" width="13" height="23"/>
-  <object id="474" gid="3529" x="2769.67" y="577.333" width="13" height="23"/>
  </objectgroup>
  <objectgroup id="12" name="Notes" visible="0">
   <object id="412" x="2736" y="896" width="489.333" height="604"/>

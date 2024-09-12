@@ -10,6 +10,7 @@
 #include "renderer.h"
 #include "debugproc.h"
 #include "sprite.h"
+#include "timemachine.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -38,6 +39,8 @@ struct INTERACTABLETYPES {
 struct INTERACTABLE
 {
 	int id = -1;
+
+	TIMESTATE timeState;
 
 	XMFLOAT3	pos;			// ポリゴンの座標
 	XMFLOAT3	rot;			// ポリゴンの回転量

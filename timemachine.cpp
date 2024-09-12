@@ -180,6 +180,10 @@ void UpdateTimeMachine(void)
 				g_RegisteredObjTS[i]->invincibilityTime = g_Timeline[i][g_CurrentTimeStateIndex].invincibilityTime;
 				g_RegisteredObjTS[i]->alive = g_Timeline[i][g_CurrentTimeStateIndex].alive;
 				g_RegisteredObjTS[i]->health = g_Timeline[i][g_CurrentTimeStateIndex].health;
+				g_RegisteredObjTS[i]->active = g_Timeline[i][g_CurrentTimeStateIndex].active;
+				g_RegisteredObjTS[i]->usedInventoryKeys = g_Timeline[i][g_CurrentTimeStateIndex].usedInventoryKeys;
+				g_RegisteredObjTS[i]->usedInventoryMKeys = g_Timeline[i][g_CurrentTimeStateIndex].usedInventoryMKeys;
+				
 			}
 
 		}
@@ -205,8 +209,12 @@ void UpdateTimeMachine(void)
 					newState.invincibilityTime = g_RegisteredObjTS[i]->patternAnim;
 					newState.alive = g_RegisteredObjTS[i]->alive;
 					newState.health = g_RegisteredObjTS[i]->health;
+					newState.active = g_RegisteredObjTS[i]->active;
+					newState.usedInventoryKeys = g_RegisteredObjTS[i]->usedInventoryKeys;
+					newState.usedInventoryMKeys = g_RegisteredObjTS[i]->usedInventoryMKeys;
 
 					g_Timeline[i][g_CurrentTimeStateIndex] = newState;
+
 
 				}
 			
