@@ -36,7 +36,9 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ (char*)"data/BGM/dripping-water-in-cave-114694.wav", -1 },	// BGM1
 	{ (char*)"data/BGM/youwin.wav", 0 },	// BGM2
 	{ (char*)"data/BGM/youloose.wav", 0},
-	{ (char*)"data/SE/foot-step.wav", 0 },		// •à‚­‰¹
+	{ (char*)"data/SE/foot-step-1.wav", 0 },		// •à‚­‰¹
+	{ (char*)"data/SE/foot-step-2.wav", 0 },		// •à‚­‰¹
+	{ (char*)"data/SE/foot-step-3.wav", 0 },		// •à‚­‰¹
 	{ (char*)"data/SE/hit-swing-sword.wav", 0 },// Œ•ƒqƒbƒg‰¹
 	{ (char*)"data/SE/hit-swing-sword2.wav", 0 },// Œ•ƒqƒbƒg‰¹
 	{ (char*)"data/SE/pain-1.wav", 0 },			// ’É‚Ý‰¹

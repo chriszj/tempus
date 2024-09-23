@@ -374,11 +374,11 @@ void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP
 				for (pugi::xml_node xmlCustomTile : tilesetInnerNode.children("tile")) 
 				{
 
-					tileset.customTiles[customTileCount].id = xmlCustomTile.attribute("id").as_int();
-					tileset.customTiles[customTileCount].x = xmlCustomTile.attribute("x").as_int();
-					tileset.customTiles[customTileCount].y = xmlCustomTile.attribute("y").as_int();
-					tileset.customTiles[customTileCount].width = xmlCustomTile.attribute("width").as_int();
-					tileset.customTiles[customTileCount].height = xmlCustomTile.attribute("height").as_int();
+					tileset.customTiles[customTileCount].id = xmlCustomTile.attribute("id").as_int() * MAP_SCALE;
+					tileset.customTiles[customTileCount].x = xmlCustomTile.attribute("x").as_float() * MAP_SCALE;
+					tileset.customTiles[customTileCount].y = xmlCustomTile.attribute("y").as_float() * MAP_SCALE;
+					tileset.customTiles[customTileCount].width = xmlCustomTile.attribute("width").as_float();
+					tileset.customTiles[customTileCount].height = xmlCustomTile.attribute("height").as_float();
 
 					const char* tileTextureSource = xmlCustomTile.child("image").attribute("source").value();
 
@@ -388,7 +388,47 @@ void ParseMap(TILESET tilesets[], MAPTILELAYER mapTileLayers[], FIELDOBJECTGROUP
 				
 					tileset.customTiles[customTileCount].textureW = xmlCustomTile.child("image").attribute("width").as_int();
 				    tileset.customTiles[customTileCount].textureH = xmlCustomTile.child("image").attribute("height").as_int();
-					
+
+					// ゼロで割るがないため
+					if (tileset.customTiles[customTileCount].width <= 0)
+						tileset.customTiles[customTileCount].width = tileset.customTiles[customTileCount].textureW;
+
+					if (tileset.customTiles[customTileCount].height <= 0)
+						tileset.customTiles[customTileCount].height = tileset.customTiles[customTileCount].textureH;
+
+					tileset.customTiles[customTileCount].animDivideX = tileset.customTiles[customTileCount].textureW / tileset.customTiles[customTileCount].width;
+					tileset.customTiles[customTileCount].animDivideY = tileset.customTiles[customTileCount].textureH / tileset.customTiles[customTileCount].height;
+					tileset.customTiles[customTileCount].patternAnimNum = tileset.customTiles[customTileCount].animDivideX / tileset.customTiles[customTileCount].animDivideY;
+
+					tileset.customTiles[customTileCount].width *= MAP_SCALE;
+					tileset.customTiles[customTileCount].height *= MAP_SCALE;
+
+					//当たり安定設定
+					//Tiledから当たり安定の処理が違いので、ゲームに使えるためにデータを交換する。
+					float tColX, tColY, tColW, tColH;
+					tColX = xmlCustomTile.child("objectgroup").child("object").attribute("x").as_float() * MAP_SCALE;
+					tColY = xmlCustomTile.child("objectgroup").child("object").attribute("y").as_float() * MAP_SCALE;
+					tColW = xmlCustomTile.child("objectgroup").child("object").attribute("width").as_float() * MAP_SCALE;
+					tColH = xmlCustomTile.child("objectgroup").child("object").attribute("height").as_float() * MAP_SCALE;
+
+					if (tColW == 0)
+						tColW = tileset.customTiles[customTileCount].width;
+
+					if (tColH == 0)
+						tColH = tileset.customTiles[customTileCount].height;
+
+					COLLIDER2DBOX collider = {};
+
+					float tColX2 = tileset.customTiles[customTileCount].width - (tColX + tColW);
+					float tColY2 = tileset.customTiles[customTileCount].height - (tColY + tColH);
+
+					collider.offsetX = (tColX - tColX2)/2;
+					collider.offsetY = (tColY - tColY2)/2;
+					collider.width = tColW;
+					collider.height = tColH;
+
+					tileset.customTiles[customTileCount].collider = collider;
+
 					customTileCount++;
 				}
 

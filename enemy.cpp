@@ -223,18 +223,11 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].dir = ENEMY_DIR_DOWN;
 		g_Enemy[i].currentAnimState = CHAR_ANIM_IDLE;
 
-		int customTileWidth = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].width;
-		int customTileTextureW = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].textureW;
+		
 
-		int divideX = customTileTextureW / customTileWidth;
-
-		int customTileHeight = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].height;
-		int customTileTextureH = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].textureH;
-		int divideY = customTileTextureH / customTileHeight;
-
-		g_Enemy[i].animDivideX = divideX;
-		g_Enemy[i].animDivideY = divideY;
-		g_Enemy[i].patternAnimNum = divideX * divideY;
+		g_Enemy[i].animDivideX = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].animDivideX;
+		g_Enemy[i].animDivideY = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].animDivideY;
+		g_Enemy[i].patternAnimNum = g_EnemiesTileset->customTiles[g_Enemy[i].texNo].patternAnimNum;
 
 		g_Enemy[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
@@ -627,49 +620,6 @@ void UpdateEnemy(void)
 			// Humming enemies
 
 
-
-			//// 移動処理
-			//if (g_Enemy[i].tblMax > 0)	// 線形補間を実行する？
-			//{	// 線形補間の処理
-			//	int nowNo = (int)g_Enemy[i].time;			// 整数分であるテーブル番号を取り出している
-			//	int maxNo = g_Enemy[i].tblMax;				// 登録テーブル数を数えている
-			//	int nextNo = (nowNo + 1) % maxNo;			// 移動先テーブルの番号を求めている
-			//	INTERPOLATION_DATA* tbl = g_MoveTblAdr[g_Enemy[i].tblNo];	// 行動テーブルのアドレスを取得
-			//	
-			//	XMVECTOR nowPos = XMLoadFloat3(&tbl[nowNo].pos);	// XMVECTORへ変換
-			//	XMVECTOR nowRot = XMLoadFloat3(&tbl[nowNo].rot);	// XMVECTORへ変換
-			//	XMVECTOR nowScl = XMLoadFloat3(&tbl[nowNo].scl);	// XMVECTORへ変換
-			//	
-			//	XMVECTOR Pos = XMLoadFloat3(&tbl[nextNo].pos) - nowPos;	// XYZ移動量を計算している
-			//	XMVECTOR Rot = XMLoadFloat3(&tbl[nextNo].rot) - nowRot;	// XYZ回転量を計算している
-			//	XMVECTOR Scl = XMLoadFloat3(&tbl[nextNo].scl) - nowScl;	// XYZ拡大率を計算している
-			//	
-			//	float nowTime = g_Enemy[i].time - nowNo;	// 時間部分である少数を取り出している
-			//	
-			//	Pos *= nowTime;								// 現在の移動量を計算している
-			//	Rot *= nowTime;								// 現在の回転量を計算している
-			//	Scl *= nowTime;								// 現在の拡大率を計算している
-
-			//	// 計算して求めた移動量を現在の移動テーブルXYZに足している＝表示座標を求めている
-			//	XMStoreFloat3(&g_Enemy[i].pos, nowPos + Pos);
-
-			//	// 計算して求めた回転量を現在の移動テーブルに足している
-			//	XMStoreFloat3(&g_Enemy[i].rot, nowRot + Rot);
-
-			//	// 計算して求めた拡大率を現在の移動テーブルに足している
-			//	XMStoreFloat3(&g_Enemy[i].scl, nowScl + Scl);
-			//	g_Enemy[i].w = TEXTURE_WIDTH * g_Enemy[i].scl.x;
-			//	g_Enemy[i].h = TEXTURE_HEIGHT * g_Enemy[i].scl.y;
-
-			//	// frameを使て時間経過処理をする
-			//	g_Enemy[i].time += 1.0f / tbl[nowNo].frame;	// 時間を進めている
-			//	if ((int)g_Enemy[i].time >= maxNo)			// 登録テーブル最後まで移動したか？
-			//	{
-			//		g_Enemy[i].time -= maxNo;				// ０番目にリセットしつつも小数部分を引き継いでいる
-			//	}
-
-			//}
-
 			// 移動が終わったらエネミーとの当たり判定
 			{
 				PLAYER* player = GetPlayer();
@@ -884,6 +834,7 @@ void AdjustEnemyHP(ENEMY* enemy, int ammount)
 		enemy->invincibilityTime = enemy->maxInvincibilityTime;
 
 		SetEffect(enemy->pos.x, enemy->pos.y, 3, 3);
+		PlaySound(SOUND_LABEL_SE_SWORD_HIT_2);
 
 		if (enemy->hp < 0) {
 			enemy->hp = 0;

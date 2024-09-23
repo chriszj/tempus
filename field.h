@@ -11,6 +11,7 @@
 #include "debugproc.h"
 #include "sprite.h"
 #include <iostream>
+#include "collision.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -21,7 +22,7 @@
 #define MAP_LAYER_MAX			(10)
 #define MAP_SCALE				(1.5)
 #define MAP_DRAW_DEBUG			true
-#define MAP_DRAW_DEBUG_WALLS    false
+#define MAP_DRAW_DEBUG_WALLS    true
 #define MAP_DEBUG_KEY			"Debug"
 #define MAP_OBJLAYERS_MAX		(10)
 #define MAP_OBJECTS_PER_LAYER_MAX (200)
@@ -33,10 +34,12 @@
 #define MAPOBJLAYER_ITEMS       "Items"
 #define MAPOBJLAYER_ENEMIES     "Enemies"
 #define MAPOBJLAYER_INTERACTABLES "Interactables"
+#define MAPOBJLAYER_PROPS       "Props"
 
 #define TILESET_ITEMS_NAME      "Items2"
 #define TILESET_ENEMIES_NAME    "Enemies"
 #define TILESET_INTERACTABLES_NAME "Interactables"
+#define TILESET_PROPS_NAME "Props"
 
 //*****************************************************************************
 // 構造体定義
@@ -46,10 +49,14 @@ struct TILESETCUSTOMTILE {
 
 	// id="1" x="0" y="0" width="13" height="40"
 	int id = -1;
-	int x, y, width, height;
+	float x, y, width, height;
+
+	int animDivideX, animDivideY, patternAnimNum;
 
 	char textureSource[128] = "";
 	int textureW, textureH;
+
+	COLLIDER2DBOX collider;
 
 };
 

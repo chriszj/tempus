@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// エネミー処理 [enemy.h]
+// 小道具処理 [enemy.h]
 // Author : 
 //
 //=============================================================================
@@ -11,32 +11,17 @@
 #include "debugproc.h"
 #include "sprite.h"
 #include "timemachine.h"
-#include "collision.h"
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define INTERACTABLES_MAX		(150)		// エネミーのMax人数
-
-enum {
-	INTERACTABLES_DOOR,
-	INTERACTABLES_MASTER_DOOR,
-	INTERACTABLES_TYPES_MAX
-};
+#define PROPS_MAX		(100)		// エネミーのMax人数
 
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
-struct INTERACTABLETYPES {
 
-	int id;
-	BOOL isAnimReverse;
-	BOOL isDummy;
-
-};
-
-
-struct INTERACTABLE
+struct PROP
 {
 	int id = -1;
 
@@ -47,9 +32,6 @@ struct INTERACTABLE
 	XMFLOAT3	scl;			// ポリゴンの拡大縮小
 	BOOL		use;			// true:使っている  false:未使用
 	float		w, h;			// 幅と高さ
-
-	COLLIDER2DBOX collider;
-
 	float		countAnim;		// アニメーションカウント
 	int			patternAnim;	// アニメーションパターンナンバー
 	int         animDivideX;
@@ -59,24 +41,21 @@ struct INTERACTABLE
 	XMFLOAT3	move;			// 移動速度
 	BOOL        active;
 
-	//INTERPOLATION_DATA* tbl_adr;			// アニメデータのテーブル先頭アドレス
-	//int					tbl_size;			// 登録したテーブルのレコード総数
-	//float				move_time;			// 実行時間
 };
 
 
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-HRESULT InitInteractables(void);
-void UninitInteractables(void);
-void UpdateInteractables(void);
-void DrawInteractables(void);
+HRESULT InitProps(void);
+void UninitProps(void);
+void UpdateProps(void);
+void DrawProps(void);
 
-INTERACTABLE* GetInteractables(void);
+PROP* GetProps(void);
 
-int GetInteractablesCount(void);
-void SetInteractable(INTERACTABLE* interactable, BOOL active);
+int GetPropsCount(void);
+
 
 
 

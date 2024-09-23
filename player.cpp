@@ -297,8 +297,18 @@ void UpdatePlayer(void)
 						animStateIndex += g_Player[i].dir * frameCountX;
 					}
 
-					if (g_anims[g_Player[i].currentAnimState].id == CHAR_ANIM_WALK)
-						PlaySound(SOUND_LABEL_SE_FOOTSTEP);
+					if (((int)g_Player[i].patternAnim % 2 == 0) && g_anims[g_Player[i].currentAnimState].id == CHAR_ANIM_WALK) {
+
+						int randStepSnd = rand() % 3;
+
+						if(randStepSnd == 0 )
+							PlaySound(SOUND_LABEL_SE_FOOTSTEP_1);
+						else if (randStepSnd == 1)
+							PlaySound(SOUND_LABEL_SE_FOOTSTEP_2);
+						else
+							PlaySound(SOUND_LABEL_SE_FOOTSTEP_3);
+
+					}
 
 					g_Player[i].patternAnim = (animStateIndex) + ((g_Player[i].patternAnim + 1) % frameCountX);
 
@@ -480,11 +490,11 @@ void UpdatePlayer(void)
 						for (int in = 0; in < INTERACTABLES_MAX; in++)
 						{
 							// 生きてるエネミーと当たり判定をする
-							if (interactables[in].use == TRUE && interactables[in].active && !interactables[in].dummy)
+							if (interactables[in].use == TRUE && interactables[in].active)
 							{
 
 								XMFLOAT3 intPos = XMFLOAT3(interactables[in].pos.x, interactables[in].pos.y, 0.0f);
-								COLLIDER2DBOX intCollider = COLLIDER2DBOX(0.0f, 0.0f, interactables[in].w, interactables[in].h/2);
+								COLLIDER2DBOX intCollider = interactables[in].collider;
 
 								// X方の当たり判定
 								BOOL ansX = CollisionBB(newXPos, g_Player[i].collider, intPos, intCollider);

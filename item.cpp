@@ -110,20 +110,10 @@ HRESULT InitItem(void)
 		g_Item[i].id = g_Item[i].texNo;
 
 		g_Item[i].countAnim = 0;
-		g_Item[i].patternAnim = 0;
 
-		int customTileWidth = g_ItemsTileset->customTiles[g_Item[i].texNo].width;
-		int customTileTextureW = g_ItemsTileset->customTiles[g_Item[i].texNo].textureW;
-
-		int divideX = customTileTextureW / customTileWidth;
-
-		int customTileHeight = g_ItemsTileset->customTiles[g_Item[i].texNo].height;
-		int customTileTextureH = g_ItemsTileset->customTiles[g_Item[i].texNo].textureH;
-		int divideY = customTileTextureH / customTileHeight;
-
-		g_Item[i].animDivideX = divideX;
-		g_Item[i].animDivideY = divideY;
-		g_Item[i].patternAnimNum = divideX*divideY;
+		g_Item[i].animDivideX = g_ItemsTileset->customTiles[g_Item[i].texNo].animDivideX;
+		g_Item[i].animDivideY = g_ItemsTileset->customTiles[g_Item[i].texNo].animDivideY;
+		g_Item[i].patternAnimNum = g_ItemsTileset->customTiles[g_Item[i].texNo].patternAnimNum;
 
 		g_Item[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
@@ -326,20 +316,10 @@ void SetItem(XMFLOAT3 pos, int itemType)
 			g_Item[i].id = g_Item[i].texNo;
 
 			g_Item[i].countAnim = 0;
-			g_Item[i].patternAnim = 0;
 
-			int customTileWidth = g_ItemsTileset->customTiles[g_Item[i].texNo].width;
-			int customTileTextureW = g_ItemsTileset->customTiles[g_Item[i].texNo].textureW;
-
-			int divideX = customTileTextureW / customTileWidth;
-
-			int customTileHeight = g_ItemsTileset->customTiles[g_Item[i].texNo].height;
-			int customTileTextureH = g_ItemsTileset->customTiles[g_Item[i].texNo].textureH;
-			int divideY = customTileTextureH / customTileHeight;
-
-			g_Item[i].animDivideX = divideX;
-			g_Item[i].animDivideY = divideY;
-			g_Item[i].patternAnimNum = divideX * divideY;
+			g_Item[i].animDivideX = g_ItemsTileset->customTiles[g_Item[i].texNo].animDivideX;
+			g_Item[i].animDivideY = g_ItemsTileset->customTiles[g_Item[i].texNo].animDivideY;
+			g_Item[i].patternAnimNum = g_ItemsTileset->customTiles[g_Item[i].texNo].patternAnimNum;
 
 			g_Item[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 			return;							// 1発セットしたので終了する

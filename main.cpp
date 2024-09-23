@@ -14,6 +14,7 @@
 #include "tutorial.h"
 #include "bg.h"
 #include "field.h"
+#include "props.h"
 #include "interactables.h"
 #include "player.h"
 #include "enemy.h"
@@ -326,6 +327,7 @@ void Update(void)
 		UpdateBG();
 		UpdateField();
 		UpdateInteractables();
+		UpdateProps();
 		UpdatePlayer();
 		UpdateEnemy();
 		UpdateItem();
@@ -396,6 +398,7 @@ void Draw(void)
 		DrawField(0);
 		DrawField(1);
 		DrawField(3);
+		DrawProps();
 		DrawInteractables();
 		DrawPlayer();
 		DrawWeapon();		// 重なる順番を意識してね
@@ -471,6 +474,8 @@ void SetMode(int mode)
 	// マップチップの終了処理
 	UninitField();
 
+	UninitProps();
+
 	UninitInteractables();
 
 	// プレイヤーの終了処理
@@ -511,6 +516,7 @@ void SetMode(int mode)
 		InitTimeMachine();
 		InitBG();
 		InitField();
+		InitProps();
 		InitInteractables();
 		InitPlayer();
 		InitEnemy();

@@ -33,22 +33,22 @@
 // 回転は考慮しない
 // 戻り値：当たってたらtrue
 //=============================================================================
-BOOL CollisionBB(XMFLOAT3 mpos, float mw, float mh,
-	XMFLOAT3 ypos, float yw, float yh)
+BOOL CollisionBB(XMFLOAT3 objApos, float objAWidth, float objAHeight,
+	XMFLOAT3 objBPos, float objBWidth, float objBHeight)
 {
 	BOOL ans = FALSE;	// 外れをセットしておく
 
 	// 座標が中心点なので計算しやすく半分にしている
-	mw /= 2;
-	mh /= 2;
-	yw /= 2;
-	yh /= 2;
+	objAWidth /= 2;
+	objAHeight /= 2;
+	objBWidth /= 2;
+	objBHeight /= 2;
 
 	// バウンディングボックス(BB)の処理
-	if ((mpos.x + mw > ypos.x - yw) &&
-		(mpos.x - mw < ypos.x + yw) &&
-		(mpos.y + mh > ypos.y - yh) &&
-		(mpos.y - mh < ypos.y + yh))
+	if ((objApos.x + objAWidth > objBPos.x - objBWidth) &&
+		(objApos.x - objAWidth < objBPos.x + objBWidth) &&
+		(objApos.y + objAHeight > objBPos.y - objBHeight) &&
+		(objApos.y - objAHeight < objBPos.y + objBHeight))
 	{
 		// 当たった時の処理
 		ans = TRUE;
@@ -57,16 +57,16 @@ BOOL CollisionBB(XMFLOAT3 mpos, float mw, float mh,
 	return ans;
 }
 
-BOOL CollisionBB(XMFLOAT3 mpos, COLLIDER2DBOX mcollider, XMFLOAT3 ypos, COLLIDER2DBOX ycollider)
+BOOL CollisionBB(XMFLOAT3 objAPos, COLLIDER2DBOX objAcollider, XMFLOAT3 objBPos, COLLIDER2DBOX objBCollider)
 {
 
-	mpos.x += mcollider.offsetX;
-	mpos.y += mcollider.offsetY;
+	objAPos.x += objAcollider.offsetX;
+	objAPos.y += objAcollider.offsetY;
 
-	ypos.x += ycollider.offsetX;
-	ypos.y += ycollider.offsetY;
+	objBPos.x += objBCollider.offsetX;
+	objBPos.y += objBCollider.offsetY;
 
-	return CollisionBB(mpos,mcollider.width, mcollider.height, ypos, ycollider.width, ycollider.height);
+	return CollisionBB(objAPos,objAcollider.width, objAcollider.height, objBPos, objBCollider.width, objBCollider.height);
 
 }
 

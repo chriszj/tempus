@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="bg.h" />
     <ClInclude Include="interactables.h" />
+    <ClInclude Include="props.h" />
     <ClInclude Include="weapon.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="collision.h" />
@@ -164,6 +165,7 @@
   <ItemGroup>
     <ClCompile Include="bg.cpp" />
     <ClCompile Include="interactables.cpp" />
+    <ClCompile Include="props.cpp" />
     <ClCompile Include="weapon.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="collision.cpp" />
