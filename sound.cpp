@@ -42,11 +42,14 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ (char*)"data/SE/hit-swing-sword.wav", 0 },// 剣ヒット音
 	{ (char*)"data/SE/hit-swing-sword2.wav", 0 },// 剣ヒット音
 	{ (char*)"data/SE/pain-1.wav", 0 },			// 痛み音
-	{ (char*)"data/SE/pain-2.wav", 0 },		// 痛み音
+	{ (char*)"data/SE/pain-2.wav", 0 },         //鳴き声音
+	{ (char*)"data/SE/fall-scream.wav", 0 },		// 痛み音
 	{ (char*)"data/SE/sword-swipes-1.wav", 0 },		// 剣音
 	{ (char*)"data/SE/sword-swipes-2.wav", 0 },		// 剣音
 	{ (char*)"data/SE/sword-swipes-3.wav", 0 },		// 剣音
 	{ (char*)"data/SE/sword-swipes-4.wav", 0 },		// 剣音
+	{ (char*)"data/SE/falling-1.wav", 0 },		// 落ちる音
+	{ (char*)"data/SE/stones-falling-1.wav", 0 },	// 石音
 
 };
 

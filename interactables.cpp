@@ -11,6 +11,7 @@
 #include "collision.h"
 #include "field.h"
 #include "gui.h"
+#include "sound.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -52,8 +53,10 @@ static TILESET* g_InteractablesTileset;
 
 static INTERACTABLETYPES g_InteractableTypes[INTERACTABLES_TYPES_MAX] =
 {
-	{INTERACTABLES_DOOR, TRUE, FALSE },
-	{INTERACTABLES_MASTER_DOOR, FALSE, FALSE }
+	{INTERACTABLES_DOOR, TRUE },
+	{INTERACTABLES_MASTER_DOOR, FALSE },
+	{INTERACTABLES_PIT, TRUE,0, 12, 13, 19},
+	{INTERACTABLES_PIT_2, TRUE, 0, 12, 13, 19}
 };
 
 //=============================================================================
@@ -105,6 +108,8 @@ HRESULT InitInteractables(void)
 			continue;
 
 		g_Interactables[i].active = TRUE;
+		g_Interactables[i].interactionMode = -1;
+		g_Interactables[i].id = i;
 		
 		g_Interactables[i].pos = XMFLOAT3((mapObjects[i].x ), (mapObjects[i].y - (mapObjects[i].height)), 0.0f);
 		g_Interactables[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -113,15 +118,19 @@ HRESULT InitInteractables(void)
 		g_Interactables[i].h = mapObjects[i].height;
 		g_Interactables[i].texNo = mapObjects[i].gid - g_InteractablesTileset->firstGID -1;
 		//　使っているテキスチャーで種類がわかれる
-		g_Interactables[i].id = g_Interactables[i].texNo;
+		g_Interactables[i].type = g_Interactables[i].texNo;
 
 		g_Interactables[i].collider = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].collider;
 
 		g_Interactables[i].countAnim = 0;
 
-		g_Interactables[i].animDivideX = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].animDivideX;
-		g_Interactables[i].animDivideY = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].animDivideY;
-		g_Interactables[i].patternAnimNum = g_InteractablesTileset->customTiles[g_Interactables[i].texNo].patternAnimNum;
+		g_Interactables[i].animDivideX = g_InteractablesTileset->customTiles[g_Interactables[i].type].animDivideX;
+		g_Interactables[i].animDivideY = g_InteractablesTileset->customTiles[g_Interactables[i].type].animDivideY;
+		g_Interactables[i].patternAnimNum = g_InteractablesTileset->customTiles[g_Interactables[i].type].patternAnimNum;
+		g_Interactables[i].normalModeMinFrame = g_InteractableTypes[g_Interactables[i].type].normalModeMinFrame;
+		g_Interactables[i].normalModeMaxFrame = g_InteractableTypes[g_Interactables[i].type].normalModeMaxFrame;
+		g_Interactables[i].hostileModeMinFrame = g_InteractableTypes[g_Interactables[i].type].hostileModeMinFrame;
+		g_Interactables[i].hostileModeMaxFrame = g_InteractableTypes[g_Interactables[i].type].hostileModeMaxFrame;
 
 		g_Interactables[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
@@ -176,8 +185,8 @@ void UpdateInteractables(void)
 		// 生きてるエネミーだけ処理をする
 		if (g_Interactables[i].use == TRUE)
 		{
-			if (g_Interactables[i].id == 1);
-				g_InteractablesCount++;		// 生きてた敵の数
+			
+			g_InteractablesCount++;		
 
 			if (g_Interactables[i].timeState.status == READ_ONLY)
 			{
@@ -204,6 +213,10 @@ void UpdateInteractables(void)
 					{
 						nextFrame--;
 					}
+					/*else {
+						g_Interactables[i].interactionMode = 0;
+						g_Interactables[i].active = TRUE;
+					}*/
 					
 
 				}
@@ -213,15 +226,65 @@ void UpdateInteractables(void)
 					{
 						nextFrame++;
 					}
+					/*else {
+						g_Interactables[i].interactionMode = 0;
+						g_Interactables[i].active = FALSE;
+					}*/
 
 				}
 
 				g_Interactables[i].patternAnim = (g_Interactables[i].patternAnim + nextFrame) % g_Interactables[i].patternAnimNum;
+
+				if (g_Interactables[i].normalModeMinFrame >= 0 && g_Interactables[i].normalModeMaxFrame >= 1)
+				{
+					if (g_Interactables[i].patternAnim >= g_Interactables[i].normalModeMinFrame && g_Interactables[i].patternAnim <= g_Interactables[i].normalModeMaxFrame)
+						g_Interactables[i].interactionMode = INTERACTION_MODE_NORMAL;
+				}
+
+				if (g_Interactables[i].hostileModeMinFrame >= 0 && g_Interactables[i].hostileModeMaxFrame >= 1)
+				{
+					if (g_Interactables[i].patternAnim >= g_Interactables[i].hostileModeMinFrame && g_Interactables[i].patternAnim <= g_Interactables[i].hostileModeMaxFrame)
+						g_Interactables[i].interactionMode = INTERACTION_MODE_HOSTILE;
+				}
+
 			}
+
+			if (g_Interactables[i].type == INTERACTABLES_PIT || g_Interactables[i].type == INTERACTABLES_PIT_2) {
+
+				PLAYER* player = GetPlayer();
+
+				// エネミーの数分当たり判定を行う
+				for (int p = 0; p < PLAYER_MAX; p++)
+				{
+					// 生きてるエネミーと当たり判定をする
+					if (player[p].use == TRUE)
+					{
+
+						// X方の当たり判定
+						BOOL ans = CollisionBB(player[p].pos, player[p].collider, g_Interactables[i].pos, g_Interactables[i].collider);
+
+						// 当たっている？
+						if (ans == TRUE)
+						{
+							if (g_Interactables[i].interactionMode == INTERACTION_MODE_NORMAL) {
+								SetInteractable(&g_Interactables[i], FALSE);
+								PlaySound(SOUND_LABEL_SE_ROCK_CRACK);
+							}
+							else
+								MakePlayerFall(player, 10);
+								
+						}
+					}
+				}
+
+			}
+			
 
 			PushToTimeState(&g_Interactables[i].timeState, &g_Interactables[i]);
 		}
 	}
+
+
 
 #ifdef _DEBUG	// デバッグ情報を表示する
 
@@ -301,6 +364,7 @@ void DrawInteractables(void)
 void PushToTimeState(TIMESTATE* timeState, INTERACTABLE* interactable)
 {
 	timeState->active = interactable->active;
+	timeState->interactionMode = interactable->interactionMode;
 	timeState->countAnim = interactable->countAnim;
 	timeState->patternAnim = interactable->patternAnim;
 }
@@ -308,6 +372,7 @@ void PushToTimeState(TIMESTATE* timeState, INTERACTABLE* interactable)
 void PullFromTimeState(TIMESTATE* timeState, INTERACTABLE* interactable)
 {
 	interactable->active = timeState->active;
+	interactable->interactionMode = timeState->interactionMode;
 	interactable->countAnim = timeState->countAnim;
 	interactable->patternAnim = timeState->patternAnim;
 }
@@ -332,6 +397,7 @@ void SetInteractable(INTERACTABLE* interactable, BOOL active)
 {
 
 	interactable->active = active;
+	//interactable->interactionMode = active ? 1 : -1;
 }
 
 

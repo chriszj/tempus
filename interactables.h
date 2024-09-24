@@ -21,7 +21,14 @@
 enum {
 	INTERACTABLES_DOOR,
 	INTERACTABLES_MASTER_DOOR,
+	INTERACTABLES_PIT,
+	INTERACTABLES_PIT_2,
 	INTERACTABLES_TYPES_MAX
+};
+
+enum { 
+	INTERACTION_MODE_NORMAL,
+	INTERACTION_MODE_HOSTILE
 };
 
 //*****************************************************************************
@@ -31,14 +38,17 @@ struct INTERACTABLETYPES {
 
 	int id;
 	BOOL isAnimReverse;
-	BOOL isDummy;
-
+	int normalModeMinFrame = -1;
+	int normalModeMaxFrame = -1;
+	int hostileModeMinFrame = -1;
+	int hostileModeMaxFrame = -1;
 };
 
 
 struct INTERACTABLE
 {
 	int id = -1;
+	int type = -1;
 
 	TIMESTATE timeState;
 
@@ -55,9 +65,14 @@ struct INTERACTABLE
 	int         animDivideX;
 	int         animDivideY;
 	int         patternAnimNum;
+	int			normalModeMinFrame = -1;
+	int			normalModeMaxFrame = -1;
+	int			hostileModeMinFrame = -1;
+	int			hostileModeMaxFrame = -1;
 	int			texNo;			// テクスチャ番号
 	XMFLOAT3	move;			// 移動速度
 	BOOL        active;
+	int         interactionMode;
 
 	//INTERPOLATION_DATA* tbl_adr;			// アニメデータのテーブル先頭アドレス
 	//int					tbl_size;			// 登録したテーブルのレコード総数

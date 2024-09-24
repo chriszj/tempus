@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="102" height="82" tilewidth="32" tileheight="32" infinite="0" nextlayerid="14" nextobjectid="520">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="102" height="82" tilewidth="32" tileheight="32" infinite="0" nextlayerid="14" nextobjectid="536">
  <tileset firstgid="1" source="Tileset-Terrain.tsx"/>
  <tileset firstgid="2901" source="wall 1.tsx"/>
  <tileset firstgid="3141" source="Atlas-Props-sprites.tsx"/>
  <tileset firstgid="3529" source="Items2.tsx"/>
  <tileset firstgid="3535" source="Enemies.tsx"/>
  <tileset firstgid="3539" source="Interactables.tsx"/>
- <tileset firstgid="3542" source="Props.tsx"/>
+ <tileset firstgid="3544" source="Props.tsx"/>
  <layer id="1" name="Base" width="102" height="82">
   <data encoding="csv">
 517,519,569,518,519,518,569,518,519,569,519,569,518,569,518,569,518,518,569,569,519,469,469,569,518,518,519,519,519,519,519,519,569,518,519,518,569,569,569,569,518,519,569,569,520,569,519,519,519,569,569,569,518,519,518,519,569,518,518,518,519,569,519,518,569,569,569,470,419,419,419,419,468,519,519,519,569,569,518,519,519,569,518,569,518,569,569,519,519,519,521,517,569,569,569,570,568,569,569,519,569,519,
@@ -352,22 +352,37 @@
 </data>
  </layer>
  <objectgroup id="5" name="Props" class="Props">
-  <object id="499" gid="3546" x="1559.33" y="2188" width="64" height="96"/>
-  <object id="500" gid="3545" x="1462" y="2063.33" width="64" height="64"/>
-  <object id="502" gid="3548" x="1459.67" y="2027" width="32" height="32"/>
-  <object id="504" gid="3548" x="1477.33" y="2023.67" width="32" height="32"/>
-  <object id="505" gid="3548" x="1465" y="2032.67" width="32" height="32"/>
-  <object id="506" gid="3549" x="1443.67" y="2031.67" width="64" height="64"/>
-  <object id="508" gid="3549" x="1461.33" y="2027" width="64" height="64"/>
-  <object id="509" gid="3549" x="1560" y="2168.33" width="64" height="64"/>
-  <object id="510" gid="3550" x="1449.33" y="2037" width="64" height="64"/>
-  <object id="511" gid="3547" x="1824.33" y="2067.33" width="64" height="64"/>
-  <object id="512" gid="3542" x="1648.33" y="2092.33" width="64" height="64"/>
-  <object id="513" gid="3551" x="479" y="898.5" width="96" height="128"/>
-  <object id="514" gid="3551" x="2593.5" y="899" width="96" height="128"/>
+  <object id="499" gid="3548" x="1559.33" y="2188" width="64" height="96"/>
+  <object id="500" gid="3547" x="1462" y="2063.33" width="64" height="64"/>
+  <object id="502" gid="3550" x="1459.67" y="2027" width="32" height="32"/>
+  <object id="504" gid="3550" x="1477.33" y="2023.67" width="32" height="32"/>
+  <object id="505" gid="3550" x="1465" y="2032.67" width="32" height="32"/>
+  <object id="506" gid="3551" x="1443.67" y="2031.67" width="64" height="64"/>
+  <object id="508" gid="3551" x="1461.33" y="2027" width="64" height="64"/>
+  <object id="509" gid="3551" x="1560" y="2168.33" width="64" height="64"/>
+  <object id="510" gid="3552" x="1449.33" y="2037" width="64" height="64"/>
+  <object id="511" gid="3549" x="1824.33" y="2067.33" width="64" height="64"/>
+  <object id="512" gid="3544" x="1648.33" y="2092.33" width="64" height="64"/>
+  <object id="513" gid="3553" x="479" y="898.5" width="96" height="128"/>
+  <object id="514" gid="3553" x="2593.5" y="899" width="96" height="128"/>
  </objectgroup>
- <objectgroup id="3" name="Locations" class="Locations" visible="0">
+ <objectgroup id="3" name="Locations" class="Locations">
   <object id="23" name="PlayerStartPoint" type="PlayerStartPoint" x="1535.17" y="2183.83"/>
+  <object id="529" name="CheckPoint" type="CheckPoint" x="1793" y="2319.5">
+   <point/>
+  </object>
+  <object id="530" name="CheckPoint" type="CheckPoint" x="1744" y="2270.5">
+   <point/>
+  </object>
+  <object id="531" name="CheckPoint" type="CheckPoint" x="1840" y="2271">
+   <point/>
+  </object>
+  <object id="532" name="CheckPoint" type="CheckPoint" x="1792" y="2224">
+   <point/>
+  </object>
+  <object id="533" name="CheckPoint" type="CheckPoint" x="1792.5" y="2162">
+   <point/>
+  </object>
  </objectgroup>
  <objectgroup id="4" name="Wall" class="Wall" visible="0" locked="1">
   <object id="21" x="1453.83" y="1876" width="422.667" height="163.833"/>
@@ -487,11 +502,14 @@
   <object id="455" gid="3541" x="1569" y="928" width="128" height="96"/>
   <object id="458" gid="3540" x="2597.67" y="901.667" width="96" height="160"/>
   <object id="459" gid="3540" x="483.5" y="902.833" width="96" height="160"/>
+  <object id="521" gid="3542" x="1761.5" y="2208.5" width="32" height="32"/>
+  <object id="522" gid="3542" x="1792" y="2208.5" width="32" height="32"/>
+  <object id="523" gid="3543" x="1759.5" y="2304.5" width="64" height="64"/>
  </objectgroup>
  <objectgroup id="10" name="Items" class="Items">
   <object id="407" gid="3529" x="139" y="1909.5" width="13" height="23"/>
   <object id="462" gid="3530" x="518" y="472" width="13" height="40"/>
-  <object id="519" gid="3532" x="1756" y="2186.5" width="13" height="23"/>
+  <object id="524" gid="3529" x="1848.5" y="2230.5" width="13" height="23"/>
  </objectgroup>
  <objectgroup id="12" name="Notes" visible="0">
   <object id="412" x="2736" y="896" width="489.333" height="604"/>

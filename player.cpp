@@ -87,6 +87,7 @@ static ANIM_DATA g_anims[CHAR_ANIM_MAX] =
 static BOOL		g_Load = FALSE;				// 初期化を行ったかのフラグ
 static PLAYER	g_Player[PLAYER_MAX];		// プレイヤー構造体
 static int		g_PlayerCount = PLAYER_MAX;	// 生きてるプレイヤーの数
+static MAPOBJECT* g_CheckPoints;
 
 static int      g_jumpCnt = 0;
 static int		g_jump[PLAYER_JUMP_CNT_MAX] =
@@ -136,11 +137,11 @@ HRESULT InitPlayer(void)
 
 	XMFLOAT3 startPosition = XMFLOAT3(400.0f, 400.0f, 0.0f);
 
-	MAPOBJECT* fieldPositions = GetMapObjectByNameFromLayer(MAPOBJLAYER_LOCATIONS, MAPOBJTYPE_PLAYERSTART);
+	g_CheckPoints = GetMapObjectsFromLayer(MAPOBJLAYER_LOCATIONS);
 
-	if (fieldPositions != NULL)
+	if (g_CheckPoints != NULL)
 	{
-		startPosition = XMFLOAT3((fieldPositions[0].x) - (TEXTURE_WIDTH / 4), (fieldPositions[0].y)-(TEXTURE_HEIGHT/2), 0.0f);
+		startPosition = XMFLOAT3((g_CheckPoints[0].x) - (TEXTURE_WIDTH / 4), (g_CheckPoints[0].y)-(TEXTURE_HEIGHT/2), 0.0f);
 	}
 
 	// プレイヤー構造体の初期化
@@ -150,6 +151,7 @@ HRESULT InitPlayer(void)
 
 		g_Player[i].use = TRUE;
 		g_Player[i].pos = startPosition;	// 中心点から表示
+		g_Player[i].lastCheckPointPos = startPosition;
 		g_Player[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Player[i].w = TEXTURE_WIDTH;
 		g_Player[i].h = TEXTURE_HEIGHT;
@@ -315,8 +317,13 @@ void UpdatePlayer(void)
 					if (!g_anims[g_Player[i].currentAnimState].cancellable)
 					{
 						int lastFrame = animStateIndex + frameCountX;
-						if (g_Player[i].patternAnim + 1 >= lastFrame)
+						if (g_Player[i].patternAnim + 1 >= lastFrame) {
+							
+							if (g_anims[g_Player[i].currentAnimState].id == CHAR_ANIM_FALL)
+								g_Player[i].pos = g_Player[i].lastCheckPointPos;
+
 							SetCharacterState(CHAR_ANIM_IDLE, &g_Player[i], TRUE);
+						}
 					}
 
 				}
@@ -417,11 +424,11 @@ void UpdatePlayer(void)
 							
 						}
 
-						/*if (GetKeyboardTrigger(DIK_U))
+						if (GetKeyboardTrigger(DIK_U))
 						{
-							SetCharacterState(CHAR_ANIM_FALL, &g_Player[i], TRUE);
-							
-						}*/
+							//SetCharacterState(CHAR_ANIM_FALL, &g_Player[i], TRUE);
+							MakePlayerFall(&g_Player[i], 10);
+						}
 					}
 
 
@@ -489,93 +496,90 @@ void UpdatePlayer(void)
 						// エネミーの数分当たり判定を行う
 						for (int in = 0; in < INTERACTABLES_MAX; in++)
 						{
-							// 生きてるエネミーと当たり判定をする
-							if (interactables[in].use == TRUE && interactables[in].active)
+
+							if (interactables[in].use == FALSE)
+								continue;
+
+							if (interactables[in].type == INTERACTABLES_DOOR || interactables[in].type == INTERACTABLES_MASTER_DOOR) 
 							{
 
-								XMFLOAT3 intPos = XMFLOAT3(interactables[in].pos.x, interactables[in].pos.y, 0.0f);
-								COLLIDER2DBOX intCollider = interactables[in].collider;
-
-								// X方の当たり判定
-								BOOL ansX = CollisionBB(newXPos, g_Player[i].collider, intPos, intCollider);
-
-								if (ansX)
+								if ( (interactables[in].active /*&& interactables[in].activationStatus != -1*/))
 								{
-									g_Player[i].move.x = 0;
-									newXPos.x = g_Player[i].pos.x;
-								}
 
-								// Y方の当たり判定
-								BOOL ansY = CollisionBB(newYPos, g_Player[i].collider, intPos, intCollider);
+									XMFLOAT3 intPos = XMFLOAT3(interactables[in].pos.x, interactables[in].pos.y, 0.0f);
 
-								if (ansY)
-								{
-									g_Player[i].move.y = 0;
-									newYPos.y = g_Player[i].pos.y;
-								}
+									// X方の当たり判定
+									BOOL ansX = CollisionBB(newXPos, g_Player[i].collider, intPos, interactables[in].collider);
 
-								XMFLOAT3 interactionPos = g_Player[i].pos;
-
-								switch (g_Player[i].dir) {
-								
-								case CHAR_DIR_UP:
-								case CHAR_DIR_LEFT_UP:
-								case CHAR_DIR_UP_RIGHT:
-									interactionPos.y -= 20;
-									break;
-								case CHAR_DIR_DOWN:
-								case CHAR_DIR_DOWN_LEFT:
-								case CHAR_DIR_RIGHT_DOWN:
-									interactionPos.y += 20;
-									break;
-								}
-
-
-								BOOL ans = CollisionBB(interactionPos, g_Player[i].w / 2, g_Player[i].h / 2,
-									interactables[in].pos, interactables[in].w / 2, interactables[in].h / 2);
-								//// 当たっている？
-								if (ans == TRUE)
-								{
-									// 当たった時の処理
-									/*switch (item[itm].id)
+									if (ansX)
 									{
-									case KEY:
-										g_Player[i].inventoryKeys++;
+										g_Player[i].move.x = 0;
+										newXPos.x = g_Player[i].pos.x;
+									}
+
+									// Y方の当たり判定
+									BOOL ansY = CollisionBB(newYPos, g_Player[i].collider, intPos, interactables[in].collider);
+
+									if (ansY)
+									{
+										g_Player[i].move.y = 0;
+										newYPos.y = g_Player[i].pos.y;
+									}
+
+									XMFLOAT3 interactionPos = g_Player[i].pos;
+
+									switch (g_Player[i].dir) {
+
+									case CHAR_DIR_UP:
+									case CHAR_DIR_LEFT_UP:
+									case CHAR_DIR_UP_RIGHT:
+										interactionPos.y -= 20;
 										break;
-									case SOUL:
-										g_Player[i].inventorySouls++;
-										break;
-									default:
+									case CHAR_DIR_DOWN:
+									case CHAR_DIR_DOWN_LEFT:
+									case CHAR_DIR_RIGHT_DOWN:
+										interactionPos.y += 20;
 										break;
 									}
 
-									item[itm].use = FALSE;*/
 
-									if (GetKeyboardTrigger(DIK_K) || IsButtonTriggered(0, BUTTON_X)) {
+									BOOL ans = CollisionBB(interactionPos, g_Player[i].w / 2, g_Player[i].h / 2,
+										interactables[in].pos, interactables[in].w / 2, interactables[in].h / 2);
+									//// 当たっている？
+									if (ans == TRUE)
+									{
+										
 
-										if (interactables[in].id == 0) {
+										if (GetKeyboardTrigger(DIK_K) || IsButtonTriggered(0, BUTTON_X)) {
 
-											if (g_Player[i].inventoryKeys - g_Player[i].usedInventoryKeys > 0) {
-												SetInteractable(&interactables[in], FALSE);
-												g_Player[i].usedInventoryKeys++;
+											if (interactables[in].type == 0) {
+
+												if (g_Player[i].inventoryKeys - g_Player[i].usedInventoryKeys > 0) {
+													SetInteractable(&interactables[in], FALSE);
+													g_Player[i].usedInventoryKeys++;
+												}
 											}
-										}
-										else {
-											
-											if (g_Player[i].inventoryMasterKeys - g_Player[i].usedInventoryMasterKeys > 0) {
-												SetInteractable(&interactables[in], FALSE);
-												g_reachedGoal = TRUE;
-												g_Player[i].usedInventoryMasterKeys++;
+											else {
+
+												if (g_Player[i].inventoryMasterKeys - g_Player[i].usedInventoryMasterKeys > 0) {
+													SetInteractable(&interactables[in], FALSE);
+													g_reachedGoal = TRUE;
+													g_Player[i].usedInventoryMasterKeys++;
+												}
+
 											}
 
 										}
+
+
 
 									}
-
-									
 
 								}
+
 							}
+							
+
 						}
 
 					}
@@ -583,29 +587,6 @@ void UpdatePlayer(void)
 					g_Player[i].pos.x = newXPos.x;
 					g_Player[i].pos.y = newYPos.y;
 
-
-					// 移動が終わったらエネミーとの当たり判定
-					{
-						ENEMY* enemy = GetEnemy();
-
-						// エネミーの数分当たり判定を行う
-						for (int j = 0; j < ENEMY_MAX; j++)
-						{
-							// 生きてるエネミーと当たり判定をする
-							if (enemy[j].use == TRUE)
-							{
-								BOOL ans = CollisionBB(g_Player[i].pos, g_Player[i].w/2, g_Player[i].h/2,
-									enemy[j].pos, enemy[j].w/2, enemy[j].h/2);
-								// 当たっている？
-								if (ans == TRUE)
-								{
-									// 当たった時の処理
-									//enemy[j].use = FALSE;
-									//AddScore(10);
-								}
-							}
-						}
-					}
 
 					// アイテムの当たり判定
 					{
@@ -649,6 +630,21 @@ void UpdatePlayer(void)
 							}
 						}
 
+					}
+
+					// チェックポイント処理
+					{
+						for (int cp = 0; cp < MAP_OBJECTS_PER_LAYER_MAX; cp++)
+						{
+							XMFLOAT3 checkPointPos = { g_CheckPoints[cp].x, g_CheckPoints[cp].y, 0.0f };
+
+							BOOL ans = CollisionBC(g_Player[i].pos, checkPointPos, 3, 4);
+							// 当たっている？
+							if (ans == TRUE)
+							{
+								g_Player[i].lastCheckPointPos = checkPointPos;
+							}
+						}
 					}
 
 					
@@ -920,6 +916,23 @@ void AdjustPlayerHP(PLAYER* player, int ammount) {
 }
 
 
+void MakePlayerFall(PLAYER* player, int fallDmg) {
+	
+	player->hp += fallDmg;
+	SetCharacterState(CHAR_ANIM_FALL, player, TRUE);
+
+	int randSnd = 6;//rand() % 10;
+
+	//if (randSnd >= 5)
+		PlaySound(SOUND_LABEL_SE_FALL);
+	//else
+		PlaySound(SOUND_LABEL_SE_FALL_SCREAM);
+
+	if (player->hp < 0)
+		player->use = FALSE;
+
+}
+
 //=============================================================================
 // プレイヤーの分身を描画
 //=============================================================================
@@ -962,6 +975,8 @@ void PushToTimeState(TIMESTATE* timeState, PLAYER* player)
 {
 	timeState->x = player->pos.x;
 	timeState->y = player->pos.y;
+	timeState->lastCheckPosX = player->lastCheckPointPos.x;
+	timeState->lastCheckPosY = player->lastCheckPointPos.y;
 	timeState->countAnim = player->countAnim;
 	timeState->patternAnim = player->patternAnim;
 	timeState->invincibilityTime = player->invincibilityTime;
@@ -973,6 +988,8 @@ void PullFromTimeState(TIMESTATE* timeState, PLAYER* player)
 {
 	player->pos.x = timeState->x;
 	player->pos.y = timeState->y;
+	player->lastCheckPointPos.x = timeState->lastCheckPosX;
+	player->lastCheckPointPos.y = timeState->lastCheckPosY;
 	player->countAnim = timeState->countAnim;
 	player->patternAnim = timeState->patternAnim;
 	player->dash = TRUE;

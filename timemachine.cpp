@@ -175,6 +175,8 @@ void UpdateTimeMachine(void)
 				g_RegisteredObjTS[i]->status = g_Timeline[i][g_CurrentTimeStateIndex].status;
 				g_RegisteredObjTS[i]->x = g_Timeline[i][g_CurrentTimeStateIndex].x;
 				g_RegisteredObjTS[i]->y = g_Timeline[i][g_CurrentTimeStateIndex].y;
+				g_RegisteredObjTS[i]->lastCheckPosX = g_Timeline[i][g_CurrentTimeStateIndex].lastCheckPosX;
+				g_RegisteredObjTS[i]->lastCheckPosY = g_Timeline[i][g_CurrentTimeStateIndex].lastCheckPosY;
 				g_RegisteredObjTS[i]->countAnim = g_Timeline[i][g_CurrentTimeStateIndex].countAnim;
 				g_RegisteredObjTS[i]->patternAnim = g_Timeline[i][g_CurrentTimeStateIndex].patternAnim;
 				g_RegisteredObjTS[i]->invincibilityTime = g_Timeline[i][g_CurrentTimeStateIndex].invincibilityTime;
@@ -183,6 +185,7 @@ void UpdateTimeMachine(void)
 				g_RegisteredObjTS[i]->active = g_Timeline[i][g_CurrentTimeStateIndex].active;
 				g_RegisteredObjTS[i]->usedInventoryKeys = g_Timeline[i][g_CurrentTimeStateIndex].usedInventoryKeys;
 				g_RegisteredObjTS[i]->usedInventoryMKeys = g_Timeline[i][g_CurrentTimeStateIndex].usedInventoryMKeys;
+				g_RegisteredObjTS[i]->interactionMode = g_Timeline[i][g_CurrentTimeStateIndex].interactionMode;
 				
 			}
 
@@ -204,6 +207,8 @@ void UpdateTimeMachine(void)
 					newState.status = READ_ONLY;
 					newState.x = g_RegisteredObjTS[i]->x;
 					newState.y = g_RegisteredObjTS[i]->y;
+					newState.lastCheckPosX = g_RegisteredObjTS[i]->lastCheckPosX;
+					newState.lastCheckPosY = g_RegisteredObjTS[i]->lastCheckPosY;
 					newState.countAnim = g_RegisteredObjTS[i]->countAnim;
 					newState.patternAnim = g_RegisteredObjTS[i]->patternAnim;
 					newState.invincibilityTime = g_RegisteredObjTS[i]->patternAnim;
@@ -212,6 +217,7 @@ void UpdateTimeMachine(void)
 					newState.active = g_RegisteredObjTS[i]->active;
 					newState.usedInventoryKeys = g_RegisteredObjTS[i]->usedInventoryKeys;
 					newState.usedInventoryMKeys = g_RegisteredObjTS[i]->usedInventoryMKeys;
+					newState.interactionMode = g_RegisteredObjTS[i]->interactionMode;
 
 					g_Timeline[i][g_CurrentTimeStateIndex] = newState;
 

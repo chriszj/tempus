@@ -66,6 +66,8 @@ struct PLAYER
 	int			jumpCnt;		// ジャンプ中のカウント
 	float		jumpYMax;		// 
 
+	XMFLOAT3    lastCheckPointPos;
+
 	int         inventoryKeys, usedInventoryKeys;
 	int         inventorySouls;
 	int			inventorySwords;
@@ -91,6 +93,8 @@ PLAYER* GetPlayer(void);
 int GetPlayerCount(void);
 
 void AdjustPlayerHP(PLAYER* player, int ammount);
+
+void MakePlayerFall(PLAYER* player, int fallDmg);
 
 BOOL HasReachedGoal(void);
 

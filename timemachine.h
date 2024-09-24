@@ -37,8 +37,8 @@ struct TIMESTATE
 
 	int id = -1;
 	int elapsedTimeStamp;
-	float x, y, invincibilityTime;
-	int status, health, countAnim, patternAnim, usedInventoryKeys, usedInventoryMKeys;
+	float x, y, invincibilityTime, lastCheckPosX, lastCheckPosY;
+	int status, health, countAnim, patternAnim, usedInventoryKeys, usedInventoryMKeys, interactionMode;
 	XMFLOAT4 color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	BOOL alive, active;
 
