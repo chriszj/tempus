@@ -23,6 +23,8 @@ enum {
 	INTERACTABLES_MASTER_DOOR,
 	INTERACTABLES_PIT,
 	INTERACTABLES_PIT_2,
+	INTERACTABLES_FLOOR_SWITCH,
+	INTERACTABLES_SWITCH_DOOR,
 	INTERACTABLES_TYPES_MAX
 };
 
@@ -73,6 +75,8 @@ struct INTERACTABLE
 	XMFLOAT3	move;			// 移動速度
 	BOOL        active;
 	int         interactionMode;
+
+	int         activationOrder = -1;
 
 	//INTERPOLATION_DATA* tbl_adr;			// アニメデータのテーブル先頭アドレス
 	//int					tbl_size;			// 登録したテーブルのレコード総数

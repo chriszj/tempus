@@ -22,7 +22,7 @@
 #define MAP_LAYER_MAX			(10)
 #define MAP_SCALE				(1.5)
 #define MAP_DRAW_DEBUG			true
-#define MAP_DRAW_DEBUG_WALLS    true
+#define MAP_DRAW_DEBUG_WALLS    false
 #define MAP_DEBUG_KEY			"Debug"
 #define MAP_OBJLAYERS_MAX		(10)
 #define MAP_OBJECTS_PER_LAYER_MAX (200)

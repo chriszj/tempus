@@ -70,7 +70,7 @@
             "scale": 0.381484375,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 959.4101986483722,
+                "x": 960.7208683186566,
                 "y": 640.9174687691993
             }
         },
@@ -251,7 +251,7 @@
             "scale": 0.28611328124999996,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 1279.2135981978295,
+                "x": 1280.961157758209,
                 "y": 798.6347190934536
             }
         },
@@ -265,15 +265,15 @@
         },
         "Sample Map.tmx": {
             "expandedObjectLayers": [
-                16,
                 15,
+                16,
                 12
             ],
             "scale": 1.5,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 470,
-                "y": 370.33333333333326
+                "x": 560.3333333333333,
+                "y": 400.33333333333326
             }
         },
         "Tileset-Terrain.tsx": {
@@ -312,16 +312,16 @@
         },
         "level1.tmx": {
             "expandedObjectLayers": [
-                10,
-                3,
+                5,
                 4,
-                5
+                3,
+                10
             ],
             "scale": 2,
-            "selectedLayer": 9,
+            "selectedLayer": 8,
             "viewCenter": {
-                "x": 807,
-                "y": 571.25
+                "x": 1710.75,
+                "y": 2276.75
             }
         },
         "level1.tmx#Items2": {
@@ -355,7 +355,7 @@
         }
     },
     "last.externalTilesetPath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TILEMAP/Crypt",
-    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Crypt/Props/animated",
+    "last.imagePath": "C:/Users/ths40760/Desktop/GP11/DirectX/kadai/tempus-game/data/TEXTURE/Crypt/Props/atlas props - individual sprites",
     "map.height": 10,
     "map.lastUsedFormat": "tmx",
     "map.width": 10,
@@ -373,6 +373,7 @@
     ],
     "project": "crypt.tiled-project",
     "recentFiles": [
+        "Interactables.tsx",
         "Rules/wall-3-rule1-places all tiles.tmx",
         "Crypt example map.tmx",
         "Sample Map.tmx",
@@ -382,7 +383,6 @@
         "level1.tmx",
         "Items2.tsx",
         "Props.tsx",
-        "Interactables.tsx",
         "level0.tmx",
         "level1s.tmx"
     ],

@@ -50,7 +50,20 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ (char*)"data/SE/sword-swipes-4.wav", 0 },		// 剣音
 	{ (char*)"data/SE/falling-1.wav", 0 },		// 落ちる音
 	{ (char*)"data/SE/stones-falling-1.wav", 0 },	// 石音
-
+	{ (char*)"data/SE/door-lock.wav", 0 },	// ドア開けない音
+	{ (char*)"data/SE/door-opening.wav", 0 },	// ドア開ける音
+	{ (char*)"data/SE/master-door-open.wav", 0 },	// ダンジョンドア開ける音
+	{ (char*)"data/SE/switch-ok-0.wav", 0 },   
+	{ (char*)"data/SE/switch-ok-1.wav", 0 },
+	{ (char*)"data/SE/switch-ok-2.wav", 0 },
+	{ (char*)"data/SE/switch-ok-3.wav", 0 },
+	{ (char*)"data/SE/switch-ok-4.wav", 0 },
+	{ (char*)"data/SE/switch-ok-5.wav", 0 },
+	{ (char*)"data/SE/switch-ok-6.wav", 0 },
+	{ (char*)"data/SE/switch-ok-7.wav", 0 },
+	{ (char*)"data/SE/switch-ok-8.wav", 0 },
+	{ (char*)"data/SE/switch-ok-9.wav", 0 },
+	{ (char*)"data/SE/switch-wrong.wav", 0 }
 };
 
 //=============================================================================

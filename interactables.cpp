@@ -12,6 +12,8 @@
 #include "field.h"
 #include "gui.h"
 #include "sound.h"
+#include <vector>
+#include <random>
 
 //*****************************************************************************
 // マクロ定義
@@ -20,7 +22,7 @@
 #define TEXTURE_HEIGHT				(200/2)	// 
 #define TEXTURE_MAX					(2)		// テクスチャの数
 
-#define ANIM_WAIT					(4)		// アニメーションの切り替わるWait値
+#define ANIM_WAIT					(3)		// アニメーションの切り替わるWait値
 
 
 //*****************************************************************************
@@ -28,6 +30,9 @@
 //*****************************************************************************
 void PushToTimeState(TIMESTATE* timeState, INTERACTABLE* interactable);
 void PullFromTimeState(TIMESTATE* timeState, INTERACTABLE* interactable);
+void ResetFloorSwitches();
+int ActiveFloorSwitchesCount();
+BOOL AllFloorSwitchesActive();
 
 //*****************************************************************************
 // グローバル変数
@@ -51,12 +56,18 @@ static float offsety = 200.0f;
 
 static TILESET* g_InteractablesTileset;
 
+
+static std::vector<INTERACTABLE*> g_FloorSwitches;
+static std::vector<INTERACTABLE*> g_FloorSwitchesDoors;
+
 static INTERACTABLETYPES g_InteractableTypes[INTERACTABLES_TYPES_MAX] =
 {
 	{INTERACTABLES_DOOR, TRUE },
 	{INTERACTABLES_MASTER_DOOR, FALSE },
-	{INTERACTABLES_PIT, TRUE,0, 12, 13, 19},
-	{INTERACTABLES_PIT_2, TRUE, 0, 12, 13, 19}
+	{INTERACTABLES_PIT, TRUE,0, 14, 15, 19},
+	{INTERACTABLES_PIT_2, TRUE, 0, 14, 15, 19},
+	{INTERACTABLES_FLOOR_SWITCH, FALSE},
+	{INTERACTABLES_SWITCH_DOOR, FALSE}
 };
 
 //=============================================================================
@@ -95,6 +106,7 @@ HRESULT InitInteractables(void)
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
+	std::vector<int> switchOrder;
 	
 	// エネミー構造体の初期化
 	g_InteractablesCount = 0;
@@ -132,10 +144,32 @@ HRESULT InitInteractables(void)
 		g_Interactables[i].hostileModeMinFrame = g_InteractableTypes[g_Interactables[i].type].hostileModeMinFrame;
 		g_Interactables[i].hostileModeMaxFrame = g_InteractableTypes[g_Interactables[i].type].hostileModeMaxFrame;
 
+		if (g_Interactables[i].type == INTERACTABLES_FLOOR_SWITCH) 
+		{
+			g_Interactables[i].active = FALSE;
+			g_Interactables[i].patternAnim = g_Interactables[i].patternAnimNum - 1;
+			switchOrder.push_back(switchOrder.size());
+			g_FloorSwitches.push_back(&g_Interactables[i]);
+		}
+		else if (g_Interactables[i].type == INTERACTABLES_SWITCH_DOOR) 
+		{
+			g_FloorSwitchesDoors.push_back(&g_Interactables[i]);
+		}
+
+
 		g_Interactables[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// 移動量
 
 		PushToTimeState(&g_Interactables[i].timeState, &g_Interactables[i]);
 		RegisterObjectTimeState(&g_Interactables[i].timeState);
+	}
+
+	std::random_device rd;
+	std::mt19937 g(rd());
+
+	std::shuffle(switchOrder.begin(), switchOrder.end(), g);
+
+	for (int s = 0; s < g_FloorSwitches.size(); s++) {
+		g_FloorSwitches[s]->activationOrder = switchOrder[s];
 	}
 
 	g_Load = TRUE;
@@ -168,6 +202,9 @@ void UninitInteractables(void)
 	{
 		g_Interactables[e].use = FALSE;
 	}
+
+	g_FloorSwitches.clear();
+	g_FloorSwitchesDoors.clear();
 
 	g_Load = FALSE;
 }
@@ -249,7 +286,7 @@ void UpdateInteractables(void)
 
 			}
 
-			if (g_Interactables[i].type == INTERACTABLES_PIT || g_Interactables[i].type == INTERACTABLES_PIT_2) {
+			if (g_Interactables[i].type == INTERACTABLES_PIT || g_Interactables[i].type == INTERACTABLES_PIT_2 || g_Interactables[i].type == INTERACTABLES_FLOOR_SWITCH) {
 
 				PLAYER* player = GetPlayer();
 
@@ -266,12 +303,89 @@ void UpdateInteractables(void)
 						// 当たっている？
 						if (ans == TRUE)
 						{
-							if (g_Interactables[i].interactionMode == INTERACTION_MODE_NORMAL) {
-								SetInteractable(&g_Interactables[i], FALSE);
-								PlaySound(SOUND_LABEL_SE_ROCK_CRACK);
+
+							if (g_Interactables[i].type == INTERACTABLES_FLOOR_SWITCH) 
+							{
+
+								if (player[p].lastSwitchOrderActivated == g_Interactables[i].activationOrder || g_Interactables[i].active)
+									continue;
+
+								int nextFloorActivationOrder = (player[p].lastSwitchOrderActivated + 1) % g_FloorSwitches.size();
+
+							
+								if (player[p].lastSwitchOrderActivated < 0 || nextFloorActivationOrder == g_Interactables[i].activationOrder)
+								{
+									SetInteractable(&g_Interactables[i], TRUE);
+
+									switch (ActiveFloorSwitchesCount())
+									{
+										case 0:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_0);
+											break;
+										case 1:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_1);
+											break;
+										case 2:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_2);
+											break;
+										case 3:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_3);
+											break;
+										case 4:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_4);
+											break;
+										case 5:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_5);
+											break;
+										case 6:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_6);
+											break;
+										case 7:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_7);
+											break;
+										case 8:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_8);
+											break;
+										default:
+											PlaySound(SOUND_LABEL_SE_SWITCH_OK_9);
+											break;
+										
+									}
+
+									player[p].lastSwitchOrderActivated = g_Interactables[i].activationOrder;
+									
+									if (AllFloorSwitchesActive())
+									{
+										for each (INTERACTABLE* floorSwitchDoor in g_FloorSwitchesDoors)
+										{
+											SetInteractable(floorSwitchDoor, FALSE);
+											PlaySound(SOUND_LABEL_SE_DOOR_OPEN);
+										}
+									}
+
+								}
+								else {
+									ResetFloorSwitches();
+									PlaySound(SOUND_LABEL_SE_SWITCH_WRONG);
+									player[p].lastSwitchOrderActivated = -1;
+								}
+
 							}
-							else
-								MakePlayerFall(player, 10);
+							else {
+
+								if (g_Interactables[i].interactionMode == INTERACTION_MODE_NORMAL) {
+
+									//一回音をプレイするため
+									if (g_Interactables[i].active)
+										PlaySound(SOUND_LABEL_SE_ROCK_CRACK);
+
+									SetInteractable(&g_Interactables[i], FALSE);
+
+								}
+								else
+									MakePlayerFall(player, 10);
+
+							}
 								
 						}
 					}
@@ -375,6 +489,41 @@ void PullFromTimeState(TIMESTATE* timeState, INTERACTABLE* interactable)
 	interactable->interactionMode = timeState->interactionMode;
 	interactable->countAnim = timeState->countAnim;
 	interactable->patternAnim = timeState->patternAnim;
+}
+
+void ResetFloorSwitches() 
+{
+	for each (INTERACTABLE* floorSwitch in g_FloorSwitches)
+	{
+		SetInteractable(floorSwitch, FALSE);
+	}
+}
+
+int ActiveFloorSwitchesCount() 
+{
+
+	int activeSwitches = 0;
+
+	for each (INTERACTABLE * floorSwitch in g_FloorSwitches)
+	{
+		if (floorSwitch->active)
+			activeSwitches++;
+	}
+
+	return activeSwitches;
+
+}
+
+BOOL AllFloorSwitchesActive() 
+{
+
+	BOOL allActive = TRUE;
+
+	if (ActiveFloorSwitchesCount() - g_FloorSwitches.size() != 0)
+		allActive = FALSE;
+
+	return allActive;
+
 }
 
 

@@ -106,7 +106,7 @@ HRESULT InitTimeMachine(void)
 
 	//g_StartTime = 
 	g_ElapsedTimeText = GetUnusedText();
-	g_ElapsedTimeText->x = SCREEN_WIDTH - 150;
+	g_ElapsedTimeText->x = SCREEN_WIDTH - 65;
 	g_ElapsedTimeText->y = 25;
 	g_ElapsedTimeText->scale = 0.7f;
 	/*SetText(g_ElapsedTimeText, L"              Elapsed Time; ");*/
@@ -186,7 +186,7 @@ void UpdateTimeMachine(void)
 				g_RegisteredObjTS[i]->usedInventoryKeys = g_Timeline[i][g_CurrentTimeStateIndex].usedInventoryKeys;
 				g_RegisteredObjTS[i]->usedInventoryMKeys = g_Timeline[i][g_CurrentTimeStateIndex].usedInventoryMKeys;
 				g_RegisteredObjTS[i]->interactionMode = g_Timeline[i][g_CurrentTimeStateIndex].interactionMode;
-				
+				g_RegisteredObjTS[i]->lastSwitchOrderActivated = g_Timeline[i][g_CurrentTimeStateIndex].lastSwitchOrderActivated;
 			}
 
 		}
@@ -218,6 +218,7 @@ void UpdateTimeMachine(void)
 					newState.usedInventoryKeys = g_RegisteredObjTS[i]->usedInventoryKeys;
 					newState.usedInventoryMKeys = g_RegisteredObjTS[i]->usedInventoryMKeys;
 					newState.interactionMode = g_RegisteredObjTS[i]->interactionMode;
+					newState.lastSwitchOrderActivated = g_RegisteredObjTS[i]->lastSwitchOrderActivated;
 
 					g_Timeline[i][g_CurrentTimeStateIndex] = newState;
 
@@ -258,7 +259,7 @@ void UpdateTimeMachine(void)
 
 	g_ElapsedTime += timeSpan;
 
-	std::wstring tString = L"Time: ";
+	std::wstring tString = L"     ";
 
 	tString.append(std::to_wstring(TIMELIMIT_SECONDS - (g_ElapsedTime / 1000)));
 
@@ -380,7 +381,7 @@ void UnregisterObjectTimeState(TIMESTATE* state)
 void ActivateTimeMachine(void)
 {
 	g_Active = TRUE;
-
+	SetTMGUI(TRUE);
 }
 
 void DeactivateTimeMachine(void)
@@ -397,6 +398,7 @@ void DeactivateTimeMachine(void)
 	}
 
 	g_Active = FALSE;
+	SetTMGUI(FALSE);
 }
 
 BOOL IsTimeMachineActive(void) 
@@ -413,6 +415,8 @@ void RewindTimeMachine(int speedMiliseconds)
 
 	g_ElapsedTime = min(g_LastElapsedTime, max(g_ElapsedTime, 0));
 
+	SetTMGUI(TRUE);
+
 }
 
 void FastForwardTimeMachine(int speedMiliseconds) 
@@ -424,11 +428,19 @@ void FastForwardTimeMachine(int speedMiliseconds)
 
 	g_ElapsedTime = min(g_LastElapsedTime, max(g_ElapsedTime, 0));
 
+	SetTMGUI(TRUE);
+
 }
 
 int GetTimeMachineElapsedTime() {
 
 	return g_ElapsedTime / 1000;
+
+}
+
+int GetTimeMachineElapsedTime_ms() {
+
+	return g_ElapsedTime;
 
 }
 

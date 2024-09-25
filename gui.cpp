@@ -10,12 +10,21 @@
 #include "sprite.h"
 #include "gui.h"
 #include "pugixml.hpp"
+#include "player.h"
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define TEXTURE_WIDTH				(16)	// キャラサイズ
 #define TEXTURE_HEIGHT				(32)	// 
+#define TEXTURE_MAX                 (3)     
+
+#define TEXTURE_HUD_DIVIDEX         (1)
+#define TEXTURE_HUD_DIVIDEY         (1)
+#define TEXTURE_HUD_WIDTH           (128)
+#define TEXTURE_HUD_HEIGHT          (32)
+
+#define GUIIMAGES_MAX               (6)
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -27,8 +36,15 @@ void ParseFont(BMPFONT* font, char* file);
 //*****************************************************************************
 static ID3D11Buffer				*g_VertexBuffer = NULL;		// 頂点情報
 static ID3D11ShaderResourceView* g_Texture[FONTTEXTURE_MAX] = { NULL };	// テクスチャ情報
+static ID3D11ShaderResourceView* g_GUITexture[TEXTURE_MAX] = { NULL };	// テクスチャ情報
 
 static char g_FontFolder[] = "data/TEXTURE/FONT/";
+
+static char* g_TexturName[TEXTURE_MAX] = {
+	"data/TEXTURE/common/icon-hud.png",
+	"data/TEXTURE/common/time-effect-bg.png",
+	"data/TEXTURE/common/time-effect.png",
+};
 
 static BMPFONT g_Font;
 static BMPTEXT g_Texts[TEXTOBJECTS_MAX];
@@ -38,9 +54,16 @@ static float					g_w, g_h;					// 幅と高さ
 static XMFLOAT3					g_Pos;						// ポリゴンの座標
 static int						g_TexNo;					// テクスチャ番号
 
+
+
 static int						g_Score;					// スコア
 
+static BOOL                     g_TimeMachineGUIActive;
+static BOOL						g_PlayerGUIActive;
 
+static GUIIMAGE	                g_GUIImages[GUIIMAGES_MAX];
+
+static PLAYER*                  g_registeredPlayer;
 
 //=============================================================================
 // 初期化処理
@@ -48,7 +71,6 @@ static int						g_Score;					// スコア
 HRESULT InitGUI(void)
 {
 	ID3D11Device *pDevice = GetDevice();
-
 
 	ParseFont(&g_Font, "data/TEXTURE/FONT/cjk-jp.fnt");
 
@@ -68,6 +90,19 @@ HRESULT InitGUI(void)
 			NULL);
 	}
 
+	for (int i = 0; i < TEXTURE_MAX; i++)
+	{
+		g_GUITexture[i] = NULL;
+
+
+		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
+			g_TexturName[i],
+			NULL,
+			NULL,
+			&g_GUITexture[i],
+			NULL);
+	}
+
 
 	// 頂点バッファ生成
 	D3D11_BUFFER_DESC bd;
@@ -78,6 +113,7 @@ HRESULT InitGUI(void)
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
+	g_registeredPlayer = NULL;
 
 	// プレイヤーの初期化
 	g_Use   = TRUE;
@@ -85,6 +121,86 @@ HRESULT InitGUI(void)
 	g_h     = TEXTURE_HEIGHT;
 	g_Pos   = { 500.0f, 20.0f, 0.0f };
 	g_TexNo = 0;
+
+
+	for (int i = 0; i < GUIIMAGES_MAX; i++)
+	{
+		g_GUIImages[i].use = FALSE;
+
+		g_GUIImages[i].iconID = i;
+
+		switch (g_GUIImages[i].iconID) {
+
+		case GUI_ICON_HP:
+			g_GUIImages[i].texNo = 0;
+			g_GUIImages[i].patternNo = 0;
+			g_GUIImages[i].pos = { 25, 30 };
+			g_GUIImages[i].width = 32;
+			g_GUIImages[i].height = 32;
+			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texHeight = 32;
+			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideY = 1;
+			break;
+		case GUI_ICON_TIME:
+			g_GUIImages[i].texNo = 0;
+			g_GUIImages[i].patternNo = 1;
+			g_GUIImages[i].pos = { SCREEN_WIDTH - 85, 30 };
+			g_GUIImages[i].width = 32;
+			g_GUIImages[i].height = 32;
+			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texHeight = 32;
+			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideY = 1;
+			break;
+		case GUI_ICON_KEY:
+			g_GUIImages[i].texNo = 0;
+			g_GUIImages[i].patternNo = 2;
+			g_GUIImages[i].pos = { SCREEN_WIDTH - 75, SCREEN_HEIGHT - 90 };
+			g_GUIImages[i].width = 32;
+			g_GUIImages[i].height = 32;
+			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texHeight = 32;
+			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideY = 1;
+			break;
+		case GUI_ICON_MKEY:
+			g_GUIImages[i].texNo = 0;
+			g_GUIImages[i].patternNo = 3;
+			g_GUIImages[i].pos = { SCREEN_WIDTH - 75, SCREEN_HEIGHT - 40 };
+			g_GUIImages[i].width = 32;
+			g_GUIImages[i].height = 32;
+			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texHeight = 32;
+			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideY = 1;
+			break;
+		case GUI_ICON_TM_BG:
+			g_GUIImages[i].texNo = 1;
+			g_GUIImages[i].patternNo = 0;
+			g_GUIImages[i].pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+			g_GUIImages[i].width = SCREEN_WIDTH;
+			g_GUIImages[i].height = SCREEN_HEIGHT;
+			g_GUIImages[i].texWidth = 1920;
+			g_GUIImages[i].texHeight = 1200;
+			g_GUIImages[i].divideX = 1;
+			g_GUIImages[i].divideY = 1;
+			break;
+		case GUI_ICON_TM_SIMBOL:
+			g_GUIImages[i].texNo = 2;
+			g_GUIImages[i].patternNo = 0;
+			g_GUIImages[i].pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+			g_GUIImages[i].width = 1920;
+			g_GUIImages[i].height = 1200;
+			g_GUIImages[i].texWidth = 1920;
+			g_GUIImages[i].texHeight = 1200;
+			g_GUIImages[i].divideX = 1;
+			g_GUIImages[i].divideY = 1;
+			break;
+
+		}
+
+	}
 
 	g_Score = 0;	// スコアの初期化
 
@@ -108,6 +224,15 @@ void UninitGUI(void)
 		{
 			g_Texture[i]->Release();
 			g_Texture[i] = NULL;
+		}
+	}
+
+	for (int i = 0; i < TEXTURE_MAX; i++)
+	{
+		if (g_GUITexture[i])
+		{
+			g_GUITexture[i]->Release();
+			g_GUITexture[i] = NULL;
 		}
 	}
 
@@ -229,6 +354,51 @@ void DrawGUI(void)
 		
 	}
 
+	for (int gi = 0; gi < GUIIMAGES_MAX; gi ++) {
+	
+		if (!g_GUIImages[gi].use)
+			continue;
+
+		// テクスチャ設定
+		GetDeviceContext()->PSSetShaderResources(0, 1, &g_GUITexture[g_GUIImages[gi].texNo]);
+
+		//SetBlendState(BLEND_MODE_ALPHABLEND);
+
+		// スコアの位置やテクスチャー座標を反映
+		float px = g_GUIImages[gi].pos.x;
+		float py = g_GUIImages[gi].pos.y;		// スコアの表示位置Y
+
+
+		float pw = g_GUIImages[gi].width;				// スコアの表示幅
+		float ph = g_GUIImages[gi].height;				// スコアの表示高さ
+
+		float tw = 1.0f / g_GUIImages[gi].divideX;// テクスチャの幅
+		float th = 1.0f / g_GUIImages[gi].divideY;	// テクスチャの高さ
+		float tx = (float)(g_GUIImages[gi].patternNo % g_GUIImages[gi].divideX) * tw;	// テクスチャの左上X座標
+		float ty = (float)(g_GUIImages[gi].patternNo / g_GUIImages[gi].divideX) * th;	// テクスチャの左上Y座標
+
+		float alpha = 1.0f;
+
+		float rotation = 0.0f;
+
+		if (g_GUIImages[gi].iconID == GUI_ICON_TM_BG)
+			alpha = 0.2f;
+
+		if (g_GUIImages[gi].iconID == GUI_ICON_TM_SIMBOL) {
+			
+			rotation = GetTimeMachineElapsedTime_ms();
+			alpha = 0.3f;
+		}
+
+		// １枚のポリゴンの頂点とテクスチャ座標を設定
+		SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
+			XMFLOAT4(1.0f, 1.0f, 1.0f, alpha), rotation);
+
+		// ポリゴン描画
+		GetDeviceContext()->Draw(4, 0);
+
+	}
+
 }
 
 
@@ -313,6 +483,14 @@ void ParseFont(BMPFONT* font, char* file) {
 		lineBreakChar->textureHeigt = 0;
 
 	}
+
+	if (g_registeredPlayer != NULL)
+	{
+
+
+
+	}
+
 }
 
 //=============================================================================
@@ -371,5 +549,26 @@ void ClearGUI(void)
 		g_Texts[i].use = FALSE;
 	
 	}
+}
+
+void RegisterPlayer(PLAYER* player) {
+	g_registeredPlayer = player;
+}
+void UnregisterPlayer(PLAYER* player) {
+	g_registeredPlayer = NULL;
+}
+
+void SetPlayerGUI(BOOL enable) {
+	g_GUIImages[GUI_ICON_HP].use = enable;
+	g_GUIImages[GUI_ICON_TIME].use = enable;
+	g_GUIImages[GUI_ICON_KEY].use = enable;
+	g_GUIImages[GUI_ICON_MKEY].use = enable;
+}
+
+void SetTMGUI(BOOL enable) {
+
+	g_GUIImages[GUI_ICON_TM_BG].use = enable;
+	g_GUIImages[GUI_ICON_TM_SIMBOL].use = enable;
+
 }
 

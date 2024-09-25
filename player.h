@@ -72,6 +72,7 @@ struct PLAYER
 	int         inventorySouls;
 	int			inventorySwords;
 	int			inventoryMasterKeys, usedInventoryMasterKeys;
+	int			lastSwitchOrderActivated = -1;
 
 	float       invincibilityTime;
 	int         maxInvincibilityTime;

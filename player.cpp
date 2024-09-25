@@ -191,6 +191,7 @@ HRESULT InitPlayer(void)
 
 		g_Player[i].usedInventoryKeys = 0;
 		g_Player[i].usedInventoryMasterKeys = 0;
+		g_Player[i].lastSwitchOrderActivated = -1;
 
 		// 最初のタイムステートを登録する
 		g_Player[i].timeState.status = WRITABLE;
@@ -200,19 +201,21 @@ HRESULT InitPlayer(void)
 	}
 
 	g_HPText = GetUnusedText();
-	g_HPText->x = 25;
+	g_HPText->x = 50;
 	g_HPText->y = 25;
 	g_HPText->scale = 0.7f;
 
 	g_KeysText = GetUnusedText();
-	g_KeysText->x = 25;
-	g_KeysText->y = 60;
+	g_KeysText->x = SCREEN_WIDTH - 50;
+	g_KeysText->y = SCREEN_HEIGHT - 100;
 	g_KeysText->scale = 0.7f;
 
 	g_MKeyText = GetUnusedText();
-	g_MKeyText->x = 25;
-	g_MKeyText->y = 90;
+	g_MKeyText->x = SCREEN_WIDTH - 50;
+	g_MKeyText->y = SCREEN_HEIGHT - 50;
 	g_MKeyText->scale = 0.7f;
+
+	SetPlayerGUI(TRUE);
 
 	g_Load = TRUE;
 	return S_OK;
@@ -225,6 +228,8 @@ void UninitPlayer(void)
 {
 
 	if (g_Load == FALSE) return;
+
+	SetPlayerGUI(FALSE);
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
@@ -489,7 +494,7 @@ void UpdatePlayer(void)
 
 					}
 
-					// INTERACTABLES
+					// INTERACTABLES ドア・揺れる床
 					{
 						INTERACTABLE* interactables = GetInteractables();
 
@@ -557,6 +562,11 @@ void UpdatePlayer(void)
 												if (g_Player[i].inventoryKeys - g_Player[i].usedInventoryKeys > 0) {
 													SetInteractable(&interactables[in], FALSE);
 													g_Player[i].usedInventoryKeys++;
+													PlaySound(SOUND_LABEL_SE_DOOR_OPEN);
+												}
+												else
+												{
+													PlaySound(SOUND_LABEL_SE_DOOR_LOCKED);
 												}
 											}
 											else {
@@ -565,6 +575,11 @@ void UpdatePlayer(void)
 													SetInteractable(&interactables[in], FALSE);
 													g_reachedGoal = TRUE;
 													g_Player[i].usedInventoryMasterKeys++;
+													PlaySound(SOUND_LABEL_SE_MASTER_DOOR_OPEN);
+												}
+												else
+												{
+													PlaySound(SOUND_LABEL_SE_DOOR_LOCKED);
 												}
 
 											}
@@ -638,7 +653,7 @@ void UpdatePlayer(void)
 						{
 							XMFLOAT3 checkPointPos = { g_CheckPoints[cp].x, g_CheckPoints[cp].y, 0.0f };
 
-							BOOL ans = CollisionBC(g_Player[i].pos, checkPointPos, 3, 4);
+							BOOL ans = CollisionBC(g_Player[i].pos, checkPointPos, g_Player[i].w/2, 1);
 							// 当たっている？
 							if (ans == TRUE)
 							{
@@ -734,7 +749,7 @@ void UpdatePlayer(void)
 	SetText(g_snapshotIndex, (wchar_t*)wstr2.c_str());
 	*/
 
-	std::wstring hString = L"HP:  ";
+	std::wstring hString = L"";
 
 	hString.append(std::to_wstring(g_Player[0].hp));
 
@@ -742,17 +757,17 @@ void UpdatePlayer(void)
 
 
 
-	std::wstring kString = L"Keys:  ";
+	std::wstring kString = L"x ";
 
-	kString.append(std::to_wstring(g_Player[0].inventoryKeys));
+	kString.append(std::to_wstring(g_Player[0].inventoryKeys - g_Player[0].usedInventoryKeys));
 
 	SetText(g_KeysText, (wchar_t*)kString.c_str());
 
 
 
-	std::wstring mKString = L"Master Keys:  ";
+	std::wstring mKString = L"x ";
 
-	mKString.append(std::to_wstring(g_Player[0].inventoryMasterKeys));
+	mKString.append(std::to_wstring(g_Player[0].inventoryMasterKeys - g_Player[0].usedInventoryMasterKeys));
 
 	SetText(g_MKeyText, (wchar_t*)mKString.c_str());
 
@@ -918,6 +933,9 @@ void AdjustPlayerHP(PLAYER* player, int ammount) {
 
 void MakePlayerFall(PLAYER* player, int fallDmg) {
 	
+	if (g_anims[player->currentAnimState].id == CHAR_ANIM_FALL)
+		return;
+
 	player->hp += fallDmg;
 	SetCharacterState(CHAR_ANIM_FALL, player, TRUE);
 
@@ -982,6 +1000,7 @@ void PushToTimeState(TIMESTATE* timeState, PLAYER* player)
 	timeState->invincibilityTime = player->invincibilityTime;
 	timeState->usedInventoryKeys = player->usedInventoryKeys;
 	timeState->usedInventoryMKeys = player->usedInventoryMasterKeys;
+	timeState->lastSwitchOrderActivated = player->lastSwitchOrderActivated;
 }
 
 void PullFromTimeState(TIMESTATE* timeState, PLAYER* player) 
@@ -996,6 +1015,7 @@ void PullFromTimeState(TIMESTATE* timeState, PLAYER* player)
 	player->invincibilityTime = timeState->invincibilityTime;
 	player->usedInventoryKeys = timeState->usedInventoryKeys;
 	player->usedInventoryMasterKeys = timeState->usedInventoryMKeys;
+	player->lastSwitchOrderActivated = timeState->lastSwitchOrderActivated;
 
 }
 

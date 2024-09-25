@@ -6,6 +6,7 @@
 //=============================================================================
 #pragma once
 #include "debugproc.h"
+#include "player.h"
 
 
 //*****************************************************************************
@@ -19,6 +20,35 @@
 //*****************************************************************************
 // ç\ë¢ëÃíËã`
 //*****************************************************************************
+
+enum GUIICON {
+	GUI_ICON_HP,
+	GUI_ICON_TIME,
+	GUI_ICON_KEY,
+	GUI_ICON_MKEY,
+	GUI_ICON_TM_BG,
+	GUI_ICON_TM_SIMBOL
+};
+
+struct GUIIMAGE {
+
+	int iconID;
+
+	BOOL use;
+
+	XMFLOAT2 pos;
+
+	int texNo;
+	int patternNo;
+
+	float width;
+	float height;
+
+	int texWidth;
+	int texHeight;
+	int divideX;
+	int divideY;
+};
 
 struct BMPCHAR
 {
@@ -80,3 +110,7 @@ void DrawGUI(void);
 BMPTEXT* GetUnusedText();
 void SetText(BMPTEXT* bmpText, wchar_t* text);
 void ClearGUI(void);
+void RegisterPlayer(PLAYER* player);
+void UnregisterPlayer(PLAYER* player);
+void SetPlayerGUI(BOOL enable);
+void SetTMGUI(BOOL enable);
