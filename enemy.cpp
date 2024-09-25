@@ -20,7 +20,7 @@
 //*****************************************************************************
 #define TEXTURE_WIDTH				(200/2)	// キャラサイズ
 #define TEXTURE_HEIGHT				(200/2)	// 
-#define TEXTURE_MAX					(4)		// テクスチャの数
+#define TEXTURE_MAX					(5)		// テクスチャの数
 
 #define TEXTURE_PATTERN_DIVIDE_X	(12)		// アニメパターンのテクスチャ内分割数（X)
 #define TEXTURE_PATTERN_DIVIDE_Y	(1)		// アニメパターンのテクスチャ内分割数（Y)
@@ -47,6 +47,7 @@ static char *g_TexturName[TEXTURE_MAX] = {
 	"data/TEXTURE/candle-burning-only fire.png",
 	"data/TEXTURE/bar_white.png",
 	"data/TEXTURE/bar_white.png",
+	"data/TEXTURE/bar_white.png",
 	"data/TEXTURE/bar_white.png"
 };
 
@@ -64,6 +65,7 @@ static float e_time = 25.0f;
 
 static BOOL g_swordGiven = FALSE;
 static BOOL g_masterKeyGiven = FALSE;
+static BOOL g_keyGiven = FALSE;
 
 static ENEMYTYPE g_EnemyTypes[ENEMY_TYPE_MAX] = {
 	{
@@ -109,7 +111,18 @@ static ENEMYTYPE g_EnemyTypes[ENEMY_TYPE_MAX] = {
 			{CHAR_ANIM_ATTACK, 64, 4, 0, 6, 4}
 		},
 		200
-	}
+	},
+	{
+		ENEMY_TYPE_SKELETON_KEY,
+		{
+			{CHAR_ANIM_IDLE, 16, 4, 1, 6, 4},
+			{CHAR_ANIM_WALK, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_FALL, 0, 4, 1, 6, 4},
+			{CHAR_ANIM_DIE, 48, 4, 0, 10, 4},
+			{CHAR_ANIM_ATTACK, 0, 4, 1, 6, 4}
+		},
+		20
+	},
 };
 
 static TILESET* g_EnemiesTileset;
@@ -156,6 +169,7 @@ HRESULT InitEnemy(void)
 
 	g_swordGiven = FALSE;
 	g_masterKeyGiven = FALSE;
+	g_keyGiven = FALSE;
 
 	MAPOBJECT* mapObjects = GetMapObjectsFromLayer(MAPOBJLAYER_ENEMIES);
 
@@ -425,7 +439,7 @@ void UpdateEnemy(void)
 			if (g_EnemyTypes[g_Enemy[i].type].animStates[g_Enemy[i].currentAnimState].cancellable) {
 
 				// If Wandering mode or enemy is skeleton
-				if (g_Enemy[i].target != NULL && g_Enemy[i].type != ENEMY_TYPE_SKELETON) {
+				if (g_Enemy[i].target != NULL && g_Enemy[i].type != ENEMY_TYPE_SKELETON && g_Enemy[i].type != ENEMY_TYPE_SKELETON_KEY) {
 
 
 					PLAYER* player = GetPlayer();
@@ -849,6 +863,11 @@ void AdjustEnemyHP(ENEMY* enemy, int ammount)
 			{
 				SetItem(enemy->pos, ITEM_TYPE_MASTER_KEY);
 				g_masterKeyGiven = TRUE;
+			}
+			else if (enemy->type == ENEMY_TYPE_SKELETON_KEY && !g_keyGiven) 
+			{
+				SetItem(enemy->pos, ITEM_TYPE_KEY);
+				g_keyGiven = TRUE;
 			}
 			else {
 
