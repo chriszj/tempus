@@ -70,6 +70,7 @@ struct PLAYER
 
 	int         inventoryKeys, usedInventoryKeys;
 	int         inventorySouls;
+	int			inventoryCoins;
 	int			inventorySwords;
 	int			inventoryMasterKeys, usedInventoryMasterKeys;
 	int			lastSwitchOrderActivated = -1;

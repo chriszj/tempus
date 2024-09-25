@@ -24,8 +24,6 @@
 #define TEXTURE_HUD_WIDTH           (128)
 #define TEXTURE_HUD_HEIGHT          (32)
 
-#define GUIIMAGES_MAX               (6)
-
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
@@ -61,7 +59,7 @@ static int						g_Score;					// スコア
 static BOOL                     g_TimeMachineGUIActive;
 static BOOL						g_PlayerGUIActive;
 
-static GUIIMAGE	                g_GUIImages[GUIIMAGES_MAX];
+static GUIIMAGE	                g_GUIImages[GUI_ICON_MAX];
 
 static PLAYER*                  g_registeredPlayer;
 
@@ -123,7 +121,7 @@ HRESULT InitGUI(void)
 	g_TexNo = 0;
 
 
-	for (int i = 0; i < GUIIMAGES_MAX; i++)
+	for (int i = 0; i < GUI_ICON_MAX; i++)
 	{
 		g_GUIImages[i].use = FALSE;
 
@@ -137,9 +135,9 @@ HRESULT InitGUI(void)
 			g_GUIImages[i].pos = { 25, 30 };
 			g_GUIImages[i].width = 32;
 			g_GUIImages[i].height = 32;
-			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texWidth = 160;
 			g_GUIImages[i].texHeight = 32;
-			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideX = 5;
 			g_GUIImages[i].divideY = 1;
 			break;
 		case GUI_ICON_TIME:
@@ -148,9 +146,9 @@ HRESULT InitGUI(void)
 			g_GUIImages[i].pos = { SCREEN_WIDTH - 85, 30 };
 			g_GUIImages[i].width = 32;
 			g_GUIImages[i].height = 32;
-			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texWidth = 160;
 			g_GUIImages[i].texHeight = 32;
-			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideX = 5;
 			g_GUIImages[i].divideY = 1;
 			break;
 		case GUI_ICON_KEY:
@@ -159,9 +157,9 @@ HRESULT InitGUI(void)
 			g_GUIImages[i].pos = { SCREEN_WIDTH - 75, SCREEN_HEIGHT - 90 };
 			g_GUIImages[i].width = 32;
 			g_GUIImages[i].height = 32;
-			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texWidth = 160;
 			g_GUIImages[i].texHeight = 32;
-			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideX = 5;
 			g_GUIImages[i].divideY = 1;
 			break;
 		case GUI_ICON_MKEY:
@@ -170,9 +168,20 @@ HRESULT InitGUI(void)
 			g_GUIImages[i].pos = { SCREEN_WIDTH - 75, SCREEN_HEIGHT - 40 };
 			g_GUIImages[i].width = 32;
 			g_GUIImages[i].height = 32;
-			g_GUIImages[i].texWidth = 128;
+			g_GUIImages[i].texWidth = 160;
 			g_GUIImages[i].texHeight = 32;
-			g_GUIImages[i].divideX = 4;
+			g_GUIImages[i].divideX = 5;
+			g_GUIImages[i].divideY = 1;
+			break;
+		case GUI_ICON_MONEY:
+			g_GUIImages[i].texNo = 0;
+			g_GUIImages[i].patternNo = 4;
+			g_GUIImages[i].pos = { 25, SCREEN_HEIGHT - 40 };
+			g_GUIImages[i].width = 32;
+			g_GUIImages[i].height = 32;
+			g_GUIImages[i].texWidth = 160;
+			g_GUIImages[i].texHeight = 32;
+			g_GUIImages[i].divideX = 5;
 			g_GUIImages[i].divideY = 1;
 			break;
 		case GUI_ICON_TM_BG:
@@ -354,7 +363,7 @@ void DrawGUI(void)
 		
 	}
 
-	for (int gi = 0; gi < GUIIMAGES_MAX; gi ++) {
+	for (int gi = 0; gi < GUI_ICON_MAX; gi ++) {
 	
 		if (!g_GUIImages[gi].use)
 			continue;
@@ -563,6 +572,7 @@ void SetPlayerGUI(BOOL enable) {
 	g_GUIImages[GUI_ICON_TIME].use = enable;
 	g_GUIImages[GUI_ICON_KEY].use = enable;
 	g_GUIImages[GUI_ICON_MKEY].use = enable;
+	g_GUIImages[GUI_ICON_MONEY].use = enable;
 }
 
 void SetTMGUI(BOOL enable) {

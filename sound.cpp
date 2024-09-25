@@ -63,7 +63,10 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ (char*)"data/SE/switch-ok-7.wav", 0 },
 	{ (char*)"data/SE/switch-ok-8.wav", 0 },
 	{ (char*)"data/SE/switch-ok-9.wav", 0 },
-	{ (char*)"data/SE/switch-wrong.wav", 0 }
+	{ (char*)"data/SE/switch-wrong.wav", 0 },
+	{ (char*)"data/SE/coin-up.wav", 0 },
+	{ (char*)"data/SE/money-up.wav", 0 },
+	{ (char*)"data/SE/item-up.wav", 0 }
 };
 
 //=============================================================================

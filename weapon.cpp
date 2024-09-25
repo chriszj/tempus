@@ -231,10 +231,10 @@ void UpdateWeapon(void)
 						{
 							// “–‚½‚Á‚½‚Ìˆ—
 							
-							int dmg = -10;
+							int dmg = -25;
 
 							if (g_Weapon[i].texNo == 1)
-								dmg *= 3;
+								dmg *= 4;
 
 							AdjustEnemyHP(&enemy[j], dmg);
 

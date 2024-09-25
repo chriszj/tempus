@@ -97,6 +97,7 @@ static int		g_jump[PLAYER_JUMP_CNT_MAX] =
 };
 
 static BMPTEXT* g_HPText;
+static BMPTEXT* g_CoinText;
 static BMPTEXT* g_KeysText;
 static BMPTEXT* g_MKeyText;
 
@@ -186,6 +187,7 @@ HRESULT InitPlayer(void)
 
 		g_Player[i].inventoryKeys = 0;
 		g_Player[i].inventorySouls = 0;
+		g_Player[i].inventoryCoins = 0;
 		g_Player[i].inventorySwords = 0;
 		g_Player[i].inventoryMasterKeys = 0;
 
@@ -204,6 +206,11 @@ HRESULT InitPlayer(void)
 	g_HPText->x = 50;
 	g_HPText->y = 25;
 	g_HPText->scale = 0.7f;
+
+	g_CoinText = GetUnusedText();
+	g_CoinText->x = 50;
+	g_CoinText->y = SCREEN_HEIGHT - 50;
+	g_CoinText->scale = 0.7f;
 
 	g_KeysText = GetUnusedText();
 	g_KeysText->x = SCREEN_WIDTH - 50;
@@ -256,6 +263,9 @@ void UninitPlayer(void)
 
 	g_HPText->use = FALSE;
 	g_HPText = NULL;
+
+	g_CoinText->use = FALSE;
+	g_CoinText = NULL;
 
 	g_KeysText->use = FALSE;
 	g_KeysText = NULL;
@@ -623,18 +633,31 @@ void UpdatePlayer(void)
 									{
 										case ITEM_TYPE_KEY:
 											g_Player[i].inventoryKeys++;
+											PlaySound(SOUND_LABEL_SE_ITEM_UP);
 											break;
 										case ITEM_TYPE_HEALTH_POTION:
 											g_Player[i].hp += 40;
+											PlaySound(SOUND_LABEL_SE_ITEM_UP);
 											break;
 										case ITEM_TYPE_SWORD:
 											g_Player[i].inventorySwords ++;
+											PlaySound(SOUND_LABEL_SE_ITEM_UP);
 											break;
 										case ITEM_TYPE_MASTER_SWORD:
 											g_Player[i].inventorySwords++;
+											PlaySound(SOUND_LABEL_SE_ITEM_UP);
 											break;
 										case ITEM_TYPE_MASTER_KEY:
 											g_Player[i].inventoryMasterKeys++;
+											PlaySound(SOUND_LABEL_SE_ITEM_UP);
+											break;
+										case ITEM_TYPE_COIN:
+											g_Player[i].inventoryCoins++;
+											PlaySound(SOUND_LABEL_SE_COIN_UP);
+											break;
+										case ITEM_TYPE_MONEY:
+											g_Player[i].inventoryCoins += 20;
+											PlaySound(SOUND_LABEL_SE_MONEY_UP);
 											break;
 										default:
 											break;
@@ -756,6 +779,11 @@ void UpdatePlayer(void)
 	SetText(g_HPText, (wchar_t*)hString.c_str());
 
 
+	std::wstring cString = L"x ";
+
+	cString.append(std::to_wstring(g_Player[0].inventoryCoins));
+
+	SetText(g_CoinText, (wchar_t*)cString.c_str());
 
 	std::wstring kString = L"x ";
 

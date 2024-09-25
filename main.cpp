@@ -401,10 +401,10 @@ void Draw(void)
 		DrawProps();
 		DrawInteractables();
 		DrawPlayer();
-		DrawWeapon();		// d‚È‚é‡”Ô‚ğˆÓ¯‚µ‚Ä‚Ë
 		DrawField(2);
 		DrawEnemy();
 		DrawItem();
+		DrawWeapon();		// d‚È‚é‡”Ô‚ğˆÓ¯‚µ‚Ä‚Ë
 		DrawEffect();
 		DrawTimeMachineGUI();
 		break;

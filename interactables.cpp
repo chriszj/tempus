@@ -383,7 +383,7 @@ void UpdateInteractables(void)
 
 								}
 								else
-									MakePlayerFall(player, 10);
+									MakePlayerFall(player, -15);
 
 							}
 								

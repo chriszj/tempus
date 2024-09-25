@@ -112,7 +112,9 @@ HRESULT InitProps(void)
 		g_Props[i].move = XMFLOAT3(4.0f, 0.0f, 0.0f);		// ˆÚ“®—Ê
 
 		PushToTimeState(&g_Props[i].timeState, &g_Props[i]);
-		RegisterObjectTimeState(&g_Props[i].timeState);
+
+		if(g_Props[i].patternAnimNum > 1)
+			RegisterObjectTimeState(&g_Props[i].timeState);
 	}
 
 	g_Load = TRUE;

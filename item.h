@@ -14,7 +14,7 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define ITEM_MAX		(150)		// エネミーのMax人数
+#define ITEM_MAX		(200)		// エネミーのMax人数
 
 enum {
 	ITEM_TYPE_KEY,
@@ -23,6 +23,8 @@ enum {
 	ITEM_TYPE_MASTER_KEY,
 	ITEM_TYPE_MASTER_SWORD,
 	ITEM_TYPE_HEALTH_POTION,
+	ITEM_TYPE_COIN,
+	ITEM_TYPE_MONEY,
 	ITEM_TYPE_MAX
 };
 
