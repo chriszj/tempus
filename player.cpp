@@ -646,18 +646,22 @@ void UpdatePlayer(void)
 										case ITEM_TYPE_MASTER_SWORD:
 											g_Player[i].inventorySwords++;
 											PlaySound(SOUND_LABEL_SE_ITEM_UP);
+											AddScore(10000);
 											break;
 										case ITEM_TYPE_MASTER_KEY:
 											g_Player[i].inventoryMasterKeys++;
 											PlaySound(SOUND_LABEL_SE_ITEM_UP);
+											AddScore(5000);
 											break;
 										case ITEM_TYPE_COIN:
 											g_Player[i].inventoryCoins++;
 											PlaySound(SOUND_LABEL_SE_COIN_UP);
+											AddScore(150);
 											break;
 										case ITEM_TYPE_MONEY:
 											g_Player[i].inventoryCoins += 20;
 											PlaySound(SOUND_LABEL_SE_MONEY_UP);
+											AddScore(600);
 											break;
 										default:
 											break;

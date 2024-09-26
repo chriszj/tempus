@@ -344,6 +344,14 @@ void Update(void)
 				}
 				else {
 
+					float factor = 50 - GetTimeMachineElapsedTime();
+
+					factor /= 50;
+
+					int currentScore = GetScore() * factor;
+
+					SetScore(currentScore);
+
 					//SetMode(MODE_RESULT);
 					SetFade(FADE_OUT, MODE_RESULT);
 				}

@@ -238,7 +238,7 @@ void UpdateWeapon(void)
 
 							AdjustEnemyHP(&enemy[j], dmg);
 
-							AddScore(100);
+							//AddScore(100);
 
 							// エフェクト発生
 							//SetEffect(enemy[j].pos.x, enemy[j].pos.y, 3, 3);

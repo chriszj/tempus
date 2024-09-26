@@ -14,6 +14,7 @@
 #include "effect.h"
 #include "item.h"
 #include "sound.h"
+#include "score.h"
 
 //*****************************************************************************
 // ƒ}ƒNƒ’è‹`
@@ -857,21 +858,26 @@ void AdjustEnemyHP(ENEMY* enemy, int ammount)
 
 			if (enemy->type == ENEMY_TYPE_MIMIC && !g_swordGiven) {
 				SetItem(enemy->pos, ITEM_TYPE_MASTER_SWORD);
+				AddScore(7000);
 				g_swordGiven = TRUE;
 			}
 			else if (enemy->type == ENEMY_TYPE_ROGUE_SKELETON && !g_masterKeyGiven)
 			{
 				SetItem(enemy->pos, ITEM_TYPE_MASTER_KEY);
+				AddScore(5000);
 				g_masterKeyGiven = TRUE;
 			}
 			else if (enemy->type == ENEMY_TYPE_SKELETON_KEY && !g_keyGiven) 
 			{
 				SetItem(enemy->pos, ITEM_TYPE_KEY);
+				AddScore(1000);
 				g_keyGiven = TRUE;
 			}
 			else {
 
 				int ran = rand() % 10;
+
+				AddScore(500);
 
 				if(ran > 5)
 					SetItem(enemy->pos, ITEM_TYPE_HEALTH_POTION);
