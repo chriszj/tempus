@@ -848,8 +848,16 @@ void AdjustEnemyHP(ENEMY* enemy, int ammount)
 		enemy->hp += ammount;
 		enemy->invincibilityTime = enemy->maxInvincibilityTime;
 
-		SetEffect(enemy->pos.x, enemy->pos.y, 3, 3);
-		PlaySound(SOUND_LABEL_SE_SWORD_HIT_2);
+		int effectID = 3;
+		int seID = SOUND_LABEL_SE_SWORD_HIT_1;
+
+		if (ammount < -25) {
+			effectID = 0;
+			seID = SOUND_LABEL_SE_SWORD_HIT_2;
+		}
+
+		SetEffect(enemy->pos.x, enemy->pos.y, 3, effectID);
+		PlaySound(seID);
 
 		if (enemy->hp < 0) {
 			enemy->hp = 0;
