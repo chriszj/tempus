@@ -30,5 +30,8 @@
  </tile>
  <tile id="6" x="0" y="0" width="128" height="117">
   <image source="../../TEXTURE/Crypt/Props/animated/doors/doors-metal-door frame 1-opening.png" width="1152" height="117"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="128" height="65"/>
+  </objectgroup>
  </tile>
 </tileset>

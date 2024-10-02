@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.0" name="Props" tilewidth="96" tileheight="128" tilecount="78" columns="0">
+<tileset version="1.10" tiledversion="1.11.0" name="Props" tilewidth="96" tileheight="128" tilecount="82" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
   <image source="../../TEXTURE/Crypt/Props/atlas props - individual sprites/book - support 1.png" width="64" height="64"/>
@@ -234,5 +234,17 @@
  </tile>
  <tile id="77" x="0" y="0" width="64" height="64">
   <image source="../../TEXTURE/Crypt/Props/animated/candle_burning.png" width="512" height="64"/>
+ </tile>
+ <tile id="85">
+  <image source="../../TEXTURE/Crypt/Props/atlas props - individual sprites/bench horizontal 2.png" width="32" height="64"/>
+ </tile>
+ <tile id="86">
+  <image source="../../TEXTURE/Crypt/Props/atlas props - individual sprites/bench horizontal.png" width="64" height="64"/>
+ </tile>
+ <tile id="87">
+  <image source="../../TEXTURE/Crypt/Props/atlas props - individual sprites/bench vertical 2.png" width="32" height="64"/>
+ </tile>
+ <tile id="88">
+  <image source="../../TEXTURE/Crypt/Props/atlas props - individual sprites/bench vertical.png" width="32" height="96"/>
  </tile>
 </tileset>

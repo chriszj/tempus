@@ -515,7 +515,7 @@ void UpdatePlayer(void)
 							if (interactables[in].use == FALSE)
 								continue;
 
-							if (interactables[in].type == INTERACTABLES_DOOR || interactables[in].type == INTERACTABLES_MASTER_DOOR) 
+							if (interactables[in].type == INTERACTABLES_DOOR || interactables[in].type == INTERACTABLES_MASTER_DOOR || interactables[in].type == INTERACTABLES_SWITCH_DOOR)
 							{
 
 								if ( (interactables[in].active /*&& interactables[in].activationStatus != -1*/))
