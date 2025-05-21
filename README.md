@@ -14,11 +14,11 @@ DirectX 2D 時間操作できるARPGです。
 
 ## 操作説明　日常モード
 
-<img src="data/WIKI/wiki1.png" alt="Wiki1" width="500"/>
+<img src="data/WIKI/wiki1.png" alt="Wiki1" width="700"/>
 
 ## 操作説明　時間コントロールモード
 
-<img src="data/WIKI/wiki2.png" alt="Wiki2" width="500"/>
+<img src="data/WIKI/wiki2.png" alt="Wiki2" width="700"/>
 
 ## 操作説明　キーボード
 
@@ -54,7 +54,7 @@ DirectX 2D 時間操作できるARPGです。
 
 まず、Wallというレイヤーを選択して、オブジェクトツールを選んで、バウンディングボックスの一つをクリックしてください。その後、好きに調整してください。
 
-<img src="data/WIKI/wiki5.png" alt="Wiki2" width="500"/>
+<img src="data/WIKI/wiki5.png" alt="Wiki2" width="900"/>
 
 バウンディングボックスの追加と削除もできます。
 
@@ -66,11 +66,11 @@ DirectX 2D 時間操作できるARPGです。
 
 まず、EnemyまたはItemというレイヤーを選択して、オブジェクトツールを選んで、エネミーまたはアイテムの一つを選んでください。その後、好きに座標を調整してください。
 
-<img src="data/WIKI/wiki6.png" alt="Wiki2" width="500"/>
+<img src="data/WIKI/wiki6.png" alt="Wiki2" width="900"/>
 
 追加の志望であれば、EnemyまたはItems2というタイルセットを選択して、好きなタイルを選んで、タイルを追加ツールを選択して、好きなマップの壁の当たり判定がない好きな場所にクリックしてください。
 
-<img src="data/WIKI/wiki6.png" alt="Wiki2" width="500"/>
+<img src="data/WIKI/wiki7.png" alt="Wiki2" width="900"/>
 
 終わった後セーブしてください。
 
