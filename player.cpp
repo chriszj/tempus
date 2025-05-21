@@ -762,10 +762,11 @@ void UpdatePlayer(void)
 
 
 	// 現状をセーブする
-	if (GetKeyboardTrigger(DIK_S))
-	{
-		SaveData();
-	}
+	// このゲーム版は体験版なのでセーブしない。
+	//if (GetKeyboardTrigger(DIK_S))
+	//{
+		//SaveData();
+	//}
 
 	/*
 	std::wstring wstr2 = std::to_wstring(ENEMY_MAX - GetEnemyCount());

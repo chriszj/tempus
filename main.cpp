@@ -535,7 +535,8 @@ void SetMode(int mode)
 		// ロードゲームだったらすべての初期化が終わった後にセーブデータを読み込む
 		if (g_LoadGame == TRUE)
 		{
-			LoadData();
+			//このゲーム版は体験版なので、セーブとロードしない。
+			//LoadData();
 			g_LoadGame = FALSE;		// ロードしたからフラグをClearする
 		}
 
