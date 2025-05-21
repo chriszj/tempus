@@ -76,3 +76,9 @@ DirectX 2D 時間操作できるARPGです。
 
 セーブした後、そのままでゲームを実行してください。
 
+### 実行ファイル
+
+遊びたいだけの場合はこのリンクから実行ファイルをダウンロードできます。
+
+[Return.zip](https://drive.google.com/file/d/1b9TbIN7_uORFb3AHiWlkIByDIb1En9x8/view?usp=drive_link)
+
